@@ -127,6 +127,41 @@ html[data-theme="dark"] .chart-axis{fill:var(--muted)}html[data-theme="dark"] .c
 html[data-theme="dark"] .debt-metric{background:#14201e}
 @media(max-width:370px){.debt-metrics{grid-template-columns:1fr}.debt-card .finance-item-head{gap:8px}.debt-card .finance-item-icon{width:38px;height:38px}.debt-card .finance-item-head>.pill{font-size:9px;padding:4px 6px}}
 </style>
+<style id="fiexea-accounts-presentation">
+.accounts-overview{padding:18px 20px;margin-bottom:12px}
+.accounts-overview>strong{font-size:clamp(28px,7vw,36px);line-height:1.1;margin:6px 0 12px;overflow-wrap:anywhere}
+.account-overview-title{font-size:14px;font-weight:800;color:var(--text)}
+.account-summary-details{display:flex;flex-wrap:wrap;gap:8px}
+.account-summary-details>div{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--bg);font-size:12px;color:var(--muted)}
+.account-summary-details strong{color:var(--text)}
+.account-connect-card{padding:16px;border-radius:18px}
+.account-connect-card h3{font-size:16px}
+.account-add-button{min-height:46px;padding:10px 15px;font-weight:800}
+.account-manual-form .form{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.account-field{display:grid;gap:6px;min-width:0}
+.account-field label{display:flex;align-items:center;gap:6px;margin:0;color:var(--text);font-size:13px;font-weight:800}
+.account-field input,.account-field select{width:100%;min-width:0}
+.account-manual-actions{display:flex;gap:9px;margin-top:12px}
+.account-manual-actions .btn{flex:1;min-height:46px}
+.accounts-list{grid-template-columns:1fr}
+.account-card{min-width:0;padding:16px}
+.account-head{align-items:flex-start}
+.account-main h4{font-size:18px;font-weight:850;line-height:1.25;overflow-wrap:anywhere}
+.account-bank-subtitle{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.account-balance-panel{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:14px;padding:14px;border-radius:15px;background:var(--bg)}
+.account-balance-label{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:750}
+.account-balance{font-size:clamp(22px,6vw,30px);line-height:1.1;text-align:right;overflow-wrap:anywhere}
+.account-meta{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.account-meta div{min-width:0;padding:10px;background:var(--bg)}
+.account-meta b{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.account-meta span{overflow-wrap:anywhere}
+.account-actions{gap:10px;margin-top:12px}
+.account-actions .btn{flex:1;min-height:46px;font-size:13px}
+html[data-theme="dark"] .account-summary-details>div,html[data-theme="dark"] .account-meta div,html[data-theme="dark"] .account-balance-panel{background:#14201e}
+@media(min-width:900px){.accounts-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.account-manual-form .form{grid-template-columns:1fr}.account-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.account-head{gap:9px}.account-bank-logo{width:40px;height:40px}.account-connect-card{padding:14px}}
+@media(max-width:360px){.account-meta{grid-template-columns:1fr}.account-balance-panel{align-items:flex-start;flex-direction:column}.account-balance{text-align:left}}
+</style>
 </head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
@@ -360,6 +395,8 @@ html[data-theme="dark"] .debt-metric{background:#14201e}
     <p class="muted">Centraliza tus cuentas bancarias y consulta saldo, IBAN, titular y movimientos desde FIEXEA.</p>
   </div>
 
+  <div class="account-total-summary accounts-overview"><span class="account-overview-title">💰 Saldo total</span><strong id="accountTotal">0 €</strong><div class="account-summary-details"><div><strong id="accountCountSummary">0</strong><span>Cuentas</span></div><div><strong id="accountCurrencySummary">EUR</strong><span>Moneda mostrada</span></div></div></div>
+
   <div class="card account-connect-card">
     <div class="account-connect-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -368,32 +405,31 @@ html[data-theme="dark"] .debt-metric{background:#14201e}
       </svg>
     </div>
     <div style="flex:1">
-      <h3 style="margin:0 0 5px">Vincula tu banco</h3>
-      <p class="small muted" style="margin:0">Conexión bancaria segura para importar cuentas, saldos y movimientos.</p>
+      <h3 style="margin:0 0 5px">Conectar cuenta bancaria</h3>
+      <p class="small muted" style="margin:0">Consulta las opciones para conectar un banco. La conexión bancaria real aún no está disponible en FIEXEA.</p>
     </div>
-    <button class="btn" type="button" onclick="openBankLinkInfo()">Vincular cuenta</button>
+    <button class="btn" type="button" onclick="openBankLinkInfo()">🔗 Conectar cuenta bancaria</button>
   </div>
 
   <div class="card">
-    <div class="account-total-summary"><span>💰 Saldo total de las cuentas registradas</span><strong id="accountTotal">0 €</strong></div>
     <div class="section-title-row">
       <div>
         <h3 style="margin:0">Mis cuentas</h3>
         <div class="small muted">Información disponible en FIEXEA</div>
       </div>
-      <button class="btn secondary small" type="button" onclick="toggleManualAccountForm()">Añadir manual</button>
+      <button class="btn account-add-button" type="button" onclick="toggleManualAccountForm()">＋ Añadir cuenta</button>
     </div>
 
     <div id="manualAccountForm" class="account-manual-form" hidden>
       <div class="form">
-        <input id="accBank" placeholder="Banco">
-        <input id="accName" placeholder="Nombre de la cuenta">
-        <input id="accHolder" placeholder="Titular">
-        <input id="accIban" placeholder="IBAN">
-        <input id="accBalance" type="number" step="0.01" placeholder="Saldo €">
-        <select id="accCurrency"><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option></select>
+        <div class="account-field"><label for="accName"><span aria-hidden="true">🏦</span><span>Nombre de la cuenta</span></label><input id="accName" placeholder="Nombre de la cuenta"></div>
+        <div class="account-field"><label for="accBank"><span aria-hidden="true">🏛️</span><span>Banco</span></label><input id="accBank" placeholder="Banco"></div>
+        <div class="account-field"><label for="accHolder"><span aria-hidden="true">👤</span><span>Titular</span></label><input id="accHolder" placeholder="Titular"></div>
+        <div class="account-field"><label for="accIban"><span aria-hidden="true">💳</span><span>IBAN</span></label><input id="accIban" placeholder="IBAN"></div>
+        <div class="account-field"><label for="accBalance"><span aria-hidden="true">💰</span><span>Saldo</span></label><input id="accBalance" type="number" step="0.01" placeholder="Saldo €"></div>
+        <div class="account-field"><label for="accCurrency"><span aria-hidden="true">💶</span><span>Moneda</span></label><select id="accCurrency"><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option></select></div>
       </div>
-      <div class="actions">
+      <div class="actions account-manual-actions">
         <button class="btn" type="button" onclick="addManualAccount()">Guardar cuenta</button>
         <button class="btn secondary" type="button" onclick="toggleManualAccountForm()">Cancelar</button>
       </div>
@@ -635,14 +671,17 @@ function accountKindIcon(account){const value=`${account.name||''} ${account.ban
 function renderAccounts(){
   const el=document.getElementById('accountsList');if(!el)return;
   const total=accounts.reduce((sum,account)=>sum+(Number(account.balance)||0),0),totalNode=document.getElementById('accountTotal');if(totalNode)totalNode.textContent=eur(total);
+  const countNode=document.getElementById('accountCountSummary');if(countNode)countNode.textContent=String(accounts.length);
+  const currencyNode=document.getElementById('accountCurrencySummary');if(currencyNode)currencyNode.textContent=typeof presentationCurrency!=='undefined'?presentationCurrency:'EUR';
   el.innerHTML=accounts.length?accounts.map(a=>`<article class="account-card">
-    <div class="account-head"><div class="account-bank-logo" aria-hidden="true">${accountKindIcon(a)}</div><div class="account-main"><h4>${esc(a.name||'Cuenta bancaria')}</h4><div class="small muted">${esc(a.bank||'Banco')}</div></div><div class="account-balance money">${eur(a.balance||0)}</div></div>
-    <div class="account-meta"><div><b>Titular</b><span>${esc(a.holder||'—')}</span></div><div><b>IBAN</b><span>${esc(maskIban(a.iban))}</span></div><div><b>Moneda</b><span>${esc(a.currency||'EUR')}</span></div><div><b>Última actualización</b><span>${esc(a.updated||'Añadida manualmente')}</span></div></div>
+    <div class="account-head"><div class="account-bank-logo" aria-hidden="true">${accountKindIcon(a)}</div><div class="account-main"><h4>${esc(a.name||'Cuenta bancaria')}</h4><div class="account-bank-subtitle">${esc(a.bank||'Banco')}</div></div></div>
+    <div class="account-balance-panel"><span class="account-balance-label">💰 Saldo</span><strong class="account-balance money">${eur(a.balance||0)}</strong></div>
+    <div class="account-meta"><div><b><span aria-hidden="true">👤</span><span>Titular</span></b><span>${esc(a.holder||'—')}</span></div><div><b><span aria-hidden="true">💳</span><span>IBAN</span></b><span>${esc(maskIban(a.iban))}</span></div><div><b><span aria-hidden="true">💶</span><span>Moneda</span></b><span>${esc(a.currency||'EUR')}</span></div><div><b><span aria-hidden="true">📅</span><span>Última actualización</span></b><span>${esc(a.updated||'Añadida manualmente')}</span></div></div>
     <div class="account-actions"><button class="btn secondary small" type="button" onclick="editManualAccount('${escAttr(a.id)}')">✏️ Editar</button><button class="btn danger small" type="button" onclick="deleteAccount('${escAttr(a.id)}')">🗑️ Eliminar</button></div>
-  </article>`).join(''):'<div class="empty">Todavía no tienes cuentas vinculadas. Pulsa «Vincular cuenta» para preparar la conexión bancaria o «Añadir manual» para introducir una cuenta.</div>';
+  </article>`).join(''):'<div class="empty">Todavía no tienes cuentas registradas. Consulta las opciones de conexión o pulsa ＋ Añadir cuenta para añadir una manualmente.</div>';
 }
-function toggleManualAccountForm(){const form=document.getElementById('manualAccountForm');if(!form)return;const opening=form.hidden;cancelAccountEdit();form.hidden= !opening;if(opening)document.getElementById('accBank').focus()}
-function editManualAccount(id){const account=accounts.find(item=>String(item.id)===String(id));if(!account)return;editingAccountId=account.id;document.getElementById('manualAccountForm').hidden=false;document.getElementById('accBank').value=account.bank||'';document.getElementById('accName').value=account.name||'';document.getElementById('accHolder').value=account.holder||'';document.getElementById('accIban').value=account.iban||'';document.getElementById('accBalance').value=account.balance??'';document.getElementById('accCurrency').value=account.currency||'EUR';document.querySelector('#manualAccountForm .actions .btn').textContent='Guardar cambios';document.getElementById('accBank').focus();document.getElementById('manualAccountForm').scrollIntoView({behavior:'smooth',block:'center'})}
+function toggleManualAccountForm(){const form=document.getElementById('manualAccountForm');if(!form)return;const opening=form.hidden;cancelAccountEdit();form.hidden= !opening;if(opening)document.getElementById('accName').focus()}
+function editManualAccount(id){const account=accounts.find(item=>String(item.id)===String(id));if(!account)return;editingAccountId=account.id;document.getElementById('manualAccountForm').hidden=false;document.getElementById('accBank').value=account.bank||'';document.getElementById('accName').value=account.name||'';document.getElementById('accHolder').value=account.holder||'';document.getElementById('accIban').value=account.iban||'';document.getElementById('accBalance').value=account.balance??'';document.getElementById('accCurrency').value=account.currency||'EUR';document.querySelector('#manualAccountForm .actions .btn').textContent='Guardar cambios';document.getElementById('accName').focus();document.getElementById('manualAccountForm').scrollIntoView({behavior:'smooth',block:'center'})}
 function cancelAccountEdit(){editingAccountId=null;['accBank','accName','accHolder','accIban','accBalance'].forEach(id=>{const field=document.getElementById(id);if(field)field.value=''});const saveButton=document.querySelector('#manualAccountForm .actions .btn');if(saveButton)saveButton.textContent='Guardar cuenta'}
 function addManualAccount(){
   const bank=document.getElementById('accBank').value.trim(),name=document.getElementById('accName').value.trim(),holder=document.getElementById('accHolder').value.trim(),iban=document.getElementById('accIban').value.trim(),balance=Number(document.getElementById('accBalance').value)||0,currency=document.getElementById('accCurrency').value||'EUR';

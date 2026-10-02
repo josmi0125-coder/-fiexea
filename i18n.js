@@ -109,6 +109,7 @@
     "tarjetas": ["credit cards", "cartes de crédit", "carte di credito"],
     "hipoteca": ["mortgage", "hypothèque", "mutuo"],
     "Sueldo": ["Salary", "Salaire", "Stipendio"],
+    "TAE / interés": ["APR / interest", "TAEG / intérêts", "TAEG / interessi"],
   };
   const langs = { es: -1, en: 0, fr: 1, it: 2 };
   const labels = { es: "🇪🇸 Español", en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano" };

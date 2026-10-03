@@ -110,6 +110,8 @@ html[data-theme="dark"] .premium-trigger{background:linear-gradient(135deg,#463b
 html[data-theme="dark"] .btn.secondary{background:#263632;color:var(--text);border-color:var(--line)}
 html[data-theme="dark"] .bank-provider,html[data-theme="dark"] .cookie-category{background:#14201e;border-color:var(--line)}
 html[data-theme="dark"] .chart-axis{fill:var(--muted)}html[data-theme="dark"] .chart-grid{stroke:var(--line)}
+.financial-backup-card{margin-top:14px}.financial-backup-card h3{margin:0 0 6px}.financial-backup-card p{line-height:1.5}.financial-backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.financial-backup-actions .btn{min-height:48px;white-space:normal}
+@media(max-width:520px){.financial-backup-actions{grid-template-columns:1fr}}
 </style>
 <style id="fiexea-debt-presentation">
 .debt-editor .form{align-items:start}
@@ -577,6 +579,16 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
         <article class="settings-option"><span class="settings-option-icon" aria-hidden="true">📅</span><div class="settings-option-main"><label for="cycleStartDaySelect">Día de inicio del mes</label><p>Presupuesto y comparativas usan este ciclo; el gráfico y los totales anuales de Análisis siguen el año natural.</p><select id="cycleStartDaySelect" aria-label="Día de inicio del mes"><option value="1">1</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option></select></div></article>
         <article class="settings-option"><span class="settings-option-icon" aria-hidden="true">🌙</span><div class="settings-option-main"><label for="appearanceSelect">Apariencia</label><p>Automática sigue el tema de tu dispositivo.</p><select id="appearanceSelect" aria-label="Apariencia"><option value="auto">Automática</option><option value="light">Clara</option><option value="dark">Oscura</option></select></div></article>
       </div>
+      <p id="financialSyncStatus" class="small muted" role="status" aria-live="polite" style="margin:12px 2px 0">📱 Solo en este dispositivo</p>
+      <div class="section card financial-backup-card">
+        <h3>💾 Datos y copia de seguridad</h3>
+        <p class="small muted">Guarda una copia de tus datos para poder recuperarlos si cambias de dispositivo o navegador.</p>
+        <div class="financial-backup-actions">
+          <button class="btn" type="button" onclick="exportFinancialBackup()">📤 Exportar mis datos</button>
+          <button class="btn secondary" type="button" onclick="document.getElementById('financialBackupFile').click()">📥 Importar copia de seguridad</button>
+        </div>
+        <input id="financialBackupFile" type="file" accept="application/json,.json" hidden onchange="importFinancialBackup(event)">
+      </div>
     </section>
 
     <section id="t8" class="tab">
@@ -714,8 +726,19 @@ let assets=JSON.parse(localStorage.getItem('fiexea_assets')||'[]');
 let accounts=JSON.parse(localStorage.getItem('fiexea_accounts')||'[]');
 let editingAccountId=null;
 let budget=Number(localStorage.getItem('fiexea_budget')||0);
-function save(){localStorage.setItem('fiexea_moves',JSON.stringify(moves));localStorage.setItem('fiexea_debts',JSON.stringify(debts));localStorage.setItem('fiexea_goals',JSON.stringify(goals));localStorage.setItem('fiexea_assets',JSON.stringify(assets));localStorage.setItem('fiexea_accounts',JSON.stringify(accounts));localStorage.setItem('fiexea_budget',budget)}
-let saveConfirmationTimer=null;function saveCurrentData(){try{save();saveBudget();savePlanner();const notice=document.getElementById('saveConfirmation');if(notice){notice.textContent=window.fiexeaTranslate?window.fiexeaTranslate('Datos guardados'):'Datos guardados';notice.hidden=false;clearTimeout(saveConfirmationTimer);saveConfirmationTimer=setTimeout(()=>{notice.hidden=true},2200)}}catch(error){console.error('No se pudieron guardar los datos de FIEXEA',error);alert('No se pudieron guardar los datos. Comprueba el almacenamiento disponible.')}}
+function save(){localStorage.setItem('fiexea_moves',JSON.stringify(moves));localStorage.setItem('fiexea_debts',JSON.stringify(debts));localStorage.setItem('fiexea_goals',JSON.stringify(goals));localStorage.setItem('fiexea_assets',JSON.stringify(assets));localStorage.setItem('fiexea_accounts',JSON.stringify(accounts));localStorage.setItem('fiexea_budget',budget);queueFinancialSync()}
+let saveConfirmationTimer=null;
+function showPersistenceNotice(message){const notice=document.getElementById('saveConfirmation');if(!notice){console.info(message);return}notice.textContent=window.fiexeaTranslate?window.fiexeaTranslate(message):message;notice.hidden=false;clearTimeout(saveConfirmationTimer);saveConfirmationTimer=setTimeout(()=>{notice.hidden=true},5000)}
+async function saveCurrentData(){
+  try{
+    save();saveBudget();savePlanner();
+  }catch(error){console.error('No se pudieron guardar los datos de FIEXEA',error);alert('No se pudieron guardar los datos. Comprueba el almacenamiento disponible.');return}
+  try{
+    const result=await syncFinancialDataToSupabase();
+    if(!result.authenticated){setFinancialSyncStatus('local');showPersistenceNotice('Datos guardados localmente. Inicia sesión para sincronizarlos.')}
+    else{financialLastSyncedSnapshot=financialDataSnapshot(result.data||collectFinancialData());setFinancialSyncStatus('synced');showPersistenceNotice('Datos guardados y sincronizados con Supabase.')}
+  }catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('Los datos locales siguen guardados, pero no se pudieron sincronizar con Supabase.')}
+}
 function setPresentationCurrency(value){if(!supportedDisplayCurrencies.includes(value))return;presentationCurrency=value;localStorage.setItem('fiexea_currency',value);render()}
 function setCycleStartDay(value){const day=Number(value);if(!cycleStartChoices.includes(day))return;cycleStartDay=day;localStorage.setItem('fiexea_cycle_start_day',String(day));budgetMonth=localBudgetMonth();localStorage.setItem('fiexea_budget_month',budgetMonth);render()}
 function applyAppearance(){const media=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null,dark=appearancePreference==='dark'||(appearancePreference==='auto'&&!!media?.matches);document.documentElement.dataset.theme=dark?'dark':'light'}
@@ -891,8 +914,146 @@ function delAsset(id){assets=assets.filter(asset=>String(asset.id)!==String(id))
 function setBudget(){budget=+document.getElementById('budget').value||0;render();alert('Presupuesto guardado.')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function exportJSON(){let data={moves,debts,goals,assets,budget,budgetCategories,budgetMonth,hiddenBudgetCategories,plannerYear,plannerCategories,planRows,version:7};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='fiexea-copia.json';a.click()}
-function importJSON(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(){try{const data=JSON.parse(reader.result);if(!data||typeof data!=="object"||!Array.isArray(data.moves)||!Array.isArray(data.debts)||!Array.isArray(data.goals)||!Array.isArray(data.assets)){throw new Error("formato")}if(!confirm("¿Restaurar esta copia? Los datos actuales de FIEXEA serán sustituidos por los de la copia."))return;moves=data.moves;debts=data.debts;goals=data.goals;assets=data.assets;budget=Number(data.budget)||0;if(Array.isArray(data.budgetCategories))budgetCategories=data.budgetCategories.map(c=>({id:String(c.id||uid()),name:String(c.name||'').trim(),icon:budgetIconOptions.some(([icon])=>icon===c.icon)?c.icon:budgetIconFor(c.name),limit:Math.max(0,Number(c.limit)||0),aliases:Array.isArray(c.aliases)?c.aliases.map(String):[]})).filter(c=>c.name);if(/^\d{4}-(0[1-9]|1[0-2])$/.test(data.budgetMonth||''))budgetMonth=data.budgetMonth;if(Array.isArray(data.hiddenBudgetCategories))hiddenBudgetCategories=data.hiddenBudgetCategories.map(normalizeBudgetCategory).filter(Boolean);if(Array.isArray(data.planRows))planRows=data.planRows;if(Array.isArray(data.plannerCategories))plannerCategories=data.plannerCategories;if(!Array.isArray(data.budgetCategories)){budgetCategories=migrateLegacyBudgetCategories(plannerCategories,planRows,budgetMonth);hiddenBudgetCategories=[]}if(Number.isFinite(Number(data.plannerYear)))plannerYear=Number(data.plannerYear);migrateCanonicalMovementCategories();save();saveBudget();savePlanner();document.getElementById("budget").value=budget;render();alert("Copia restaurada correctamente.")}catch(e){alert("No se pudo restaurar la copia. Comprueba que sea un archivo de copia de FIEXEA.")}finally{event.target.value=""}};reader.readAsText(file)}
+function importJSON(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async function(){try{const data=JSON.parse(reader.result);if(!data||typeof data!=="object"||!Array.isArray(data.moves)||!Array.isArray(data.debts)||!Array.isArray(data.goals)||!Array.isArray(data.assets)){throw new Error("formato")}if(!confirm("¿Restaurar esta copia? Los datos actuales de FIEXEA serán sustituidos por los de la copia."))return;moves=data.moves;debts=data.debts;goals=data.goals;assets=data.assets;budget=Number(data.budget)||0;if(Array.isArray(data.budgetCategories))budgetCategories=data.budgetCategories.map(c=>({id:String(c.id||uid()),name:String(c.name||'').trim(),icon:budgetIconOptions.some(([icon])=>icon===c.icon)?c.icon:budgetIconFor(c.name),limit:Math.max(0,Number(c.limit)||0),aliases:Array.isArray(c.aliases)?c.aliases.map(String):[]})).filter(c=>c.name);if(/^\d{4}-(0[1-9]|1[0-2])$/.test(data.budgetMonth||''))budgetMonth=data.budgetMonth;if(Array.isArray(data.hiddenBudgetCategories))hiddenBudgetCategories=data.hiddenBudgetCategories.map(normalizeBudgetCategory).filter(Boolean);if(Array.isArray(data.planRows))planRows=data.planRows;if(Array.isArray(data.plannerCategories))plannerCategories=data.plannerCategories;if(!Array.isArray(data.budgetCategories)){budgetCategories=migrateLegacyBudgetCategories(plannerCategories,planRows,budgetMonth);hiddenBudgetCategories=[]}if(Number.isFinite(Number(data.plannerYear)))plannerYear=Number(data.plannerYear);migrateCanonicalMovementCategories();save();saveBudget();savePlanner();document.getElementById("budget").value=budget;render();try{const syncResult=await syncFinancialDataToSupabase();alert(syncResult.authenticated?"Copia restaurada y sincronizada correctamente.":"Copia restaurada localmente. Inicia sesión para sincronizarla.")}catch(syncError){console.error("No se pudo sincronizar la copia importada",syncError);showPersistenceNotice("La copia se restauró localmente, pero no se pudo sincronizar con Supabase.")}}catch(e){alert("No se pudo restaurar la copia. Comprueba que sea un archivo de copia de FIEXEA.")}finally{event.target.value=""}};reader.readAsText(file)}
 
+const FIEXEA_FINANCIAL_BACKUP_KEYS=Object.freeze(['fiexea_moves','fiexea_debts','fiexea_goals','fiexea_assets','fiexea_accounts','fiexea_budget','fiexea_budget_categories','fiexea_budget_month','fiexea_budget_hidden_categories','fiexea_planner_year','fiexea_planner_rows','fiexea_planner_categories','fiexea_analysis_year','fiexea_currency','fiexea_cycle_start_day']);
+const FINANCIAL_DATA_STORAGE_KEYS=Object.freeze(FIEXEA_FINANCIAL_BACKUP_KEYS.filter(key=>!['fiexea_currency','fiexea_cycle_start_day','fiexea_analysis_year'].includes(key)));
+const FINANCIAL_OWNER_STORAGE_KEY='fiexea_financial_owner_id',FINANCIAL_CACHE_PREFIX='fiexea_financial_cache_v1_';
+let financialLoadPromise=null,financialLoadUserId=null,financialSessionVersion=0,financialAppReady=false,financialActiveUserId=null,financialSyncStatus='local',financialSyncTimer=null,financialLastSyncedSnapshot='';
+function collectFinancialData(storage=localStorage){const data={};FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{data[key]=storage.getItem(key)});return data}
+function financialDataHasContent(data){
+  for(const key of ['fiexea_moves','fiexea_debts','fiexea_goals','fiexea_assets','fiexea_accounts','fiexea_budget_categories','fiexea_budget_hidden_categories','fiexea_planner_rows','fiexea_planner_categories']){
+    const raw=data[key];if(raw===null||raw===undefined||raw==='')continue;
+    try{const value=JSON.parse(raw);if(!Array.isArray(value)||value.length>0)return true}catch(_){return true}
+  }
+  const budget=data.fiexea_budget;if(budget!==null&&budget!==undefined&&budget!==''&&(!Number.isFinite(Number(budget))||Number(budget)!==0))return true;
+  return false;
+}
+function financialDataEquals(first,second){return FIEXEA_FINANCIAL_BACKUP_KEYS.every(key=>(first[key]??null)===(second[key]??null))}
+function financialDataSnapshot(data){return JSON.stringify(FIEXEA_FINANCIAL_BACKUP_KEYS.map(key=>[key,data?.[key]??null]))}
+function financialDataMerge(local,remote){
+  const merged={...remote};
+  const listKeys=['fiexea_moves','fiexea_debts','fiexea_goals','fiexea_assets','fiexea_accounts','fiexea_budget_categories','fiexea_budget_hidden_categories','fiexea_planner_rows','fiexea_planner_categories'];
+  for(const key of listKeys){
+    const parse=value=>{if(value===null||value===undefined||value==='')return[];const result=JSON.parse(value);if(!Array.isArray(result))throw new Error(`Formato inválido en ${key}`);return result};
+    const byId=new Map(),withoutId=new Map();
+    for(const item of [...parse(remote[key]),...parse(local[key])]){
+      if(!item||typeof item!=='object'){withoutId.set(JSON.stringify(item),item);continue}
+      if(item.id!==undefined&&item.id!==null&&String(item.id)!=='')byId.set(String(item.id),item);
+      else{const signature=JSON.stringify(item);withoutId.set(signature,item)}
+    }
+    merged[key]=JSON.stringify([...byId.values(),...withoutId.values()]);
+  }
+  for(const key of FIEXEA_FINANCIAL_BACKUP_KEYS){if(listKeys.includes(key))continue;if(local[key]!==null&&local[key]!==undefined)merged[key]=local[key]}
+  if(local.fiexea_budget!==null&&local.fiexea_budget!==undefined&&Number(local.fiexea_budget)===0&&Number(remote.fiexea_budget)>0)merged.fiexea_budget=remote.fiexea_budget;
+  return merged;
+}
+function financialDataEmpty(){const empty={};FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{empty[key]=null});return empty}
+function financialUserCacheKey(userId){return FINANCIAL_CACHE_PREFIX+encodeURIComponent(String(userId))}
+function cacheCurrentFinancialData(userId){if(!userId)return;try{const key=financialUserCacheKey(userId),data=collectFinancialData();if(!financialDataHasContent(data)&&localStorage.getItem(key))return;localStorage.setItem(key,JSON.stringify(data))}catch(error){console.warn('No se pudo guardar la caché financiera local',error)}}
+function readFinancialUserCache(userId){try{const value=JSON.parse(localStorage.getItem(financialUserCacheKey(userId))||'null');return validateFinancialBackupData(value)?value:null}catch(_){return null}}
+function setFinancialSyncStatus(status){financialSyncStatus=status;const indicator=document.getElementById('financialSyncStatus');if(!indicator)return;const key=status==='synced'?'☁️ Datos sincronizados':'📱 Solo en este dispositivo';indicator.textContent=window.fiexeaTranslate?window.fiexeaTranslate(key):key}
+function clearFinancialState(){moves=[];debts=[];goals=[];assets=[];accounts=[];budget=0;budgetCategories=[];hiddenBudgetCategories=[];plannerCategories=[];planRows=[];plannerYear=new Date().getFullYear();budgetMonth=localBudgetMonth();}
+function hydrateFinancialStateFromLocalStorage(){const data=collectFinancialData();moves=JSON.parse(data.fiexea_moves||'[]');debts=JSON.parse(data.fiexea_debts||'[]');goals=JSON.parse(data.fiexea_goals||'[]');assets=JSON.parse(data.fiexea_assets||'[]');accounts=JSON.parse(data.fiexea_accounts||'[]');budget=Number(data.fiexea_budget)||0;budgetCategories=JSON.parse(data.fiexea_budget_categories||'[]');hiddenBudgetCategories=JSON.parse(data.fiexea_budget_hidden_categories||'[]');plannerYear=Number(data.fiexea_planner_year)||new Date().getFullYear();planRows=JSON.parse(data.fiexea_planner_rows||'[]');plannerCategories=JSON.parse(data.fiexea_planner_categories||'[]');budgetMonth=data.fiexea_budget_month||localBudgetMonth()}
+function switchFinancialUser(userId){
+  const previousUserId=localStorage.getItem(FINANCIAL_OWNER_STORAGE_KEY);
+  if(previousUserId&&previousUserId!==userId){cacheCurrentFinancialData(previousUserId);const cached=readFinancialUserCache(userId);restoreFinancialBackupData(cached||financialDataEmpty(),localStorage);}
+  else if(!previousUserId){const cached=readFinancialUserCache(userId);if(cached)restoreFinancialBackupData(cached,localStorage)}
+  financialActiveUserId=userId;localStorage.setItem(FINANCIAL_OWNER_STORAGE_KEY,userId);
+  hydrateFinancialStateFromLocalStorage();
+}
+async function syncFinancialDataToSupabase(dataOverride=null){
+  const{data:{session},error:sessionError}=await fiexeaSupabase.auth.getSession();if(sessionError)throw sessionError;
+  if(!session?.user?.id)return{authenticated:false,synced:false};
+  if(financialActiveUserId!==session.user.id)throw new Error('La sesión cambió; se canceló la sincronización para proteger los datos.');
+  let data=dataOverride||collectFinancialData();if(!validateFinancialBackupData(data))throw new Error('El estado financiero local no tiene un formato compatible.');
+  const table=fiexeaSupabase.from('fiexea_financial_data'),{data:existing,error:lookupError}=await table.select('id,created_at,data').eq('user_id',session.user.id).maybeSingle();if(lookupError)throw lookupError;
+  if(existing&&!validateFinancialBackupData(existing.data))throw new Error('La copia remota tiene un formato no válido; no se modificó.');
+  if(existing?.data){
+    const remoteChanged=!financialLastSyncedSnapshot||financialDataSnapshot(existing.data)!==financialLastSyncedSnapshot;
+    const merged=dataOverride?data:(remoteChanged?financialDataMerge(data,existing.data):data);if(!financialDataEquals(merged,existing.data)){data=merged;if(!dataOverride){restoreFinancialBackupData(data,localStorage);hydrateFinancialStateFromLocalStorage()}}
+  }
+  const now=new Date().toISOString(),record={user_id:session.user.id,data,updated_at:now};
+  if(existing?.id)record.id=existing.id;if(existing?.created_at)record.created_at=existing.created_at;
+  const{error}=await fiexeaSupabase.from('fiexea_financial_data').upsert(record,{onConflict:'user_id'});if(error)throw error;
+  if(!dataOverride){financialLastSyncedSnapshot=financialDataSnapshot(data);cacheCurrentFinancialData(session.user.id)}
+  return{authenticated:true,synced:true,data};
+}
+async function loadFinancialDataFromSupabase(sessionOverride=null){
+  let session=sessionOverride;
+  if(!session){const{data,error:sessionError}=await fiexeaSupabase.auth.getSession();if(sessionError)throw sessionError;session=data?.session}
+  if(!session?.user?.id){const previousUserId=localStorage.getItem(FINANCIAL_OWNER_STORAGE_KEY);if(previousUserId){cacheCurrentFinancialData(previousUserId);clearFinancialState();try{FINANCIAL_DATA_STORAGE_KEYS.forEach(key=>localStorage.removeItem(key));localStorage.removeItem(FINANCIAL_OWNER_STORAGE_KEY)}catch(error){console.warn('No se pudo limpiar la caché financiera al cerrar sesión',error)}financialActiveUserId=null}setFinancialSyncStatus('local');return{status:'no-session'}}
+  const userId=session.user.id,loadVersion=financialSessionVersion;if(financialLoadPromise&&financialLoadUserId===userId)return financialLoadPromise;
+  financialLoadPromise=(async()=>{
+    switchFinancialUser(userId);
+    const local=collectFinancialData();
+    const{data:row,error}=await fiexeaSupabase.from('fiexea_financial_data').select('id,created_at,data,updated_at').eq('user_id',userId).maybeSingle();if(error)throw error;if(loadVersion!==financialSessionVersion)return{status:'stale-session'};
+    if(!row){if(financialDataHasContent(local)){const result=await syncFinancialDataToSupabase(local);setFinancialSyncStatus('synced');return{status:'local-uploaded',data:result.data}}setFinancialSyncStatus('local');return{status:'no-remote-row'}}
+    if(!validateFinancialBackupData(row.data)){showPersistenceNotice('La copia remota tiene un formato no válido; se conservaron los datos locales.');setFinancialSyncStatus('local');return{status:'invalid-remote'}}
+    const merged=financialDataHasContent(local)?financialDataMerge(local,row.data):row.data;
+    if(!financialDataEquals(local,merged)){restoreFinancialBackupData(merged,localStorage);switchFinancialUser(userId)}
+    const mergedSnapshot=financialDataSnapshot(merged),remoteSnapshot=financialDataSnapshot(row.data);
+    if(mergedSnapshot!==remoteSnapshot){const result=await syncFinancialDataToSupabase(merged);financialLastSyncedSnapshot=financialDataSnapshot(result.data);cacheCurrentFinancialData(userId);setFinancialSyncStatus('synced');return{status:'merged',data:result.data}}
+    financialLastSyncedSnapshot=remoteSnapshot;cacheCurrentFinancialData(userId);setFinancialSyncStatus('synced');return{status:financialDataEquals(local,row.data)?'same':'remote-restored',data:row.data};
+  })();
+  financialLoadUserId=userId;
+  try{return await financialLoadPromise}catch(error){console.error('No se pudo cargar la copia remota de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('No se pudo consultar la copia remota. Se conservaron los datos locales.');return{status:'error',error}}
+  finally{financialLoadPromise=null;financialLoadUserId=null}
+}
+async function deleteFinancialDataFromSupabase(){
+  const{data:{session},error:sessionError}=await fiexeaSupabase.auth.getSession();if(sessionError)throw sessionError;
+  if(!session?.user?.id)return{authenticated:false};
+  const{error}=await fiexeaSupabase.from('fiexea_financial_data').delete().eq('user_id',session.user.id);if(error)throw error;
+  return{authenticated:true};
+}
+function initializeFinancialPersistence(){
+  fiexeaSupabase.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_IN'&&session){financialSessionVersion++;setTimeout(()=>loadFinancialDataFromSupabase(session).then(async()=>{const{data:{session:current}}=await fiexeaSupabase.auth.getSession();if(current?.user?.id!==session.user.id||financialActiveUserId!==session.user.id)return;financialAppReady=true;render()}),0)}
+    if(event==='SIGNED_OUT'){financialSessionVersion++;setTimeout(()=>{if(financialActiveUserId)cacheCurrentFinancialData(financialActiveUserId);clearFinancialState();try{FINANCIAL_DATA_STORAGE_KEYS.forEach(key=>localStorage.removeItem(key));localStorage.removeItem(FINANCIAL_OWNER_STORAGE_KEY)}catch(error){console.warn('No se pudo limpiar la caché financiera al cerrar sesión',error)}financialActiveUserId=null;financialAppReady=true;setFinancialSyncStatus('local');render()},0)}
+  });
+  loadFinancialDataFromSupabase().then(async()=>{const{data:{session}}=await fiexeaSupabase.auth.getSession();if(session?.user?.id&&financialActiveUserId!==session.user.id)return;if(!session&&financialActiveUserId){cacheCurrentFinancialData(financialActiveUserId);clearFinancialState();try{FINANCIAL_DATA_STORAGE_KEYS.forEach(key=>localStorage.removeItem(key));localStorage.removeItem(FINANCIAL_OWNER_STORAGE_KEY)}catch(error){console.warn('No se pudo limpiar la caché financiera',error)}financialActiveUserId=null}financialAppReady=true;render()});
+}
+function queueFinancialSync(){if(!financialAppReady||!financialActiveUserId)return;clearTimeout(financialSyncTimer);financialSyncTimer=setTimeout(async()=>{const snapshot=financialDataSnapshot(collectFinancialData());if(snapshot===financialLastSyncedSnapshot)return;setFinancialSyncStatus('local');try{const result=await syncFinancialDataToSupabase();if(result.authenticated){financialLastSyncedSnapshot=financialDataSnapshot(result.data||collectFinancialData());setFinancialSyncStatus('synced')}}catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('Los datos locales siguen guardados, pero no se pudieron sincronizar con Supabase.')}},900)}
+function createFinancialBackup(storage,exportedAt=new Date().toISOString()){
+  if(!storage||typeof storage.getItem!=='function')throw new Error('El almacenamiento local no está disponible.');
+  const data={};FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{data[key]=storage.getItem(key)});
+  return{app:'FIEXEA',backupVersion:1,exportedAt,data};
+}
+function validateFinancialBackupData(data){
+  if(!data||typeof data!=='object'||Array.isArray(data))return false;
+  const keys=Object.keys(data);return keys.length===FIEXEA_FINANCIAL_BACKUP_KEYS.length&&FIEXEA_FINANCIAL_BACKUP_KEYS.every(key=>Object.prototype.hasOwnProperty.call(data,key)&&(data[key]===null||typeof data[key]==='string'));
+}
+function validateFinancialBackup(backup){
+  return !!(backup&&typeof backup==='object'&&backup.app==='FIEXEA'&&backup.backupVersion===1&&typeof backup.exportedAt==='string'&&Number.isFinite(Date.parse(backup.exportedAt))&&validateFinancialBackupData(backup.data));
+}
+function restoreFinancialBackupData(data,storage){
+  if(!validateFinancialBackupData(data))throw new Error('El archivo no tiene un formato de copia de seguridad FIEXEA compatible.');
+  if(!storage||typeof storage.getItem!=='function'||typeof storage.setItem!=='function'||typeof storage.removeItem!=='function')throw new Error('El almacenamiento local no está disponible.');
+  const previous={};FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{previous[key]=storage.getItem(key)});
+  try{FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{if(data[key]===null)storage.removeItem(key);else storage.setItem(key,data[key])})}
+  catch(error){FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{try{if(previous[key]===null)storage.removeItem(key);else storage.setItem(key,previous[key])}catch(_){}});throw error}
+}
+function exportFinancialBackup(){
+  try{
+    const backup=createFinancialBackup(localStorage),blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+    const date=new Date(),datePart=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+    link.href=url;link.download=`fiexea-backup-${datePart}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(error){alert('No se pudo exportar la copia. Comprueba que el almacenamiento local esté disponible.')}
+}
+function importFinancialBackup(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  const input=event.target,reader=new FileReader();
+  reader.onload=async()=>{
+    try{
+      let backup;try{backup=JSON.parse(String(reader.result))}catch(_){throw new Error('El archivo no contiene un JSON válido.')}
+      if(!validateFinancialBackup(backup))throw new Error('El archivo no tiene un formato de copia de seguridad FIEXEA compatible.');
+      if(!confirm('¿Importar esta copia de seguridad? Todos los datos financieros actuales guardados en este navegador serán sustituidos por los del archivo. Si cancelas, no se cambiará ningún dato.'))return;
+      restoreFinancialBackupData(backup.data,localStorage);try{const result=await syncFinancialDataToSupabase(backup.data);showPersistenceNotice(result.authenticated?'Copia restaurada y sincronizada con Supabase.':'Copia restaurada localmente. Inicia sesión para sincronizarla.')}catch(syncError){console.error('No se pudo sincronizar la copia importada',syncError);showPersistenceNotice('La copia se restauró localmente, pero no se pudo sincronizar con Supabase.')}location.reload();
+    }catch(error){alert(error.message||'No se pudo importar la copia de seguridad.')}
+    finally{input.value=''}
+  };
+  reader.onerror=()=>{input.value='';alert('No se pudo leer el archivo de copia de seguridad.')};reader.readAsText(file);
+}
 function exportCSV(){let rows=[['tipo','importe','categoria','fecha','descripcion'],...moves.map(x=>[x.type,x.amount,x.cat,x.date,x.desc])];let csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(';')).join('\\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='fiexea-movimientos.csv';a.click()}
 
 
@@ -959,12 +1120,12 @@ function migrateCanonicalMovementCategories(){
   if(beforeHidden!==JSON.stringify(hiddenBudgetCategories))localStorage.setItem('fiexea_budget_hidden_categories',JSON.stringify(hiddenBudgetCategories));
 }
 migrateCanonicalMovementCategories();
-function savePlanner(){localStorage.setItem('fiexea_planner_year',String(plannerYear));localStorage.setItem('fiexea_planner_rows',JSON.stringify(planRows));localStorage.setItem('fiexea_planner_categories',JSON.stringify(plannerCategories));}
+function savePlanner(){localStorage.setItem('fiexea_planner_year',String(plannerYear));localStorage.setItem('fiexea_planner_rows',JSON.stringify(planRows));localStorage.setItem('fiexea_planner_categories',JSON.stringify(plannerCategories));queueFinancialSync()}
 function monthKeys(){return ['01','02','03','04','05','06','07','08','09','10','11','12']}
 function monthNames(){return ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']}
 function planMonthValue(r,m){return Number(r.months?.[m]??0)||0}
 function planTotal(r){return monthKeys().reduce((a,m)=>a+planMonthValue(r,m),0)}
-function saveBudget(){localStorage.setItem('fiexea_budget_categories',JSON.stringify(budgetCategories));localStorage.setItem('fiexea_budget_month',budgetMonth);localStorage.setItem('fiexea_budget_hidden_categories',JSON.stringify(hiddenBudgetCategories))}
+function saveBudget(){localStorage.setItem('fiexea_budget_categories',JSON.stringify(budgetCategories));localStorage.setItem('fiexea_budget_month',budgetMonth);localStorage.setItem('fiexea_budget_hidden_categories',JSON.stringify(hiddenBudgetCategories));queueFinancialSync()}
 function categoryMatchesBudget(moveOrCategory,category){const move=moveOrCategory&&typeof moveOrCategory==='object'?moveOrCategory:null,moveCategory=move?move.cat:moveOrCategory,key=normalizeBudgetCategory(moveCategory);if(move?.categoryId&&String(move.categoryId)===String(category.id))return true;return key===normalizeBudgetCategory(category.name)||(category.aliases||[]).some(alias=>key===normalizeBudgetCategory(alias))||movementCategoryGroup(moveCategory)===movementCategoryGroup(category.name)}
 function budgetMonthMoves(){return moves.filter(move=>cycleMonthKeyForDate(move.date)===budgetMonth&&move.type==='expense')}
 function budgetSpentFor(name,category){return budgetMonthMoves().filter(move=>category?categoryMatchesBudget(move,category):normalizeBudgetCategory(move.cat||'Otros')===normalizeBudgetCategory(name)).reduce((sum,move)=>sum+(Number(move.amount)||0),0)}
@@ -1190,7 +1351,20 @@ function loadDemo(){moves=[{id:uid(),type:'income',amount:1700,cat:'Nómina',dat
   planRows.push({id:uid(),type:'expense',name:'Revolut',category:'',day:7,months:pm(200)});
   planRows.push({id:uid(),type:'expense',name:'Gasolina',category:'',day:15,months:pm(100)});
   savePlanner();render()}
-function resetAll(){if(confirm('¿Borrar todos los datos de FIEXEA de este dispositivo?')){moves=[];debts=[];goals=[];assets=[];budget=0;planRows=[];savePlanner();render()}}
+async function resetAll(){
+  if(!confirm('¿Borrar todos los datos de FIEXEA de este dispositivo?'))return;
+  clearTimeout(financialSyncTimer);financialAppReady=false;
+  let remoteResult;
+  try{remoteResult=await deleteFinancialDataFromSupabase()}
+  catch(error){financialAppReady=true;console.error('No se pudo borrar la copia remota de FIEXEA',error);showPersistenceNotice('No se borraron los datos locales porque no se pudo borrar la copia remota.');return}
+  moves=[];debts=[];goals=[];assets=[];accounts=[];budget=0;budgetCategories=[];hiddenBudgetCategories=[];plannerCategories=[];planRows=[];plannerYear=new Date().getFullYear();budgetMonth=localBudgetMonth();
+  render();
+  try{FINANCIAL_DATA_STORAGE_KEYS.forEach(key=>localStorage.removeItem(key))}
+  catch(error){financialAppReady=true;console.error('No se pudieron borrar todos los datos locales',error);showPersistenceNotice('No se pudieron borrar todos los datos locales. La copia remota ya se ha eliminado.');return}
+  try{for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key===FINANCIAL_OWNER_STORAGE_KEY||key?.startsWith(FINANCIAL_CACHE_PREFIX))localStorage.removeItem(key)}}catch(error){console.warn('No se pudo limpiar toda la caché local asociada',error)}
+  financialActiveUserId=null;financialLastSyncedSnapshot='';financialAppReady=true;setFinancialSyncStatus('local');
+  showPersistenceNotice(remoteResult.authenticated?'Datos locales y copia remota eliminados.':'Datos locales eliminados. No había una sesión para borrar una copia remota.');
+}
 function showTabFromHash(){
   const m=(location.hash||'#t0').match(/^#t([0-7])$/);
   const n=m?Number(m[1]):0;
@@ -1210,7 +1384,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 // Also expose action functions explicitly for Safari/iOS inline handlers.
 window.selectBudgetIcon=selectBudgetIcon;window.deleteBudgetCategoryFromButton=deleteBudgetCategoryFromButton;window.handleBudgetDeleteBackdrop=handleBudgetDeleteBackdrop;window.cancelBudgetCategoryDelete=cancelBudgetCategoryDelete;window.confirmBudgetCategoryDelete=confirmBudgetCategoryDelete;window.addMove=addMove;window.addAnotherExpenseFromMove=addAnotherExpenseFromMove;window.delMove=delMove;window.openMoveEditor=openMoveEditor;window.closeMoveEditor=closeMoveEditor;window.chooseMoveType=chooseMoveType;window.selectMoveCategory=selectMoveCategory;window.saveMoveFromEditor=saveMoveFromEditor;window.editMove=editMove;window.setMoveTypeFilter=setMoveTypeFilter;window.startHomeMovement=startHomeMovement;window.focusDebtCreation=focusDebtCreation;window.focusGoalCreation=focusGoalCreation;window.addDebt=addDebt;window.editDebt=editDebt;window.cancelDebtEdit=cancelDebtEdit;window.delDebt=delDebt;window.editGoal=editGoal;window.cancelGoalEdit=cancelGoalEdit;window.openGoalContribution=openGoalContribution;window.saveGoalContribution=saveGoalContribution;window.cancelGoalContribution=cancelGoalContribution;window.editAsset=editAsset;window.toggleAssetForm=toggleAssetForm;window.cancelAssetEdit=cancelAssetEdit;window.editManualAccount=editManualAccount;window.cancelAccountEdit=cancelAccountEdit;window.handleMoreAction=handleMoreAction;window.openMoreInfo=openMoreInfo;window.closeMoreInfo=closeMoreInfo;
 window.addGoal=addGoal;window.delGoal=delGoal;window.addAsset=addAsset;window.delAsset=delAsset;
-window.setBudget=setBudget;window.exportJSON=exportJSON;window.importJSON=importJSON;window.exportCSV=exportCSV;window.closePrivacyMenu=closePrivacyMenu;
+window.setBudget=setBudget;window.exportJSON=exportJSON;window.importJSON=importJSON;window.exportFinancialBackup=exportFinancialBackup;window.importFinancialBackup=importFinancialBackup;window.createFinancialBackup=createFinancialBackup;window.validateFinancialBackup=validateFinancialBackup;window.restoreFinancialBackupData=restoreFinancialBackupData;window.syncFinancialDataToSupabase=syncFinancialDataToSupabase;window.loadFinancialDataFromSupabase=loadFinancialDataFromSupabase;window.exportCSV=exportCSV;window.closePrivacyMenu=closePrivacyMenu;
 window.loadDemo=loadDemo;window.resetAll=resetAll;window.addPlanRow=addPlanRow;window.editPlanRow=editPlanRow;window.editPlanMonth=editPlanMonth;window.delPlanRow=delPlanRow;window.addPlannerCategory=addPlannerCategory;window.renamePlannerCategory=renamePlannerCategory;window.deletePlannerCategory=deletePlannerCategory;window.plannerPrevYear=plannerPrevYear;window.plannerNextYear=plannerNextYear;
 function openPremiumModal(){const modal=document.getElementById('premiumModal');if(!modal)return;modal.hidden=false;document.body.style.overflow='hidden';const close=modal.querySelector('.premium-close');if(close)close.focus()}
 function closePremiumModal(){const modal=document.getElementById('premiumModal');if(!modal)return;modal.hidden=true;document.body.style.overflow='';const trigger=document.querySelector('.premium-trigger');if(trigger)trigger.focus()}
@@ -1275,7 +1449,7 @@ window.openLegal=openLegal;window.closeLegal=closeLegal;window.openCookieSetting
 document.addEventListener('DOMContentLoaded',()=>{if(!localStorage.getItem('fiexea_cookie_choice'))document.getElementById('cookieBanner').hidden=false});
 
 window.startCheckout=startCheckout;
-document.getElementById('mvDate').value=localMoveDate();document.addEventListener('fiexea:language',()=>{render()});initializeSettingsPreferences();render();
+document.getElementById('mvDate').value=localMoveDate();document.addEventListener('fiexea:language',()=>{setFinancialSyncStatus(financialSyncStatus);if(financialAppReady)render()});initializeSettingsPreferences();initializeFinancialPersistence();
 </script>
 
 <div id="bankLinkInfoModal" class="bank-modal" hidden>

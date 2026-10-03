@@ -965,20 +965,24 @@ function switchFinancialUser(userId){
   hydrateFinancialStateFromLocalStorage();
 }
 async function syncFinancialDataToSupabase(dataOverride=null){
-  const{data:{session},error:sessionError}=await fiexeaSupabase.auth.getSession();if(sessionError)throw sessionError;
-  if(!session?.user?.id)return{authenticated:false,synced:false};
-  if(financialActiveUserId!==session.user.id)throw new Error('La sesión cambió; se canceló la sincronización para proteger los datos.');
+  const{data:{session:initialSession},error:sessionError}=await fiexeaSupabase.auth.getSession();if(sessionError)throw sessionError;
+  const initiatingUserId=initialSession?.user?.id;if(!initiatingUserId)return{authenticated:false,synced:false};
+  const storedOwnerId=localStorage.getItem(FINANCIAL_OWNER_STORAGE_KEY),localOwnerId=storedOwnerId||financialActiveUserId;if(localOwnerId&&localOwnerId!==initiatingUserId)throw new Error('Los datos locales pertenecen a otra cuenta; no se sincronizaron.');
   let data=dataOverride||collectFinancialData();if(!validateFinancialBackupData(data))throw new Error('El estado financiero local no tiene un formato compatible.');
-  const table=fiexeaSupabase.from('fiexea_financial_data'),{data:existing,error:lookupError}=await table.select('id,created_at,data').eq('user_id',session.user.id).maybeSingle();if(lookupError)throw lookupError;
+  const table=fiexeaSupabase.from('fiexea_financial_data'),{data:existing,error:lookupError}=await table.select('id,created_at,data').eq('user_id',initiatingUserId).maybeSingle();if(lookupError)throw lookupError;
   if(existing&&!validateFinancialBackupData(existing.data))throw new Error('La copia remota tiene un formato no válido; no se modificó.');
   if(existing?.data){
     const remoteChanged=!financialLastSyncedSnapshot||financialDataSnapshot(existing.data)!==financialLastSyncedSnapshot;
     const merged=dataOverride?data:(remoteChanged?financialDataMerge(data,existing.data):data);if(!financialDataEquals(merged,existing.data)){data=merged;if(!dataOverride){restoreFinancialBackupData(data,localStorage);hydrateFinancialStateFromLocalStorage()}}
   }
-  const now=new Date().toISOString(),record={user_id:session.user.id,data,updated_at:now};
+  const{data:{session:currentSession},error:currentSessionError}=await fiexeaSupabase.auth.getSession();if(currentSessionError)throw currentSessionError;
+  const currentUserId=currentSession?.user?.id;if(!currentUserId)throw new Error('La sesión ya no está disponible; los datos locales siguen guardados.');
+  if(currentUserId!==initiatingUserId)throw new Error('La sesión cambió; se canceló la sincronización para proteger los datos.');
+  const currentOwnerId=localStorage.getItem(FINANCIAL_OWNER_STORAGE_KEY)||financialActiveUserId;if(currentOwnerId&&currentOwnerId!==initiatingUserId)throw new Error('Los datos locales pertenecen a otra cuenta; no se sincronizaron.');
+  const now=new Date().toISOString(),record={user_id:initiatingUserId,data,updated_at:now};
   if(existing?.id)record.id=existing.id;if(existing?.created_at)record.created_at=existing.created_at;
   const{error}=await fiexeaSupabase.from('fiexea_financial_data').upsert(record,{onConflict:'user_id'});if(error)throw error;
-  if(!dataOverride){financialLastSyncedSnapshot=financialDataSnapshot(data);cacheCurrentFinancialData(session.user.id)}
+  if(!dataOverride){financialLastSyncedSnapshot=financialDataSnapshot(data);cacheCurrentFinancialData(initiatingUserId)}
   return{authenticated:true,synced:true,data};
 }
 async function loadFinancialDataFromSupabase(sessionOverride=null){

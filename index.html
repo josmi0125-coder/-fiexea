@@ -162,6 +162,32 @@ html[data-theme="dark"] .account-summary-details>div,html[data-theme="dark"] .ac
 @media(max-width:520px){.account-manual-form .form{grid-template-columns:1fr}.account-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.account-head{gap:9px}.account-bank-logo{width:40px;height:40px}.account-connect-card{padding:14px}}
 @media(max-width:360px){.account-meta{grid-template-columns:1fr}.account-balance-panel{align-items:flex-start;flex-direction:column}.account-balance{text-align:left}}
 </style>
+<style id="fiexea-net-worth-presentation">
+.wealth-overview-card{margin:14px 0;padding:20px;border:1px solid #d7ebe4;border-radius:22px;background:linear-gradient(135deg,#eaf7f3,#fff);box-shadow:var(--shadow)}
+.wealth-overview-heading{display:flex;align-items:center;gap:12px}.wealth-overview-icon{display:grid;place-items:center;width:50px;height:50px;flex:none;border-radius:16px;background:#d8eee6;font-size:26px}
+.wealth-overview-copy{min-width:0}.wealth-overview-copy h2{margin:0;font-size:16px}.wealth-overview-copy p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.wealth-net-value{display:block;margin:16px 0;font-size:clamp(34px,8vw,48px);font-weight:900;line-height:1.05;letter-spacing:-.035em;overflow-wrap:anywhere}
+.wealth-overview-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.wealth-overview-breakdown>div{min-width:0;padding:11px;border:1px solid #dcebe5;border-radius:14px;background:#ffffffb8}
+.wealth-overview-breakdown span{display:block;color:var(--muted);font-size:11px;font-weight:700}
+.wealth-overview-breakdown strong{display:block;margin-top:5px;font-size:clamp(15px,3.6vw,19px);overflow-wrap:anywhere}
+.wealth-section{padding:17px}.wealth-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.wealth-section-heading h2{margin:0;font-size:17px}.wealth-section-heading p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
+.wealth-add-button{flex:none;min-height:46px;padding:10px 14px;font-weight:800}
+.wealth-editor .form{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.wealth-field{display:grid;gap:6px;min-width:0}.wealth-field label{font-size:13px;font-weight:800;color:var(--text)}
+.wealth-field input,.wealth-field select{width:100%;min-width:0}.wealth-editor .actions .btn{min-height:46px}
+.wealth-assets-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.wealth-assets-list:empty{display:block}
+.wealth-assets-list .asset-card{min-width:0}.wealth-assets-list .finance-item-title small{font-size:12px}.wealth-assets-list .finance-item-value{grid-column:1/-1;background:var(--bg)}
+.wealth-assets-list .finance-item-value span{font-size:11px}.wealth-assets-list .finance-item-value strong{font-size:clamp(20px,4vw,26px)}
+.wealth-debt-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}
+.wealth-debt-card span{color:var(--muted);font-size:13px;font-weight:750}.wealth-debt-card strong{font-size:clamp(20px,5vw,28px);overflow-wrap:anywhere}
+.wealth-history-note{margin:0;padding:15px;border-radius:15px;background:var(--bg);color:var(--muted);font-size:13px;line-height:1.55}
+@media(max-width:600px){.wealth-overview-card{padding:17px}.wealth-overview-breakdown{grid-template-columns:1fr;gap:7px}.wealth-overview-breakdown>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px}.wealth-overview-breakdown strong{margin:0;text-align:right}.wealth-section{padding:14px}.wealth-section-heading{align-items:flex-start}.wealth-section-heading h2{font-size:16px}.wealth-add-button{min-height:44px;padding:9px 10px;font-size:13px}.wealth-editor .form,.wealth-assets-list{grid-template-columns:1fr}.wealth-debt-card{align-items:flex-start;flex-direction:column}}
+html[data-theme="dark"] .wealth-overview-card{background:linear-gradient(135deg,#14201e,var(--card));border-color:var(--line)}
+html[data-theme="dark"] .wealth-overview-icon{background:#203832}
+html[data-theme="dark"] .wealth-overview-breakdown>div{background:#14201e;border-color:var(--line)}
+html[data-theme="dark"] .wealth-assets-list .finance-item-value,html[data-theme="dark"] .wealth-debt-card,html[data-theme="dark"] .wealth-history-note{background:#14201e}
+</style>
 </head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
@@ -317,15 +343,36 @@ html[data-theme="dark"] .account-summary-details>div,html[data-theme="dark"] .ac
     </section>
 
     <section id="t4" class="tab">
-      <div class="section"><h2>Patrimonio</h2></div>
-      <div class="grid asset-summary-grid">
-        <div class="card metric"><div class="label">🏦 Activos</div><div id="assetsTotal" class="value green">0 €</div></div>
-        <div class="card metric"><div class="label">💳 Pasivos</div><div id="liabTotal" class="value red">0 €</div></div>
-        <div class="card metric"><div class="label">💎 Patrimonio neto</div><div id="nw2" class="value purple">0 €</div></div>
-        <div class="card metric"><div class="label">💰 Liquidez</div><div id="liquid" class="value">0 €</div></div>
+      <div class="wealth-overview-card">
+        <div class="wealth-overview-heading"><span class="wealth-overview-icon" aria-hidden="true">🏠</span><div class="wealth-overview-copy"><h2>Patrimonio neto</h2><p><span>Patrimonio neto</span> = <span>Activos</span> − <span>Deudas</span></p></div></div>
+        <strong id="nw2" class="wealth-net-value">0 €</strong>
+        <div class="wealth-overview-breakdown">
+          <div><span>💰 Total activos</span><strong id="assetsTotal">0 €</strong></div>
+          <div><span>💳 Total deudas</span><strong data-wealth-debt-total>0 €</strong></div>
+          <div><span>💧 Liquidez</span><strong id="liquid">0 €</strong></div>
+        </div>
       </div>
-      <div class="section card"><div class="section-title-row"><div><div class="label">AÑADIR ACTIVO</div><small class="muted">Vivienda, ahorros, inversiones y otros bienes.</small></div><button class="btn secondary small" type="button" onclick="toggleAssetForm()">＋ Añadir</button></div><div id="assetEditor" class="asset-editor" hidden><div class="form"><input id="aName" placeholder="Nombre del activo"><input id="aVal" type="number" min="0" step="0.01" placeholder="Valor €"><select id="aType"><option>Inmueble</option><option>Efectivo</option><option>Inversión</option><option>Criptomonedas</option><option>Vehículos</option><option>Otro</option></select><div class="actions wide"><button id="assetSaveButton" class="btn" type="button" onclick="addAsset()">Guardar activo</button><button id="assetCancelButton" class="btn secondary" type="button" hidden onclick="cancelAssetEdit()">Cancelar</button></div></div></div></div>
-      <div class="section card"><div id="assets" class="asset-card-grid"></div></div>
+
+      <section class="section card wealth-section">
+        <div class="wealth-section-heading"><div><h2>💰 ACTIVOS</h2><p>Vivienda, ahorros, inversiones y otros bienes.</p></div><button class="btn wealth-add-button" type="button" onclick="toggleAssetForm()">＋ Añadir activo</button></div>
+        <div id="assetEditor" class="asset-editor wealth-editor" hidden><div class="form">
+          <div class="wealth-field"><label for="aName">Nombre del activo</label><input id="aName" placeholder="Nombre del activo"></div>
+          <div class="wealth-field"><label for="aVal">Valor €</label><input id="aVal" type="number" min="0" step="0.01" placeholder="Valor €"></div>
+          <div class="wealth-field"><label for="aType">Tipo de activo</label><select id="aType" aria-label="Tipo de activo"><option>Inmueble</option><option>Efectivo</option><option>Inversión</option><option>Criptomonedas</option><option>Vehículos</option><option>Otro</option></select></div>
+          <div class="actions wide"><button id="assetSaveButton" class="btn" type="button" onclick="addAsset()">Guardar activo</button><button id="assetCancelButton" class="btn secondary" type="button" hidden onclick="cancelAssetEdit()">Cancelar</button></div>
+        </div></div>
+        <div id="assets" class="asset-card-grid wealth-assets-list"></div>
+      </section>
+
+      <section class="section card wealth-section">
+        <div class="wealth-section-heading"><div><h2>💳 DEUDAS</h2><p>El total usa las deudas registradas en FIEXEA.</p></div></div>
+        <div class="wealth-debt-card"><span>Total de deudas</span><strong id="liabTotal">0 €</strong></div>
+      </section>
+
+      <section class="section card wealth-section">
+        <div class="wealth-section-heading"><div><h2>📈 Evolución del patrimonio</h2></div></div>
+        <p class="wealth-history-note">La evolución del patrimonio estará disponible cuando haya suficientes registros reales.</p>
+      </section>
     </section>
 
     
@@ -700,7 +747,7 @@ const monthInc=monthMoves.filter(x=>x.type==='income').reduce((a,x)=>a+x.amount,
 const annualSave=moves.filter(x=>(x.date||'').slice(0,4)===String(year)&&['income','expense'].includes(x.type)).reduce((a,x)=>a+(x.type==='income'?x.amount:-x.amount),0);
 mIncomeLabel.textContent=`Ingresos / ${monthName}`;mExpenseLabel.textContent=`Gastos / ${monthName}`;mSaveLabel.textContent=`Balance / ${monthName}`;
 mIncome.textContent=eur(monthInc);mExpense.textContent=eur(monthExp);mSave.textContent=eur(monthInc-monthExp);mAnnualSave.textContent=eur(annualSave);document.getElementById('homeLiquidSummary').textContent=eur(assets.filter(asset=>asset.type==='Efectivo').reduce((sum,asset)=>sum+(Number(asset.value)||0),0));document.getElementById('homeDebtTotal').textContent=eur(debt);document.getElementById('homeNetWorth').textContent=eur(nw);document.getElementById('homeGoalCount').textContent=String(goals.length);
-assetsTotal.textContent=eur(act);liabTotal.textContent=eur(debt);nw2.textContent=eur(nw);liquid.textContent=eur(assets.filter(a=>a.type==='Efectivo').reduce((a,x)=>a+x.value,0));
+assetsTotal.textContent=eur(act);liabTotal.textContent=eur(debt);nw2.textContent=eur(nw);liquid.textContent=eur(assets.filter(a=>a.type==='Efectivo').reduce((a,x)=>a+x.value,0));const wealthDebtSummary=document.querySelector('[data-wealth-debt-total]');if(wealthDebtSummary)wealthDebtSummary.textContent=eur(debt);
 debtPay.textContent=eur(pay)+'/mes';debtRatio.textContent=pct(t.inc?pay/t.inc*100:0);
 let sc=financialScore(t.inc,t.exp);score.textContent=sc+'/100';scoreCircle.style.setProperty('--p',sc);scoreText.textContent=sc>=75?'Situación sólida':sc>=55?'En progreso':'Hay margen de mejora';
 budgetText.textContent=budget?`${eur(t.exp)} de ${eur(budget)}`:'Sin definir';let bp=budget?Math.min(100,t.exp/budget*100):0;budgetBar.style.width=bp+'%';budgetHint.className="small muted money";budgetHint.textContent=budget?(t.exp<=budget?`Te quedan ${eur(budget-t.exp)} este mes.`:`Has superado el presupuesto en ${eur(t.exp-budget)}.`):'Define un presupuesto para controlar tu límite mensual.';
@@ -754,7 +801,7 @@ function renderDebts(){
   }).join('')}</div>`:'<div class="empty">Añade una deuda para ver el capital pendiente y sus cuotas.</div>';
 }
 function assetTypeIcon(type){return type==='Inmueble'?'🏠':type==='Efectivo'?'💰':type==='Inversión'?'📈':type==='Criptomonedas'?'₿':type==='Vehículos'?'🚗':'📦'}
-function renderAssets(){const root=document.getElementById('assets');if(!root)return;root.innerHTML=assets.length?assets.map(asset=>`<article class="finance-item-card asset-card"><div class="finance-item-head"><span class="finance-item-icon" aria-hidden="true">${assetTypeIcon(asset.type)}</span><div class="finance-item-title"><h3>${esc(asset.name)}</h3><small>${esc(asset.type||'Otro')}</small></div></div><div class="finance-item-main"><div class="finance-item-value" style="grid-column:1/-1"><span>Valor estimado</span><strong class="money">${eur(asset.value)}</strong></div></div><div class="finance-item-actions"><button class="btn secondary" type="button" onclick="editAsset('${escAttr(asset.id)}')">✏️ Editar</button><button class="btn danger" type="button" onclick="delAsset('${escAttr(asset.id)}')">🗑️ Eliminar</button></div></article>`).join(''):'<div class="empty">Añade un activo para visualizar tu patrimonio.</div>'}
+function renderAssets(){const root=document.getElementById('assets');if(!root)return;root.innerHTML=assets.length?assets.map(asset=>`<article class="finance-item-card asset-card"><div class="finance-item-head"><span class="finance-item-icon" aria-hidden="true">${assetTypeIcon(asset.type)}</span><div class="finance-item-title"><h3>${esc(asset.name)}</h3><small>${esc(asset.type||'Otro')}</small></div></div><div class="finance-item-main"><div class="finance-item-value" style="grid-column:1/-1"><span>Valor actual</span><strong class="money">${eur(asset.value)}</strong></div></div><div class="finance-item-actions"><button class="btn secondary" type="button" onclick="editAsset('${escAttr(asset.id)}')">✏️ Editar</button><button class="btn danger" type="button" onclick="delAsset('${escAttr(asset.id)}')">🗑️ Eliminar</button></div></article>`).join(''):'<div class="empty">Añade un activo para visualizar tu patrimonio.</div>'}
 function toggleAssetForm(){const form=document.getElementById('assetEditor');if(!form)return;const opening=form.hidden;cancelAssetEdit();if(opening){form.hidden=false;document.getElementById('aName').focus()}}
 function editAsset(id){const asset=assets.find(item=>String(item.id)===String(id));if(!asset)return;editingAssetId=asset.id;document.getElementById('assetEditor').hidden=false;document.getElementById('aName').value=asset.name||'';document.getElementById('aVal').value=asset.value??'';document.getElementById('aType').value=asset.type||'Otro';document.getElementById('assetSaveButton').textContent='Guardar cambios';document.getElementById('assetCancelButton').hidden=false;document.getElementById('assetEditor').scrollIntoView({behavior:'smooth',block:'center'})}
 function cancelAssetEdit(){editingAssetId=null;['aName','aVal'].forEach(id=>{const field=document.getElementById(id);if(field)field.value=''});document.getElementById('aType').value='Inmueble';document.getElementById('assetSaveButton').textContent='Guardar activo';document.getElementById('assetCancelButton').hidden=true;document.getElementById('assetEditor').hidden=true}

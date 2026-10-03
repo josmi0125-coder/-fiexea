@@ -729,6 +729,8 @@ let budget=Number(localStorage.getItem('fiexea_budget')||0);
 function save(){localStorage.setItem('fiexea_moves',JSON.stringify(moves));localStorage.setItem('fiexea_debts',JSON.stringify(debts));localStorage.setItem('fiexea_goals',JSON.stringify(goals));localStorage.setItem('fiexea_assets',JSON.stringify(assets));localStorage.setItem('fiexea_accounts',JSON.stringify(accounts));localStorage.setItem('fiexea_budget',budget);queueFinancialSync()}
 let saveConfirmationTimer=null;
 function showPersistenceNotice(message){const notice=document.getElementById('saveConfirmation');if(!notice){console.info(message);return}notice.textContent=window.fiexeaTranslate?window.fiexeaTranslate(message):message;notice.hidden=false;clearTimeout(saveConfirmationTimer);saveConfirmationTimer=setTimeout(()=>{notice.hidden=true},5000)}
+function safeSupabaseErrorMessage(error){const code=String(error?.code||'').trim(),status=Number(error?.status||error?.statusCode)||0;let message=String(error?.message||error||'Error desconocido');message=message.replace(/\bBearer\s+\S+/gi,'Bearer [oculto]').replace(/\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+/g,'[clave oculta]').replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,'[token oculto]').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[email oculto]').replace(/\b[0-9a-f]{8}-[0-9a-f-]{27,}\b/gi,'[id oculto]').replace(/\s+/g,' ').trim().slice(0,240);return[code?`código ${code}`:'',status?`HTTP ${status}`:'',message].filter(Boolean).join(' · ')}
+function showSupabaseSyncError(error){const prefix='Error de sincronización con Supabase. Los datos locales siguen guardados.';const translated=window.fiexeaTranslate?window.fiexeaTranslate(prefix):prefix;const notice=document.getElementById('saveConfirmation');const message=`${translated} ${safeSupabaseErrorMessage(error)}`;if(!notice){console.warn(message);return}notice.textContent=message;notice.hidden=false;clearTimeout(saveConfirmationTimer);saveConfirmationTimer=setTimeout(()=>{notice.hidden=true},9000)}
 async function saveCurrentData(){
   try{
     save();saveBudget();savePlanner();
@@ -737,7 +739,7 @@ async function saveCurrentData(){
     const result=await syncFinancialDataToSupabase();
     if(!result.authenticated){setFinancialSyncStatus('local');showPersistenceNotice('Datos guardados localmente. Inicia sesión para sincronizarlos.')}
     else{financialLastSyncedSnapshot=financialDataSnapshot(result.data||collectFinancialData());setFinancialSyncStatus('synced');showPersistenceNotice('Datos guardados y sincronizados con Supabase.')}
-  }catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('Los datos locales siguen guardados, pero no se pudieron sincronizar con Supabase.')}
+  }catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showSupabaseSyncError(error)}
 }
 function setPresentationCurrency(value){if(!supportedDisplayCurrencies.includes(value))return;presentationCurrency=value;localStorage.setItem('fiexea_currency',value);render()}
 function setCycleStartDay(value){const day=Number(value);if(!cycleStartChoices.includes(day))return;cycleStartDay=day;localStorage.setItem('fiexea_cycle_start_day',String(day));budgetMonth=localBudgetMonth();localStorage.setItem('fiexea_budget_month',budgetMonth);render()}
@@ -997,7 +999,7 @@ async function loadFinancialDataFromSupabase(sessionOverride=null){
     financialLastSyncedSnapshot=remoteSnapshot;cacheCurrentFinancialData(userId);setFinancialSyncStatus('synced');return{status:financialDataEquals(local,row.data)?'same':'remote-restored',data:row.data};
   })();
   financialLoadUserId=userId;
-  try{return await financialLoadPromise}catch(error){console.error('No se pudo cargar la copia remota de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('No se pudo consultar la copia remota. Se conservaron los datos locales.');return{status:'error',error}}
+  try{return await financialLoadPromise}catch(error){console.error('No se pudo cargar la copia remota de FIEXEA',error);setFinancialSyncStatus('local');showSupabaseSyncError(error);return{status:'error',error}}
   finally{financialLoadPromise=null;financialLoadUserId=null}
 }
 async function deleteFinancialDataFromSupabase(){
@@ -1013,7 +1015,7 @@ function initializeFinancialPersistence(){
   });
   loadFinancialDataFromSupabase().then(async()=>{const{data:{session}}=await fiexeaSupabase.auth.getSession();if(session?.user?.id&&financialActiveUserId!==session.user.id)return;if(!session&&financialActiveUserId){cacheCurrentFinancialData(financialActiveUserId);clearFinancialState();try{FINANCIAL_DATA_STORAGE_KEYS.forEach(key=>localStorage.removeItem(key));localStorage.removeItem(FINANCIAL_OWNER_STORAGE_KEY)}catch(error){console.warn('No se pudo limpiar la caché financiera',error)}financialActiveUserId=null}financialAppReady=true;render()});
 }
-function queueFinancialSync(){if(!financialAppReady||!financialActiveUserId)return;clearTimeout(financialSyncTimer);financialSyncTimer=setTimeout(async()=>{const snapshot=financialDataSnapshot(collectFinancialData());if(snapshot===financialLastSyncedSnapshot)return;setFinancialSyncStatus('local');try{const result=await syncFinancialDataToSupabase();if(result.authenticated){financialLastSyncedSnapshot=financialDataSnapshot(result.data||collectFinancialData());setFinancialSyncStatus('synced')}}catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showPersistenceNotice('Los datos locales siguen guardados, pero no se pudieron sincronizar con Supabase.')}},900)}
+function queueFinancialSync(){if(!financialAppReady||!financialActiveUserId)return;clearTimeout(financialSyncTimer);financialSyncTimer=setTimeout(async()=>{const snapshot=financialDataSnapshot(collectFinancialData());if(snapshot===financialLastSyncedSnapshot)return;setFinancialSyncStatus('local');try{const result=await syncFinancialDataToSupabase();if(result.authenticated){financialLastSyncedSnapshot=financialDataSnapshot(result.data||collectFinancialData());setFinancialSyncStatus('synced')}}catch(error){console.error('No se pudieron sincronizar los datos de FIEXEA',error);setFinancialSyncStatus('local');showSupabaseSyncError(error)}},900)}
 function createFinancialBackup(storage,exportedAt=new Date().toISOString()){
   if(!storage||typeof storage.getItem!=='function')throw new Error('El almacenamiento local no está disponible.');
   const data={};FIEXEA_FINANCIAL_BACKUP_KEYS.forEach(key=>{data[key]=storage.getItem(key)});

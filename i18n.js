@@ -179,6 +179,7 @@
     "No se borraron los datos locales porque no se pudo borrar la copia remota.": ["Local data was not deleted because the remote copy could not be deleted.", "Les données locales n’ont pas été supprimées, car la copie distante n’a pas pu l’être.", "I dati locali non sono stati eliminati perché non è stato possibile eliminare la copia remota."],
     "☁️ Datos sincronizados": ["☁️ Data synced", "☁️ Données synchronisées", "☁️ Dati sincronizzati"],
     "📱 Solo en este dispositivo": ["📱 On this device only", "📱 Sur cet appareil uniquement", "📱 Solo su questo dispositivo"],
+    "Error de sincronización con Supabase. Los datos locales siguen guardados.": ["Supabase sync failed. Your local data is still saved.", "Échec de la synchronisation Supabase. Vos données locales sont toujours enregistrées.", "Sincronizzazione Supabase non riuscita. I dati locali sono ancora salvati."],
   };
   const langs = { es: -1, en: 0, fr: 1, it: 2 };
   const labels = { es: "🇪🇸 Español", en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano" };

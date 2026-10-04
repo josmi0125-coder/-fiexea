@@ -328,6 +328,7 @@
     "Cancelación": ["Cancellation", "Résiliation", "Disdetta"],
     "Plan actual": ["Current plan", "Offre actuelle", "Piano attuale"],
     "⏳ Sincronización pendiente": ["⏳ Sync pending", "⏳ Synchronisation en attente", "⏳ Sincronizzazione in sospeso"],
+    "⚠️ Error de sincronización": ["⚠️ Sync error", "⚠️ Erreur de synchronisation", "⚠️ Errore di sincronizzazione"],
     "Foto de perfil sincronizada.": ["Profile photo synced.", "Photo de profil synchronisée.", "Foto del profilo sincronizzata."],
     "Foto guardada localmente; la sincronización queda pendiente.": ["Photo saved locally; sync is pending.", "Photo enregistrée localement ; synchronisation en attente.", "Foto salvata localmente; sincronizzazione in sospeso."],
     "Foto de perfil actualizada y sincronizada.": ["Profile photo updated and synced.", "Photo de profil mise à jour et synchronisée.", "Foto del profilo aggiornata e sincronizzata."],

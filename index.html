@@ -155,6 +155,7 @@ html[data-theme="dark"] .help-shortcut:hover,html[data-theme="dark"] .help-categ
 .about-actions{display:grid;gap:8px;margin-top:10px}
 .about-actions .btn{width:100%;min-height:46px;white-space:normal}
 .about-disclaimer{padding:13px 15px;border-left:3px solid var(--accent);border-radius:10px;background:#eff8f4;color:var(--muted);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.privacy-intro-card{margin-bottom:12px;overflow-wrap:anywhere}.privacy-intro-card h3{margin:0 0 8px;font-size:14px;font-weight:800}.privacy-intro-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.55;overflow-wrap:anywhere}.privacy-intro-card p+p{margin-top:12px}
 html[data-theme="dark"] .about-disclaimer{background:#20352f;color:var(--text)}
 @media(max-width:620px){.about-dialog{width:100%;height:100%;max-height:100%;border-radius:0;border-left:0;border-right:0}.about-header{padding:14px 64px 12px 16px}.about-header h2{font-size:19px}.about-scroll{padding:14px 20px calc(20px + env(safe-area-inset-bottom))}.about-brand{padding:13px}.about-brand img{width:52px;height:52px}.about-section{padding:13px}}
 @media(max-width:360px){.about-scroll{padding-inline:16px}.about-build-row code{max-width:58%}}
@@ -643,6 +644,7 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
 
     <section id="t8" class="tab">
       <div class="section"><h2>Privacidad y legal</h2></div>
+      <article class="card privacy-intro-card"><h3>TUS DATOS Y PRIVACIDAD</h3><p>Tus datos financieros se guardan localmente en este dispositivo y, cuando has iniciado sesión, se sincronizan con tu cuenta. Si no se puede sincronizar, FIEXEA conserva la copia local. Puedes consultar el estado de sincronización desde Perfil.</p><p>Desde esta sección puedes consultar cómo FIEXEA trata y protege tus datos, las condiciones de uso de la aplicación y la información sobre cookies.</p></article>
       <div class="card">
         <div class="actions">
           <button class="btn secondary" type="button" onclick="openLegal('privacy')"><span aria-hidden="true">🔒</span>Política de Privacidad</button>

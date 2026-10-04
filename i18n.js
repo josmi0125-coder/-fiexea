@@ -159,6 +159,7 @@
     "SOBRE FIEXEA": ["ABOUT FIEXEA", "À PROPOS DE FIEXEA", "SU FIEXEA"],
     "VERSIÓN": ["VERSION", "VERSION", "VERSIONE"],
     "Versión de FIEXEA": ["FIEXEA version", "Version de FIEXEA", "Versione FIEXEA"],
+    "Build": ["Build", "Build", "Build"],
     "Versión no disponible": ["Version unavailable", "Version indisponible", "Versione non disponibile"],
     "Plan gratuito": ["Free plan", "Offre gratuite", "Piano gratuito"],
     "Inicia sesión para consultar tu plan": ["Sign in to check your plan", "Connectez-vous pour consulter votre offre", "Accedi per consultare il tuo piano"],

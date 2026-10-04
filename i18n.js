@@ -222,6 +222,8 @@
     "La sesión cambió. La foto no se guardó.": ["The session changed. The photo was not saved.", "La session a changé. La photo n’a pas été enregistrée.", "La sessione è cambiata. La foto non è stata salvata."],
     "○ Plan gratuito": ["○ Free plan", "○ Offre gratuite", "○ Piano gratuito"],
     "Gratuito": ["Free", "Gratuit", "Gratuito"],
+    "Premium activo": ["Premium active", "Premium actif", "Premium attivo"],
+    "Suscripción inactiva": ["Inactive subscription", "Abonnement inactif", "Abbonamento inattivo"],
     "Sin suscripción Premium activa": ["No active Premium subscription", "Aucun abonnement Premium actif", "Nessun abbonamento Premium attivo"],
     "⭐ Pasar a Premium": ["⭐ Upgrade to Premium", "⭐ Passer à Premium", "⭐ Passa a Premium"],
     "Premium mensual": ["Monthly Premium", "Premium mensuel", "Premium mensile"],

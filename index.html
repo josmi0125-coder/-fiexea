@@ -604,11 +604,6 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
           <button class="btn secondary" type="button" onclick="openLegal('cookies')"><span aria-hidden="true">🍪</span>Política de Cookies</button>
         </div>
       </div>
-      <div class="section card">
-        <h3>Privacidad y cuenta</h3>
-        <div class="actions"><button class="btn danger" type="button" onclick="requestAccountDeletion()">Solicitar eliminación de cuenta</button></div>
-        <p class="small muted">La solicitud se tramita por contacto; la aplicación todavía no tiene una función backend desplegada para borrar de forma segura la cuenta y sus datos.</p>
-      </div>
     </section>
     <section id="t9" class="tab profile-page">
       <div class="profile-heading"><h2>👤 Perfil</h2><button class="btn secondary" type="button" onclick="closeProfilePage()">← Volver a FIEXEA</button></div>
@@ -642,7 +637,6 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
         <article class="profile-card">
           <div class="profile-card-heading"><span class="profile-card-icon" aria-hidden="true">☁️</span><div><h3>Datos y sincronización</h3><p id="profileSyncStatus" role="status" aria-live="polite">📱 Solo en este dispositivo</p></div></div>
           <p class="profile-card-note">Tus datos financieros se guardan localmente y se sincronizan con tu cuenta cuando hay conexión.</p>
-          <div class="profile-action-stack" style="margin-top:13px"><button class="btn" type="button" onclick="exportFinancialBackup()">📤 Exportar mis datos</button><button class="btn secondary" type="button" onclick="document.getElementById('financialBackupFile').click()">📥 Importar copia de seguridad</button></div>
         </article>
         <article class="profile-card">
           <div class="profile-card-heading"><span class="profile-card-icon" aria-hidden="true">⚠️</span><div><h3>Cuenta</h3><p>Gestión y eliminación de la cuenta.</p></div></div>
@@ -666,7 +660,7 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
 <button type="button" id="navMoreBtn" class="nav-more-btn" aria-label="Más" aria-expanded="false" aria-controls="navMoreMenu"><span class="nav-icon nav-more-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="nav-label">Más</span></button>
 <div id="navMoreMenu" class="nav-more-menu" hidden>
   <div class="more-menu-group"><h3><span aria-hidden="true">⚙️</span><span>Configuración</span></h3><button type="button" data-more-tab="6" data-more-action="settings"><span class="menu-icon">⚙️</span>Ajustes</button></div>
-  <div class="more-menu-group"><h3><span aria-hidden="true">💰</span><span>Finanzas</span></h3><button type="button" data-more-tab="7" data-more-action="accounts"><span class="menu-icon">💰</span>Cuentas</button><button type="button" data-more-tab="5" data-more-action="analysis"><span class="menu-icon">📊</span>Análisis</button><button type="button" data-more-action="export"><span class="menu-icon">📤</span>Exportar CSV</button><button type="button" data-more-action="backup"><span class="menu-icon">💾</span>Copias</button></div>
+  <div class="more-menu-group"><h3><span aria-hidden="true">💰</span><span>Finanzas</span></h3><button type="button" data-more-tab="7" data-more-action="accounts"><span class="menu-icon">💰</span>Cuentas</button><button type="button" data-more-tab="5" data-more-action="analysis"><span class="menu-icon">📊</span>Análisis</button><button type="button" data-more-action="export"><span class="menu-icon">📤</span>Exportar CSV</button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">👤</span><span>Cuenta</span></h3><button type="button" data-more-tab="9" data-more-action="profile"><span class="menu-icon">👤</span>Perfil</button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">🎯</span><span>Planificación</span></h3><button type="button" data-more-tab="3" data-more-action="goals"><span class="menu-icon">🎯</span>Objetivos</button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">❓</span><span>Ayuda</span></h3><button type="button" data-more-action="help"><span class="menu-icon">❓</span>Ayuda</button><button type="button" data-more-action="info"><span class="menu-icon">ℹ️</span>Información</button></div>
@@ -907,7 +901,7 @@ async function confirmProfileSignOut(){
   }catch(error){const message=document.getElementById('profileSecurityMessage');if(message)message.textContent=profileTranslate('No se pudo cerrar la sesión. Los datos locales se conservan.');closeProfileSignOutConfirm();if(error?.message==='La cuenta activa ha cambiado.')refreshProfileAccount()}
   finally{if(button)button.disabled=false}
 }
-function handleMoreAction(action){closeMoreMenu();if(action==='settings')tab(6);else if(action==='accounts')tab(7);else if(action==='goals')tab(3);else if(action==='analysis')openFinancialAnalysis();else if(action==='privacyLegal')tab(8);else if(action==='export')exportCSV();else if(action==='backup')openBackupTools();else if(action==='profile')openProfilePage();else if(action==='help')openMoreInfo('Ayuda rápida','Usa la navegación inferior para abrir Inicio, Movimientos, Deudas y Patrimonio. Presupuesto reúne tus límites mensuales y sus gastos; Más agrupa Cuentas, Objetivos, Análisis, exportación y copias.');else if(action==='info')openMoreInfo('Información de FIEXEA','FIEXEA reúne tus movimientos, presupuesto, objetivos, deudas, patrimonio y cuentas. Los datos financieros se guardan en este dispositivo y puedes exportarlos o restaurarlos desde Copias de seguridad.')}
+function handleMoreAction(action){closeMoreMenu();if(action==='settings')tab(6);else if(action==='accounts')tab(7);else if(action==='goals')tab(3);else if(action==='analysis')openFinancialAnalysis();else if(action==='privacyLegal')tab(8);else if(action==='export')exportCSV();else if(action==='backup')openBackupTools();else if(action==='profile')openProfilePage();else if(action==='help')openMoreInfo('Ayuda rápida','Usa la navegación inferior para abrir Inicio, Movimientos, Deudas y Patrimonio. Presupuesto reúne tus límites mensuales y sus gastos; Más agrupa Cuentas, Objetivos, Análisis y exportación CSV. Las copias completas están en Ajustes → Datos y copia de seguridad.');else if(action==='info')openMoreInfo('Información de FIEXEA','FIEXEA reúne tus movimientos, presupuesto, objetivos, deudas, patrimonio y cuentas. Los datos financieros se guardan en este dispositivo y puedes exportarlos o restaurarlos desde Ajustes → Datos y copia de seguridad.')}
 const navMoreBtn=document.getElementById('navMoreBtn');
 const navMoreMenu=document.getElementById('navMoreMenu');
 if(navMoreBtn&&navMoreMenu){

@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
+<script>
+(()=>{
+  const preference=()=>{try{return localStorage.getItem('fiexea_appearance')||'auto'}catch(_){return'auto'}};
+  const media=typeof window.matchMedia==='function'?window.matchMedia('(prefers-color-scheme: dark)'):null;
+  const apply=()=>{const selected=preference(),effective=selected==='dark'||(!['light','dark'].includes(selected)&&!!media?.matches);document.documentElement.dataset.theme=effective?'dark':'light'};
+  window.__fiexeaAppearanceMedia=media;
+  window.__fiexeaApplySystemAppearance=apply;
+  apply();
+  if(media&&!window.__fiexeaAppearanceListener){
+    window.__fiexeaAppearanceListener=apply;
+    if(media.addEventListener)media.addEventListener('change',apply);
+    else if(media.addListener)media.addListener(apply);
+  }
+})();
+</script>
 <script>window.FIEXEA_VERSION='1.0.0';window.FIEXEA_BUILD='2026.10.04';</script>
 <title>FIEXEA — Tu experto financiero personal | Controla, ahorra y prospera</title>
 <meta name="description" content="FIEXEA es tu experto financiero personal: controla ingresos, gastos, deudas, patrimonio, objetivos y presupuesto desde una sola aplicación."/>
@@ -861,9 +876,9 @@ async function saveCurrentData(){
 }
 function setPresentationCurrency(value){if(!supportedDisplayCurrencies.includes(value))return;presentationCurrency=value;localStorage.setItem('fiexea_currency',value);queueFinancialSync();render()}
 function setCycleStartDay(value){const day=Number(value);if(!cycleStartChoices.includes(day))return;cycleStartDay=day;localStorage.setItem('fiexea_cycle_start_day',String(day));budgetMonth=localBudgetMonth();localStorage.setItem('fiexea_budget_month',budgetMonth);queueFinancialSync();render()}
-function applyAppearance(){const media=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null,dark=appearancePreference==='dark'||(appearancePreference==='auto'&&!!media?.matches);document.documentElement.dataset.theme=dark?'dark':'light'}
+function applyAppearance(){const media=window.__fiexeaAppearanceMedia||(window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null),dark=appearancePreference==='dark'||(appearancePreference==='auto'&&!!media?.matches);document.documentElement.dataset.theme=dark?'dark':'light'}
 function setAppearance(value){if(!['auto','light','dark'].includes(value))return;appearancePreference=value;localStorage.setItem('fiexea_appearance',value);applyAppearance()}
-function initializeSettingsPreferences(){const currency=document.getElementById('appCurrencySelect'),cycle=document.getElementById('cycleStartDaySelect'),appearance=document.getElementById('appearanceSelect');if(currency){currency.value=presentationCurrency;currency.addEventListener('change',()=>setPresentationCurrency(currency.value))}if(cycle){cycle.value=String(cycleStartDay);cycle.addEventListener('change',()=>setCycleStartDay(cycle.value))}if(appearance){appearance.value=appearancePreference;appearance.addEventListener('change',()=>setAppearance(appearance.value))}applyAppearance();if(window.matchMedia){const media=window.matchMedia('(prefers-color-scheme: dark)'),update=()=>{if(appearancePreference==='auto')applyAppearance()};if(media.addEventListener)media.addEventListener('change',update);else if(media.addListener)media.addListener(update)}}
+function initializeSettingsPreferences(){const currency=document.getElementById('appCurrencySelect'),cycle=document.getElementById('cycleStartDaySelect'),appearance=document.getElementById('appearanceSelect');if(currency){currency.value=presentationCurrency;currency.addEventListener('change',()=>setPresentationCurrency(currency.value))}if(cycle){cycle.value=String(cycleStartDay);cycle.addEventListener('change',()=>setCycleStartDay(cycle.value))}if(appearance){appearance.value=appearancePreference;appearance.addEventListener('change',()=>setAppearance(appearance.value))}applyAppearance()}
 function tab(n){
   n=Number(n)||0;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id==='t'+n));
@@ -1791,6 +1806,35 @@ async function resetAll(){
   financialActiveUserId=null;financialLastSyncedSnapshot='';clearFinancialSyncPending();financialAppReady=true;setFinancialSyncStatus('local');
   showPersistenceNotice(remoteResult.authenticated?'Datos locales y copia remota eliminados.':'Datos locales eliminados. No había una sesión para borrar una copia remota.');
 }
+const swipeMainTabOrder=[0,5,1,4,2,10];
+let swipeNavigationInitialized=false;
+function initializeSwipeNavigation(){
+  if(swipeNavigationInitialized)return;
+  const main=document.querySelector('main');if(!main)return;
+  swipeNavigationInitialized=true;
+  const ignoredTargetSelector='input,textarea,select,button,a,form,.form,[contenteditable="true"],[role="slider"],canvas,svg,iframe,video,[data-swipe-ignore]';
+  const hasOpenDialog=()=>Array.from(document.querySelectorAll('[aria-modal="true"],[role="dialog"],.bank-modal,.cookie-banner')).some(element=>!element.hidden&&!element.closest('[hidden]')&&getComputedStyle(element).display!=='none');
+  const hasHorizontalScroller=target=>{for(let element=target;element&&element!==main.parentElement;element=element.parentElement){const overflow=getComputedStyle(element).overflowX;if((overflow==='auto'||overflow==='scroll')&&element.scrollWidth>element.clientWidth+2)return true}return false};
+  let start=null;
+  main.addEventListener('touchstart',event=>{
+    start=null;
+    if(event.touches.length!==1||hasOpenDialog())return;
+    const touch=event.touches[0],target=event.target?.nodeType===1?event.target:event.target?.parentElement,active=target?.closest('.tab.active');
+    if(!target||!active||!main.contains(active)||target.closest(ignoredTargetSelector)||hasHorizontalScroller(target))return;
+    start={x:touch.clientX,y:touch.clientY,tabId:active.id,target};
+  },{passive:true});
+  main.addEventListener('touchmove',event=>{if(start&&event.touches.length!==1)start=null},{passive:true});
+  main.addEventListener('touchcancel',()=>{start=null},{passive:true});
+  main.addEventListener('touchend',event=>{
+    if(!start||event.changedTouches.length!==1||hasOpenDialog()){start=null;return}
+    const initial=start,touch=event.changedTouches[0],dx=touch.clientX-initial.x,dy=touch.clientY-initial.y;start=null;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.35||hasHorizontalScroller(initial.target))return;
+    const active=document.querySelector('.tab.active');if(!active||active.id!==initial.tabId)return;
+    const current=swipeMainTabOrder.indexOf(Number(active.id.slice(1)));if(current<0)return;
+    const next=current+(dx<0?1:-1);if(next<0||next>=swipeMainTabOrder.length)return;
+    tab(swipeMainTabOrder[next]);
+  },{passive:true});
+}
 function showTabFromHash(){
   const m=(location.hash||'#t0').match(/^#t([0-7])$/);
   const n=m?Number(m[1]):0;
@@ -1804,6 +1848,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       tab(btn.dataset.tab);
     },false);
   });
+  initializeSwipeNavigation();
   showTabFromHash();
 });
 

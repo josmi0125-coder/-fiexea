@@ -165,7 +165,7 @@
     "Inicia sesión para consultar tu plan": ["Sign in to check your plan", "Connectez-vous pour consulter votre offre", "Accedi per consultare il tuo piano"],
     "TUS DATOS": ["YOUR DATA", "VOS DONNÉES", "I TUOI DATI"],
     "TU PLAN": ["YOUR PLAN", "VOTRE OFFRE", "IL TUO PIANO"],
-    "AYUDA Y DOCUMENTACIÓN": ["HELP AND DOCUMENTATION", "AIDE ET DOCUMENTATION", "AIUTO E DOCUMENTAZIONE"],
+    "AYUDA": ["HELP", "AIDE", "AIUTO"],
     "Ver mi plan": ["View my plan", "Voir mon offre", "Visualizza il mio piano"],
     "❓ Centro de ayuda": ["❓ Help Center", "❓ Centre d’aide", "❓ Centro assistenza"],
     "🔒 Privacidad y legal": ["🔒 Privacy and legal", "🔒 Confidentialité et mentions légales", "🔒 Privacy e note legali"],

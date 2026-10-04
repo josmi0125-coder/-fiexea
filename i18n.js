@@ -169,6 +169,7 @@
     "Consejo": ["Tip", "Conseil", "Consiglio"],
     "Si algo no funciona": ["If something doesn't work", "Si quelque chose ne fonctionne pas", "Se qualcosa non funziona"],
     "Artículos relacionados": ["Related articles", "Articles associés", "Articoli correlati"],
+    "Campos y controles": ["Fields and controls", "Champs et commandes", "Campi e controlli"],
     "Ir a esta sección": ["Go to this section", "Accéder à cette section", "Vai a questa sezione"],
     "🚀 Primeros pasos": ["🚀 Getting started", "🚀 Premiers pas", "🚀 Primi passi"],
     "💳 Movimientos": ["💳 Transactions", "💳 Opérations", "💳 Movimenti"],

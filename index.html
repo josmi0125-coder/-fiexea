@@ -110,7 +110,8 @@ html[data-theme="dark"] .premium-trigger{background:linear-gradient(135deg,#463b
 html[data-theme="dark"] .btn.secondary{background:#263632;color:var(--text);border-color:var(--line)}
 html[data-theme="dark"] .bank-provider,html[data-theme="dark"] .cookie-category{background:#14201e;border-color:var(--line)}
 html[data-theme="dark"] .chart-axis{fill:var(--muted)}html[data-theme="dark"] .chart-grid{stroke:var(--line)}
-.financial-backup-card{margin-top:14px}.financial-backup-card h3{margin:0 0 6px}.financial-backup-card p{line-height:1.5}.financial-backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.financial-backup-actions .btn{min-height:48px;white-space:normal}
+.financial-backup-card{margin-top:14px}.financial-backup-card h3{margin:0 0 6px}.financial-backup-card p{line-height:1.5}.financial-backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.financial-backup-action{min-width:0}.financial-backup-action p{margin:0 0 8px;font-size:12px;color:var(--muted);line-height:1.45}.financial-backup-actions .btn{width:100%;min-height:48px;white-space:normal}
+.more-menu-group button[data-more-action="export"]{grid-column:1/-1}.more-menu-description{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:400;line-height:1.35;text-align:center}
 @media(max-width:520px){.financial-backup-actions{grid-template-columns:1fr}}
 </style>
 <style id="fiexea-debt-presentation">
@@ -586,10 +587,10 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
       <p id="financialSyncStatus" class="small muted" role="status" aria-live="polite" style="margin:12px 2px 0">📱 Solo en este dispositivo</p>
       <div class="section card financial-backup-card">
         <h3>💾 Datos y copia de seguridad</h3>
-        <p class="small muted">Guarda una copia de tus datos para poder recuperarlos si cambias de dispositivo o navegador.</p>
+        <p class="small muted">Protege tus datos creando una copia de seguridad que podrás restaurar cuando la necesites.</p>
         <div class="financial-backup-actions">
-          <button class="btn" type="button" onclick="exportFinancialBackup()">📤 Exportar mis datos</button>
-          <button class="btn secondary" type="button" onclick="document.getElementById('financialBackupFile').click()">📥 Importar copia de seguridad</button>
+          <div class="financial-backup-action"><p>Guarda una copia completa de tus datos de FIEXEA para poder recuperarlos más adelante o trasladarlos a otro dispositivo.</p><button class="btn" type="button" onclick="exportFinancialBackup()"><span aria-hidden="true">💾</span><span>Crear copia de seguridad</span></button></div>
+          <div class="financial-backup-action"><p>Recupera tus datos de FIEXEA utilizando una copia de seguridad creada anteriormente.</p><button class="btn secondary" type="button" onclick="document.getElementById('financialBackupFile').click()"><span aria-hidden="true">📥</span><span>Restaurar copia de seguridad</span></button></div>
         </div>
         <input id="financialBackupFile" type="file" accept="application/json,.json" hidden onchange="importFinancialBackup(event)">
       </div>
@@ -660,7 +661,7 @@ html[data-theme="dark"] .analysis-overview{background:var(--card);border-color:v
 <button type="button" id="navMoreBtn" class="nav-more-btn" aria-label="Más" aria-expanded="false" aria-controls="navMoreMenu"><span class="nav-icon nav-more-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="nav-label">Más</span></button>
 <div id="navMoreMenu" class="nav-more-menu" hidden>
   <div class="more-menu-group"><h3><span aria-hidden="true">⚙️</span><span>Configuración</span></h3><button type="button" data-more-tab="6" data-more-action="settings"><span class="menu-icon">⚙️</span>Ajustes</button></div>
-  <div class="more-menu-group"><h3><span aria-hidden="true">💰</span><span>Finanzas</span></h3><button type="button" data-more-tab="7" data-more-action="accounts"><span class="menu-icon">💰</span>Cuentas</button><button type="button" data-more-tab="5" data-more-action="analysis"><span class="menu-icon">📊</span>Análisis</button><button type="button" data-more-action="export"><span class="menu-icon">📤</span>Exportar CSV</button></div>
+  <div class="more-menu-group"><h3><span aria-hidden="true">💰</span><span>Finanzas</span></h3><button type="button" data-more-tab="7" data-more-action="accounts"><span class="menu-icon">💰</span>Cuentas</button><button type="button" data-more-tab="5" data-more-action="analysis"><span class="menu-icon">📊</span>Análisis</button><button type="button" data-more-action="export"><span class="menu-icon">📤</span>Exportar CSV<span class="more-menu-description">Descarga tus datos financieros en formato CSV para consultarlos o analizarlos en Excel, Numbers u otras aplicaciones. No es una copia de seguridad.</span></button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">👤</span><span>Cuenta</span></h3><button type="button" data-more-tab="9" data-more-action="profile"><span class="menu-icon">👤</span>Perfil</button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">🎯</span><span>Planificación</span></h3><button type="button" data-more-tab="3" data-more-action="goals"><span class="menu-icon">🎯</span>Objetivos</button></div>
   <div class="more-menu-group"><h3><span aria-hidden="true">❓</span><span>Ayuda</span></h3><button type="button" data-more-action="help"><span class="menu-icon">❓</span>Ayuda</button><button type="button" data-more-action="info"><span class="menu-icon">ℹ️</span>Información</button></div>

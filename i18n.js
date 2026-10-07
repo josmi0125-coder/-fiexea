@@ -386,6 +386,7 @@
     "Los datos de este dispositivo ya coinciden con la copia de la nube.": ["The data on this device already match the cloud copy.", "Les données de cet appareil correspondent déjà à la copie dans le cloud.", "I dati su questo dispositivo corrispondono già alla copia nel cloud."],
   };
   const updateTranslations = {
+    "Gasto total": ["Total spending", "Dépenses totales", "Spesa totale"], "Sector de gastos": ["Expense sector", "Secteur de dépenses", "Settore di spesa"], "Leyenda de gastos por categoría": ["Spending by category legend", "Légende des dépenses par catégorie", "Legenda delle spese per categoria"],
     "Operar": ["Activity", "Actions", "Azioni"],
     "Operaciones": ["Operations", "Opérations", "Operazioni"], "📊 Operaciones": ["📊 Operations", "📊 Opérations", "📊 Operazioni"], "💳 Operaciones": ["💳 Operations", "💳 Opérations", "💳 Operazioni"], "📊 Análisis financiero": ["📊 Financial analysis", "📊 Analyse financière", "📊 Analisi finanziaria"],
     "Análisis financiero": ["Financial analysis", "Analyse financière", "Analisi finanziaria"],
@@ -418,6 +419,7 @@
   };
   Object.assign(rows, updateTranslations);
   const ptRows = {
+    "Gasto total": "Despesa total", "Sector de gastos": "Setor de despesas", "Leyenda de gastos por categoría": "Legenda de despesas por categoria",
     "Operar": "Operar",
     "Operaciones": "Operações", "📊 Operaciones": "📊 Operações", "💳 Operaciones": "💳 Operações", "📊 Análisis financiero": "📊 Análise financeira", "Análisis": "Análise", "Análisis financiero": "Análise financeira", "Una visión de tus finanzas calculada a partir de tus operaciones, categorías, deudas y patrimonio.": "Uma visão das suas finanças calculada a partir das operações, categorias, dívidas e patrimônio.",
     "Seleccionar periodo": "Selecionar período", "Periodo": "Período", "Este mes": "Este mês", "Mes anterior": "Mês anterior", "Últimos 3 meses": "Últimos 3 meses", "Últimos 6 meses": "Últimos 6 meses", "Últimos 12 meses": "Últimos 12 meses", "Resumen financiero del periodo": "Resumo financeiro do período", "💰 Ingresos del periodo": "💰 Receitas do período", "💸 Gastos del periodo": "💸 Despesas do período", "📈 Balance del periodo": "📈 Saldo do período", "💚 Ahorro del periodo": "💚 Poupança do período", "💸 Gastos por categoría": "💸 Despesas por categoria", "del gasto": "das despesas", "Ingresos del periodo": "Receitas do período", "Gastos del periodo": "Despesas do período", "Balance del periodo": "Saldo do período", "Ahorro del periodo": "Poupança do período", "Porcentaje de ahorro": "Percentual de poupança",

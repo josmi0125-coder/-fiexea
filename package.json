@@ -1,0 +1,27 @@
+{
+  "name": "fiexea-mobile-preparation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local web bundle and Capacitor setup for future FIEXEA mobile apps",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "mobile:build": "node scripts/build-mobile.mjs",
+    "cap:add:ios": "pnpm mobile:build && cap add ios",
+    "cap:add:android": "pnpm mobile:build && cap add android",
+    "cap:sync": "pnpm mobile:build && cap sync",
+    "cap:open:ios": "cap open ios",
+    "cap:open:android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2",
+    "@supabase/supabase-js": "2.117.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2"
+  }
+}

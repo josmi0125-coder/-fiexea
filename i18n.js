@@ -839,6 +839,8 @@
     'TAE': ['Effective annual rate (APR)', 'Taux annuel effectif (TAE)', 'Tasso annuo effettivo (TAEG)'],
     'Fecha de finalización (opcional)': ['End date (optional)', 'Date de fin (facultative)', 'Data di fine (facoltativa)'],
     'Fecha de finalización': ['End date', 'Date de fin', 'Data di fine'],
+    'Seleccionar fecha': ['Select date', 'Sélectionner une date', 'Seleziona una data'],
+    'Los meses restantes se calculan desde la fecha final. Edita la fecha de finalización para cambiar el plazo.': ['Months remaining are calculated from the end date. Edit the end date to change the term.', 'Le nombre de mois restant est calculé à partir de la date de fin. Modifiez cette date pour changer la durée.', 'I mesi rimanenti sono calcolati dalla data finale. Modifica la data di fine per cambiare la durata.'],
     'Meses restantes': ['Months remaining', 'Mois restants', 'Mesi rimanenti'],
     'Cuota estimada': ['Estimated installment', 'Mensualité estimée', 'Rata stimata'],
     'Inicio del seguimiento': ['Tracking starts', 'Début du suivi', 'Inizio del monitoraggio'],
@@ -886,7 +888,7 @@
   Object.assign(ptRows, {
     'TIN % (opcional)': 'TIN % (opcional)', 'TAE % (opcional)': 'TAEG % (opcional)', 'TIN opcional': 'TIN opcional', 'TAE opcional': 'TAEG opcional',
     'TIN': 'Taxa de juro nominal (TIN)', 'TAE': 'Taxa anual efetiva (TAEG)',
-    'Fecha de finalización (opcional)': 'Data de fim (opcional)', 'Fecha de finalización': 'Data de fim', 'Meses restantes': 'Meses restantes', 'Cuota estimada': 'Prestação estimada', 'Inicio del seguimiento': 'Início do acompanhamento', 'Selecciona un mes válido para iniciar el seguimiento.': 'Selecione um mês válido para iniciar o acompanhamento.',
+    'Fecha de finalización (opcional)': 'Data de fim (opcional)', 'Fecha de finalización': 'Data de fim', 'Seleccionar fecha': 'Selecionar data', 'Los meses restantes se calculan desde la fecha final. Edita la fecha de finalización para cambiar el plazo.': 'Os meses restantes são calculados a partir da data final. Edite a data de fim para alterar o prazo.', 'Meses restantes': 'Meses restantes', 'Cuota estimada': 'Prestação estimada', 'Inicio del seguimiento': 'Início do acompanhamento', 'Selecciona un mes válido para iniciar el seguimiento.': 'Selecione um mês válido para iniciar o acompanhamento.',
     'Calcular capital e intereses': 'Estimar capital e juros',
     'Estimación basada en TIN nominal mensual, cuota y saldo; confirma el desglose con tu entidad.': 'Estimativa baseada no TIN nominal mensal, prestação e saldo; confirme a divisão junto da entidade credora.',
     'Cálculo estimado. Comprueba los importes con tu entidad financiera.': 'Cálculo estimado. Confirme os valores junto da sua instituição financeira.',

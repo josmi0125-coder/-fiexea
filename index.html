@@ -445,6 +445,7 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 /* Keep the existing automatic hide/reveal behavior and safe-area clearance. */
 .nav{transition:transform .22s ease;will-change:transform}
 body.nav-scroll-hidden .nav{transform:translate3d(0,100%,0)}
+body.nav-scroll-hidden .nav,body.nav-scroll-hidden .nav *{pointer-events:none!important}
 @media(max-width:360px){.navin{padding:0 4px;gap:0}.nav-label{font-size:9.8px;letter-spacing:-.35px}}
 @media(max-width:520px){.app{padding-top:max(18px,calc(env(safe-area-inset-top,0px) + 16px))}}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
@@ -2080,11 +2081,13 @@ let bottomNavigationAutoHideInitialized=false;
 let bottomNavigationLastY=0;
 let bottomNavigationDownDistance=0;
 let bottomNavigationUpDistance=0;
+let bottomNavigationTouchY=null;
+let bottomNavigationTouchUpDistance=0;
 function setBottomNavigationVisible(visible){
   const nav=document.querySelector('.nav');
   if(!nav)return;
   document.body.classList.toggle('nav-scroll-hidden',!visible);
-  if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}
+  if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0;bottomNavigationTouchUpDistance=0}
 }
 function initializeBottomNavigationAutoHide(){
   if(bottomNavigationAutoHideInitialized)return;
@@ -2100,12 +2103,21 @@ function initializeBottomNavigationAutoHide(){
     const pageCanScroll=scrollRoot.scrollHeight>window.innerHeight+48;
     const editingField=document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
     if(!pageCanScroll||currentY<=16||document.body.style.overflow==='hidden'||editingField){reveal();return}
-    if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)document.body.classList.add('nav-scroll-hidden')}
+    if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)setBottomNavigationVisible(false)}
     else if(delta<0){bottomNavigationUpDistance-=delta;bottomNavigationDownDistance=0;if(bottomNavigationUpDistance>=6)reveal()}
   };
   window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',()=>{const root=document.scrollingElement||document.documentElement;if(root.scrollHeight<=window.innerHeight+48)reveal()},{passive:true});
+  window.addEventListener('resize',reveal,{passive:true});
+  window.addEventListener('orientationchange',reveal,{passive:true});
   window.addEventListener('pageshow',reveal,{passive:true});
+  window.addEventListener('focus',reveal,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)reveal()});
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',reveal,{passive:true});
+  document.addEventListener('touchstart',event=>{if(event.touches.length!==1){bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0;return}bottomNavigationTouchY=event.touches[0].clientY;bottomNavigationTouchUpDistance=0},{passive:true});
+  document.addEventListener('touchmove',event=>{if(bottomNavigationTouchY===null||event.touches.length!==1){bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0;return}const currentTouchY=event.touches[0].clientY,delta=bottomNavigationTouchY-currentTouchY;bottomNavigationTouchY=currentTouchY;if(delta>0){bottomNavigationTouchUpDistance+=delta;if(document.body.classList.contains('nav-scroll-hidden')&&bottomNavigationTouchUpDistance>=6)reveal()}else if(delta<0)bottomNavigationTouchUpDistance=0},{passive:true});
+  const clearTouchTracking=()=>{bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0};
+  document.addEventListener('touchend',clearTouchTracking,{passive:true});
+  document.addEventListener('touchcancel',clearTouchTracking,{passive:true});
   document.addEventListener('focusin',event=>{if(event.target?.matches('input,textarea,select,[contenteditable="true"]'))reveal()});
   nav.addEventListener('focusin',reveal);
 }

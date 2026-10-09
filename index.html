@@ -206,7 +206,7 @@ html[data-theme="dark"] .debt-status.is-overdue{color:#fecaca;background:#452525
 .debt-card .finance-item-title h3{min-width:0}
 .debt-card .debt-title-edit{white-space:normal;text-align:left}
 .debt-card .debt-title-edit>span:first-child{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:normal;padding-right:18px}
-.debt-card .finance-item-head>.pill.debt-editable{width:auto;max-width:34%;min-width:0;padding:4px 8px;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+.debt-card .finance-item-head>.pill.debt-editable{width:max-content;max-width:120px;min-width:72px;flex:none;padding:4px 8px;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
 .debt-card .finance-item-head>.pill.debt-editable .debt-editable-pencil{position:static;margin-left:2px}
 .debt-metric{padding:9px 10px}
 .debt-metrics{gap:7px;margin:11px 0 8px}
@@ -214,7 +214,7 @@ html[data-theme="dark"] .debt-status.is-overdue{color:#fecaca;background:#452525
 .debt-metric-warning{display:block;margin:5px 2px 0;color:var(--warn);font-size:10px;line-height:1.35}
 .debt-edit-dialog .actions{padding-bottom:0}
 .debt-payment-editor .actions{padding:8px 0}
-@media(max-width:370px){.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) auto}.debt-card .finance-item-head>.pill.debt-editable{max-width:32%;padding:4px 6px}.debt-metric{padding:9px 8px}}
+@media(max-width:370px){.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) auto}.debt-card .finance-item-head>.pill.debt-editable{max-width:112px;min-width:68px;padding:4px 6px}.debt-metric{padding:9px 8px}}
 
 /* Compact debt header, inline edit affordances and two-column phone tiles. */
 .debt-card .finance-item-head{align-items:center;gap:8px}
@@ -224,7 +224,7 @@ html[data-theme="dark"] .debt-status.is-overdue{color:#fecaca;background:#452525
 .debt-card .debt-header-value{min-width:0;overflow-wrap:break-word;word-break:normal}
 .debt-card .debt-title-edit .debt-header-value{padding-right:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-weight:850}
 .debt-card .debt-loan-edit .debt-header-value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:var(--muted);font-size:12px;line-height:1.25}
-.debt-card .debt-type-edit{display:inline-flex;align-items:center;justify-content:center;gap:4px;width:auto;max-width:34%;min-width:0;padding:5px 8px;white-space:normal;line-height:1.2}
+.debt-card .debt-type-edit{display:inline-flex;align-items:center;justify-content:center;gap:4px;width:max-content;max-width:120px;min-width:72px;flex:none;padding:5px 8px;white-space:normal;line-height:1.2}
 .debt-card .debt-type-edit .debt-header-value{font-size:11px}
 .debt-card .debt-header-editable .debt-editable-pencil,.debt-card .debt-type-edit .debt-editable-pencil{position:static;flex:none;margin:0;color:var(--muted);font-size:10px}
 .debt-card .debt-metrics{gap:7px;margin:7px 0 8px}
@@ -240,22 +240,23 @@ html[data-theme="dark"] .debt-status.is-overdue{color:#fecaca;background:#452525
 .debt-months-source{margin-top:3px;color:var(--muted);font-size:11px;font-weight:500;line-height:1.25;overflow-wrap:break-word;word-break:normal}
 .debt-card .debt-status{width:auto;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:normal;line-height:1.25}
 .debt-card .debt-action-cue{flex:none;margin-left:auto;color:var(--muted);font-size:12px}
-@media(max-width:370px){.debt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) auto;gap:7px}.debt-card .finance-item-head>.pill.debt-type-edit{max-width:31%;padding:4px 6px}.debt-card .debt-metric{padding:8px 7px}.debt-card .debt-metric-value{font-size:clamp(14px,4.1vw,16px)}}
+@media(max-width:370px){.debt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) auto;gap:7px}.debt-card .finance-item-head>.pill.debt-type-edit{max-width:112px;min-width:68px;padding:4px 6px}.debt-card .debt-metric{padding:8px 7px}.debt-card .debt-metric-value{font-size:clamp(14px,4.1vw,16px)}}
 
 /* Final compact debt-card geometry: content-driven rows, no fixed tile heights. */
 .debt-card{align-self:start;height:auto;min-height:0;padding:11px}
-.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) auto;align-items:center;align-content:start;height:auto;min-height:0;margin:0;gap:7px}
+.debt-card .finance-item-head{grid-template-columns:38px minmax(0,1fr) minmax(72px,max-content);align-items:center;align-content:start;height:auto;min-height:0;margin:0;gap:7px}
 .debt-card .finance-item-icon{width:38px;height:38px;font-size:21px}
 .debt-card .finance-item-title{align-self:center}
+.debt-card .debt-type-edit .debt-header-value{min-width:0;overflow-wrap:anywhere;word-break:normal;text-align:center}
 .debt-card .finance-item-title h3{font-size:16px;line-height:1.15}
 .debt-card .finance-item-title small{margin-top:1px}
-.debt-card .debt-metrics{grid-auto-rows:auto;align-items:stretch;align-content:start;gap:7px;margin:5px 0 8px}
+.debt-card .debt-metrics{grid-auto-rows:auto;align-items:stretch;align-content:start;gap:7px;margin:18px 0 8px}
 .debt-card .debt-metric{display:flex;min-height:0;height:auto;align-self:stretch;flex-direction:column;padding:8px}
 .debt-card .debt-metric>.debt-editable{flex:1}
 .debt-date-primary,.debt-date-secondary{display:block}
 .debt-date-primary{font-weight:850}
 .debt-date-secondary{margin-top:3px;color:var(--muted);font-size:11px;font-weight:500;line-height:1.2}
-@media(max-width:370px){.debt-card{padding:10px}.debt-card .finance-item-head{grid-template-columns:36px minmax(0,1fr) auto;gap:6px}.debt-card .finance-item-icon{width:36px;height:36px;font-size:20px}.debt-card .debt-type-edit{max-width:31%;padding:4px 6px}.debt-card .debt-metric{padding:7px 6px}}
+@media(max-width:370px){.debt-card{padding:10px}.debt-card .finance-item-head{grid-template-columns:36px minmax(0,1fr) minmax(68px,max-content);gap:6px}.debt-card .finance-item-icon{width:36px;height:36px;font-size:20px}.debt-card .debt-type-edit{max-width:112px;min-width:68px;padding:4px 6px}.debt-card .debt-metric{padding:7px 6px}}
 @media(min-width:621px) and (max-width:700px){.debt-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style id="fiexea-accounts-presentation">

@@ -430,14 +430,14 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 #t2>#debtCalculationNote{display:block;margin:var(--fiexea-section-gap) 0 0}
 
 /* Wealth: use one outer grid gap instead of accumulated section margins. */
-#t4{display:grid;row-gap:var(--fiexea-section-gap)}
+#t4.active{display:grid;row-gap:var(--fiexea-section-gap)}
 #t4>.wealth-overview-card{margin:14px 0 0}
 #t4>.wealth-section{margin:0}
 #t4 .wealth-section-heading{margin-bottom:var(--fiexea-inner-gap)}
 #t4 .wealth-assets-list{gap:var(--fiexea-inner-gap)}
 
 /* Analysis: primary blocks share the same gap; summary/detail grid gaps stay local. */
-#t5{display:grid;row-gap:var(--fiexea-section-gap)}
+#t5.active{display:grid;row-gap:var(--fiexea-section-gap)}
 #t5>.section{margin:0}
 #t5>.analysis-page-heading{margin-top:var(--fiexea-section-gap)}
 #t5>.analysis-summary-grid{gap:10px}

@@ -181,7 +181,8 @@ html[data-theme="dark"] .about-disclaimer{background:#20352f;color:var(--text)}
 @media(max-width:360px){.about-scroll{padding-inline:16px}.about-build-row code{max-width:58%}}
 </style>
 <style id="fiexea-debt-presentation">
-.debt-editor .form{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}@media(max-width:420px){.debt-editor .form{grid-template-columns:1fr}}.debt-editor .debt-date-type-field>label{min-height:32px;line-height:1.2}
+.debt-editor .form{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.debt-editor .debt-field{min-width:0}.debt-editor .debt-date-type-field>label{min-height:32px;line-height:1.2}.debt-editor #dEndDate,.debt-editor #dType{box-sizing:border-box;width:100%;max-width:100%;min-width:0}.debt-editor #dEndDate{font-size:14px}
+@media(max-width:360px){.debt-editor .form{grid-template-columns:1fr}}
 .debt-field{display:grid;gap:6px;min-width:0}
 .debt-field label{display:flex;align-items:center;gap:6px;margin:0;color:var(--text);font-size:13px;font-weight:800}
 .debt-field input{width:100%;min-width:0}
@@ -421,8 +422,11 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 /* Keep the existing automatic hide/reveal behavior and safe-area clearance. */
 .app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .nav{transition:transform .22s ease;will-change:transform}
+.nav button{height:auto;min-height:0;padding-block:2px 0;gap:3px;font-size:10.5px;line-height:1.1}
 body.nav-scroll-hidden .nav{transform:translate3d(0,100%,0)}
 @media(max-width:360px){.navin{padding:0 4px;gap:0}.nav-label{font-size:9.8px;letter-spacing:-.35px}}
+@media(max-width:520px){.app{padding-top:max(18px,calc(env(safe-area-inset-top,0px) + 8px))}}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 @media(prefers-reduced-motion:reduce){.nav{transition:none}}
 </style>
 </head>

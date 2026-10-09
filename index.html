@@ -417,9 +417,15 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 @media(max-width:520px){.category-manager-list,.movement-categories-overview{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.category-manager-panel{padding:14px}.category-manager-item,.movement-category-tile{min-height:88px;padding:8px 4px;gap:5px}.category-manager-icon{width:34px;height:34px;border-radius:10px;font-size:20px}.category-manager-item>strong,.movement-category-tile-name{font-size:clamp(9px,2.85vw,11px);letter-spacing:-.02em}.movement-category-tile-icon{width:34px;height:34px;font-size:21px}.movement-category-tile-icon .category-icon-image{width:32px;height:32px}.movement-category-tile-total{font-size:9px}.category-manager-tabs .moves-type-choice{min-height:54px}.movement-category-detail-actions{grid-template-columns:1fr}.movement-category-detail-title .category-manager-icon{width:44px;height:44px}}
 </style>
 <style id="fiexea-final-debt-navigation">
-/* The debt list wrapper previously added section margin plus card padding before the first debt. */
-#t2 .debt-list-container{margin-top:16px;padding:0;border:0;background:transparent;box-shadow:none}
-#t2 .debt-card-grid{gap:10px}
+/* Shared vertical rhythm for the debt page; each gap has one CSS source. */
+#t2{--debts-section-gap:24px;--debts-inner-gap:16px}
+#t2 .summary-kpis{gap:var(--debts-inner-gap);margin:var(--debts-inner-gap) 0 var(--debts-section-gap)}
+#t2 .debt-upcoming-card{margin:0 0 var(--debts-section-gap)}
+#t2 .debt-editor{margin:0}
+#t2 .debt-list-container{margin:var(--debts-section-gap) 0 0;padding:0;border:0;background:transparent;box-shadow:none}
+#t2 .debt-card-grid{gap:var(--debts-section-gap)}
+#t2>.section.two{gap:var(--debts-section-gap);margin-top:var(--debts-section-gap)}
+#t2>#debtCalculationNote{display:block;margin:var(--debts-inner-gap) 0 0}
 /* Keep the existing automatic hide/reveal behavior and safe-area clearance. */
 .nav{transition:transform .22s ease;will-change:transform}
 body.nav-scroll-hidden .nav{transform:translate3d(0,100%,0)}

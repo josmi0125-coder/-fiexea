@@ -444,8 +444,10 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 #t5 .financial-analysis-panel>.section{margin:0}
 /* Keep the existing automatic hide/reveal behavior and safe-area clearance. */
 .nav{transition:transform .22s ease;will-change:transform}
-body.nav-scroll-hidden .nav{transform:translate3d(0,100%,0)}
+body.nav-scroll-hidden .nav{transform:translate3d(0,calc(100% + env(safe-area-inset-bottom,0px)),0)}
 body.nav-scroll-hidden .nav,body.nav-scroll-hidden .nav *{pointer-events:none!important}
+/* Keep Safari from zooming the page when these finance form fields receive focus. */
+.account-manual-form input,.account-manual-form select,.moves-secondary-input,.moves-secondary-select{font-size:16px}
 @media(max-width:360px){.navin{padding:0 4px;gap:0}.nav-label{font-size:9.8px;letter-spacing:-.35px}}
 @media(max-width:520px){.app{padding-top:max(18px,calc(env(safe-area-inset-top,0px) + 16px))}}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
@@ -2081,41 +2083,84 @@ let bottomNavigationAutoHideInitialized=false;
 let bottomNavigationLastY=0;
 let bottomNavigationDownDistance=0;
 let bottomNavigationUpDistance=0;
-let bottomNavigationTouchY=null;
-let bottomNavigationTouchUpDistance=0;
+let bottomNavigationTouchStartY=null;
+let bottomNavigationTouchActive=false;
+let bottomNavigationState='visible';
 function setBottomNavigationVisible(visible){
   const nav=document.querySelector('.nav');
   if(!nav)return;
+  const nextState=visible?'visible':'hidden';
+  if(bottomNavigationState===nextState&&document.body.classList.contains('nav-scroll-hidden')===!visible){if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}return}
+  bottomNavigationState=nextState;
   document.body.classList.toggle('nav-scroll-hidden',!visible);
-  if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0;bottomNavigationTouchUpDistance=0}
+  if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}
 }
 function initializeBottomNavigationAutoHide(){
   if(bottomNavigationAutoHideInitialized)return;
   const nav=document.querySelector('.nav');if(!nav)return;
   bottomNavigationAutoHideInitialized=true;
+  bottomNavigationState=document.body.classList.contains('nav-scroll-hidden')?'hidden':'visible';
   bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;
   const reveal=()=>setBottomNavigationVisible(true);
+  const isEditingField=()=>document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
+  const applyVerticalIntent=(delta,currentY)=>{
+    if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)setBottomNavigationVisible(false)}
+    else if(delta<0){bottomNavigationUpDistance-=delta;bottomNavigationDownDistance=0;if(bottomNavigationUpDistance>=12)reveal()}
+  };
+  let lastViewportWidth=window.innerWidth||document.documentElement.clientWidth;
+  let lastViewportHeight=window.innerHeight;
+  let lastVisualViewportWidth=window.visualViewport?.width||lastViewportWidth;
+  let lastVisualViewportHeight=window.visualViewport?.height||lastViewportHeight;
+  const handleWindowResize=()=>{
+    const width=window.innerWidth||document.documentElement.clientWidth,height=window.innerHeight;
+    const widthChanged=Math.abs(width-lastViewportWidth)>1,heightDelta=height-lastViewportHeight;
+    const changed=widthChanged||Math.abs(heightDelta)>1;
+    lastViewportWidth=width;lastViewportHeight=height;
+    if(changed&&(!isEditingField()||widthChanged||heightDelta>1))reveal();
+  };
+  const handleVisualViewportResize=()=>{
+    const viewport=window.visualViewport;if(!viewport)return;
+    const width=viewport.width,height=viewport.height;
+    const widthChanged=Math.abs(width-lastVisualViewportWidth)>1,heightDelta=height-lastVisualViewportHeight;
+    const changed=widthChanged||Math.abs(heightDelta)>1;
+    lastVisualViewportWidth=width;lastVisualViewportHeight=height;
+    if(changed&&(!isEditingField()||widthChanged||heightDelta>1))reveal();
+  };
   const onScroll=()=>{
     const currentY=window.scrollY||document.documentElement.scrollTop||0;
     const delta=currentY-bottomNavigationLastY;
     bottomNavigationLastY=currentY;
+    if(bottomNavigationTouchActive)return;
     const scrollRoot=document.scrollingElement||document.documentElement;
     const pageCanScroll=scrollRoot.scrollHeight>window.innerHeight+48;
-    const editingField=document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
-    if(!pageCanScroll||currentY<=16||document.body.style.overflow==='hidden'||editingField){reveal();return}
-    if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)setBottomNavigationVisible(false)}
-    else if(delta<0){bottomNavigationUpDistance-=delta;bottomNavigationDownDistance=0;if(bottomNavigationUpDistance>=6)reveal()}
+    if(!pageCanScroll||currentY<=16||document.body.style.overflow==='hidden'||isEditingField()){reveal();return}
+    applyVerticalIntent(delta,currentY);
   };
   window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',reveal,{passive:true});
+  window.addEventListener('resize',handleWindowResize,{passive:true});
   window.addEventListener('orientationchange',reveal,{passive:true});
   window.addEventListener('pageshow',reveal,{passive:true});
   window.addEventListener('focus',reveal,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)reveal()});
-  if(window.visualViewport)window.visualViewport.addEventListener('resize',reveal,{passive:true});
-  document.addEventListener('touchstart',event=>{if(event.touches.length!==1){bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0;return}bottomNavigationTouchY=event.touches[0].clientY;bottomNavigationTouchUpDistance=0},{passive:true});
-  document.addEventListener('touchmove',event=>{if(bottomNavigationTouchY===null||event.touches.length!==1){bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0;return}const currentTouchY=event.touches[0].clientY,delta=bottomNavigationTouchY-currentTouchY;bottomNavigationTouchY=currentTouchY;if(delta>0){bottomNavigationTouchUpDistance+=delta;if(document.body.classList.contains('nav-scroll-hidden')&&bottomNavigationTouchUpDistance>=6)reveal()}else if(delta<0)bottomNavigationTouchUpDistance=0},{passive:true});
-  const clearTouchTracking=()=>{bottomNavigationTouchY=null;bottomNavigationTouchUpDistance=0};
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',handleVisualViewportResize,{passive:true});
+  document.addEventListener('touchstart',event=>{
+    const target=event.target?.nodeType===1?event.target:event.target?.parentElement;
+    if(event.touches.length!==1||target?.closest('.nav,button,a,input,select,textarea,[contenteditable="true"]')){bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;return}
+    bottomNavigationTouchStartY=event.touches[0].clientY;bottomNavigationTouchActive=true;
+    bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;
+    bottomNavigationDownDistance=0;bottomNavigationUpDistance=0;
+  },{passive:true});
+  document.addEventListener('touchmove',event=>{
+    if(bottomNavigationTouchStartY===null||event.touches.length!==1){bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;return}
+    const currentTouchY=event.touches[0].clientY,delta=bottomNavigationTouchStartY-currentTouchY;
+    bottomNavigationTouchStartY=currentTouchY;
+    const currentY=window.scrollY||document.documentElement.scrollTop||0;
+    bottomNavigationLastY=currentY;
+    const scrollRoot=document.scrollingElement||document.documentElement;
+    if(scrollRoot.scrollHeight<=window.innerHeight+48||currentY<=16||document.body.style.overflow==='hidden'||isEditingField()){reveal();return}
+    applyVerticalIntent(delta,currentY);
+  },{passive:true});
+  const clearTouchTracking=()=>{bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0};
   document.addEventListener('touchend',clearTouchTracking,{passive:true});
   document.addEventListener('touchcancel',clearTouchTracking,{passive:true});
   document.addEventListener('focusin',event=>{if(event.target?.matches('input,textarea,select,[contenteditable="true"]'))reveal()});

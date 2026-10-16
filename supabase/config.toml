@@ -1,0 +1,8 @@
+[functions.create-checkout-session]
+# POST authenticates the bearer token explicitly with Supabase Auth getUser().
+# GET exposes only the public readiness of the announced prices.
+verify_jwt = false
+
+[functions.stripe-webhook]
+# Stripe signs webhook requests; the handler verifies that signature before any write.
+verify_jwt = false

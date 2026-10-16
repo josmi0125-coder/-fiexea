@@ -1,6 +1,10 @@
 /* Centralized FIEXEA interface translations. Add each new language here. */
 (() => {
   const rows = {
+    "FIEXEA | App de finanzas personales, gastos y ahorro": ["FIEXEA | Personal finance, expenses and savings app", "FIEXEA | Application de finances personnelles et budget", "FIEXEA | App per finanze personali, spese e risparmio"],
+    "Tu app de finanzas personales: organiza gastos, presupuesto y ahorro.": ["Your personal finance app: organise expenses, budgets and savings.", "Votre application de finances personnelles : dépenses, budget et épargne.", "La tua app di finanze personali: organizza spese, budget e risparmi."],
+    "Qué es FIEXEA y cómo funciona": ["What is FIEXEA and how does it work?", "Qu’est-ce que FIEXEA et comment fonctionne-t-elle ?", "Che cos’è FIEXEA e come funziona?"],
+
     "FIEXEA": ["FIEXEA", "FIEXEA", "FIEXEA"],
     "Tu experto financiero personal.": ["Your personal finance assistant.", "Votre assistant financier personnel.", "Il tuo assistente finanziario personale."],
     "Controla. Ahorra. Prospera.": ["Take control. Save. Thrive.", "Gérez. Épargnez. Progressez.", "Controlla. Risparmia. Cresci."],
@@ -415,6 +419,10 @@
   };
   Object.assign(rows, updateTranslations);
   const ptRows = {
+    "FIEXEA | App de finanzas personales, gastos y ahorro": "FIEXEA | App de finanças pessoais, despesas e poupança",
+    "Tu app de finanzas personales: organiza gastos, presupuesto y ahorro.": "A tua app de finanças pessoais: organiza despesas, orçamento e poupança.",
+    "Qué es FIEXEA y cómo funciona": "O que é a FIEXEA e como funciona",
+
     "mes": "mês", "plazo registrado": "prazo registado", "calculados": "calculados a partir da data de fim", "Plazo registrado": "Prazo registado", "Calculado desde fecha final": "Calculado a partir da data de fim", "Estimación por meses naturales": "Estimativa em meses de calendário", "Introduce una fecha de finalización válida.": "Introduza uma data de fim válida.", "Sin configurar": "Não configurado", "Último día": "Último dia", "Del mes": "do mês", "Cada mes": "Todos os meses", "La fecha y el plazo guardado no coinciden; revisa la información.": "A data de fim e o prazo guardado não coincidem; reveja a informação.", "Introduce un número entero de meses igual o superior a uno.": "Introduza um número inteiro de meses igual ou superior a um.",
     "Gasto total": "Despesa total", "Sector de gastos": "Setor de despesas", "Leyenda de gastos por categoría": "Legenda de despesas por categoria",
     "Operar": "Operar",
@@ -552,7 +560,7 @@
     current = lang;
     try { localStorage.setItem("fiexea_language", lang); } catch (_) {}
     document.documentElement.lang = lang; window.fiexeaLocale = locales[lang];
-    document.title = tr("FIEXEA — Tu experto financiero personal | Controla, ahorra y prospera", lang);
+    document.title = tr("FIEXEA | App de finanzas personales, gastos y ahorro", lang);
     const button = document.getElementById("languageCurrent"); if (button) button.innerHTML = `🌐 ${codeToShort[lang]} <span aria-hidden="true">▾</span>`;
     document.querySelectorAll(".language-option").forEach(b => b.setAttribute("aria-current", String(b.dataset.lang === lang)));
     const select = document.getElementById("languageSettingsSelect"); if (select) select.value = lang;

@@ -15,7 +15,7 @@ function replaceOnce(old,value){if(html.split(old).length!==2)throw new Error(`M
 replaceOnce('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>','<script src="vendor/supabase.js"></script><script src="vendor/native.js"></script>');
 replaceOnce("function fiexeaRedirectUrl(){return new URL('./',window.location.href).href}","function fiexeaRedirectUrl(){return window.FiexeaNative?.redirect||new URL('./',window.location.href).href}");
 replaceOnce('window.supabase.createClient(FIEXEA_SUPABASE_URL,FIEXEA_SUPABASE_PUBLISHABLE_KEY)','window.supabase.createClient(FIEXEA_SUPABASE_URL,FIEXEA_SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:\'pkce\'}})');
-replaceOnce('Abre el enlace en Safari.','Abre el enlace de confirmación para volver a FIEXEA.');
+html=html.replaceAll('Abre el enlace en Safari.','Abre el enlace de confirmación para volver a FIEXEA.');
 replaceOnce('function saveOrShareFinancialBackup(){','function saveOrShareFinancialBackup(){if(window.FiexeaNative){if(!preparedFinancialBackup)return;window.FiexeaNative.shareBlob(preparedFinancialBackup.blob,preparedFinancialBackup.fileName).then(closeFinancialBackupExportModal).catch(()=>alert("No se pudo compartir la copia."));return;}');
 replaceOnce('function downloadCSV(){','function downloadCSV(){if(window.FiexeaNative){if(!moves.length){exportCSV();return;}window.FiexeaNative.shareBlob(createCSVBlob(),"fiexea-movimientos.csv").then(closeCSVExportModal).catch(()=>alert("No se pudo compartir el CSV."));return;}');
 replaceOnce('function shareCSV(){','function shareCSV(){if(window.FiexeaNative){downloadCSV();return;}');

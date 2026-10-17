@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.dataset.fiexeaAccess="checking";window.FIEXEA_START_SIGNUP=window.location.hash==="#signup";</script>
+<script>document.documentElement.dataset.fiexeaAccess="checking";window.FIEXEA_START_SIGNUP=window.location.hash==="#signup";window.FIEXEA_START_FORGOT=window.location.hash==="#forgot";window.FIEXEA_PASSWORD_RECOVERY=/(?:^#|&)type=recovery(?:&|$)/i.test(window.location.hash)||new URLSearchParams(window.location.search).get("type")==="recovery";window.FIEXEA_RECOVERY_ERROR=new URLSearchParams(window.location.hash.slice(1)).has("error");</script>
 <link rel="stylesheet" href="access.css?v=2026.10.17-trial">
 <meta name="referrer" content="no-referrer">
 <script src="invitations.js?v=2026.10.17-invitations" defer></script>
-<script src="access.js?v=2026.10.17-invitations" defer></script>
+<script src="access.js?v=2026.10.17-recovery" defer></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
 <script>
@@ -940,7 +940,7 @@ const fiexeaForgotMsg=document.getElementById('fiexeaForgotMsg');
 const fiexeaResetMsg=document.getElementById('fiexeaResetMsg');
 const fiexeaForgotSubmit=document.getElementById('fiexeaForgotSubmit');
 const fiexeaResetSubmit=document.getElementById('fiexeaResetSubmit');
-function fiexeaShowGate(show){if(fiexeaAuthGate)fiexeaAuthGate.hidden=!show}
+function fiexeaShowGate(show){if(fiexeaAuthGate)fiexeaAuthGate.hidden=!(show||fiexeaIsRecoveryUrl())}
 function fiexeaShowView(view){
   if(fiexeaSignupView)fiexeaSignupView.hidden=view!=='signup';
   if(fiexeaLoginView)fiexeaLoginView.hidden=view!=='login';
@@ -950,8 +950,8 @@ function fiexeaShowView(view){
 function fiexeaAuthMessage(m){if(fiexeaAuthError)fiexeaAuthError.textContent=m||''}
 function fiexeaTranslateAuthError(m){m=(m||'').toLowerCase();if(m.includes('invalid login credentials'))return'Correo o contraseña incorrectos.';if(m.includes('email not confirmed'))return'El correo todavía no está confirmado.';if(m.includes('too many requests'))return'Demasiados intentos. Espera un momento y vuelve a intentarlo.';return m||'No se ha podido iniciar sesión.'}
 function fiexeaRedirectUrl(){return new URL('./',window.location.href).href}
-function fiexeaIsRecoveryUrl(){return /(?:^|#|&)type=recovery(?:&|$)/i.test(window.location.hash||'')||/type=recovery/i.test(window.location.href)}
-function fiexeaClearRecoveryHash(){try{window.history.replaceState({},document.title,window.location.pathname+window.location.search)}catch(e){}}
+function fiexeaIsRecoveryUrl(){return window.FIEXEA_PASSWORD_RECOVERY===true}
+function fiexeaClearRecoveryHash(){window.FIEXEA_PASSWORD_RECOVERY=false;window.FIEXEA_RECOVERY_ERROR=false;try{window.history.replaceState({},document.title,window.location.pathname+window.location.search)}catch(e){}}
 
 fiexeaLoginForm.addEventListener('submit',async e=>{
   e.preventDefault();fiexeaAuthMessage('');fiexeaAuthSubmit.disabled=true;fiexeaAuthSubmit.textContent='Entrando…';
@@ -973,7 +973,7 @@ fiexeaForgotForm.addEventListener('submit',async e=>{
   const email=document.getElementById('fiexeaForgotEmail').value.trim();
   const{error}=await fiexeaSupabase.auth.resetPasswordForEmail(email,{redirectTo:fiexeaRedirectUrl()});
   if(error){fiexeaForgotMsg.textContent=fiexeaTranslateAuthError(error.message)}
-  else{fiexeaForgotMsg.textContent='Te hemos enviado un correo para crear una contraseña nueva. Abre el enlace en Safari.';fiexeaForgotMsg.className='fiexea-auth-success'}
+  else{fiexeaForgotMsg.textContent='Te hemos enviado un correo para crear una contraseña nueva. Abre el enlace en tu navegador. Si se abre Copilot, mantén pulsado el enlace del correo y elige abrirlo en Safari o Chrome.';fiexeaForgotMsg.className='fiexea-auth-success'}
   fiexeaForgotSubmit.disabled=false;fiexeaForgotSubmit.textContent='Enviar enlace';
 });
 
@@ -993,14 +993,17 @@ fiexeaResetForm.addEventListener('submit',async e=>{
 
 // Register the listener before getSession so the PASSWORD_RECOVERY event is not missed.
 fiexeaSupabase.auth.onAuthStateChange((event,session)=>{
-  if(event==='PASSWORD_RECOVERY'||fiexeaIsRecoveryUrl()){fiexeaShowGate(true);fiexeaShowView('reset');return}
+  if(event==='PASSWORD_RECOVERY')window.FIEXEA_PASSWORD_RECOVERY=true;
+  if(fiexeaIsRecoveryUrl()){fiexeaShowGate(true);fiexeaShowView('reset');return}
   if(session){fiexeaShowGate(false);fiexeaAuthMessage('')}
   else{fiexeaShowGate(true);fiexeaShowView('login')}
 });
 
 (async()=>{
   const{data:{session}}=await fiexeaSupabase.auth.getSession();
-  if(fiexeaIsRecoveryUrl()){fiexeaShowGate(true);fiexeaShowView('reset');return}
+  if(fiexeaIsRecoveryUrl()&&session){fiexeaShowGate(true);fiexeaShowView('reset');return}
+  if(fiexeaIsRecoveryUrl()||window.FIEXEA_RECOVERY_ERROR){fiexeaClearRecoveryHash();fiexeaShowGate(true);fiexeaShowView('forgot');fiexeaForgotMsg.textContent='El enlace ha caducado o ya se ha utilizado. Solicita uno nuevo con tu correo.';return}
+  if(window.FIEXEA_START_FORGOT){fiexeaShowGate(true);fiexeaShowView('forgot');return}
   fiexeaShowGate(!session);
   if(!session)fiexeaShowView('login');
 })();

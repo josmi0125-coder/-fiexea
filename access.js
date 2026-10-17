@@ -31,6 +31,7 @@
     gate.hidden = true; banner.hidden = true; setState('signedout');
   }
   async function checkAccess(session, silent = false) {
+    if (fiexeaIsRecoveryUrl()) { signedOut(); fiexeaShowGate(true); fiexeaShowView('reset'); return; }
     const id = session?.user?.id;
     if (!id) { signedOut(); return; }
     if (id !== userId) { generation++; userId = id; allowed = false; inFlight = null; }
@@ -50,7 +51,7 @@
         if (error) throw error;
         const { data: latest } = await fiexeaSupabase.auth.getSession();
         if (latest.session?.user?.id !== id) return;
-        if (generation !== checkGeneration || userId !== id) return;
+        if (generation !== checkGeneration || userId !== id || fiexeaIsRecoveryUrl()) return;
         if (!data || typeof data.allowed !== 'boolean') throw new Error('invalid-access');
         if (!data.allowed) {
           showGate(data.state === 'invitation_expired' ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 3 días ha terminado', data.state === 'invitation_expired' ? 'La invitación ha caducado o se ha desactivado. Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.', data.state !== 'invitation_expired');
@@ -79,7 +80,7 @@
         } else banner.hidden = true;
         timer = setTimeout(() => refresh(true), Math.max(100, lease));
       } catch (_) {
-        if (generation !== checkGeneration) return;
+        if (generation !== checkGeneration || fiexeaIsRecoveryUrl()) return;
         showGate('No se pudo comprobar tu acceso', 'Comprueba tu conexión y vuelve a intentarlo. No se ha eliminado ningún dato.');
       } finally { if (generation === checkGeneration) inFlight = null; }
     })();
@@ -93,7 +94,7 @@
   const originalGate = fiexeaShowGate;
   fiexeaShowGate = function (show) {
     originalGate(show);
-    if (show) signedOut();
+    if (show || fiexeaIsRecoveryUrl()) signedOut();
     else if (!allowed) { setState('checking'); setTimeout(() => refresh(), 0); }
   };
   fiexeaSupabase.auth.onAuthStateChange((event, session) => {
@@ -136,7 +137,7 @@
   document.addEventListener('click', event => {
     if (!allowed && event.target.closest('.app,.nav')) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
-  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && !userId) fiexeaShowView('signup'); });
+  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && !userId && !fiexeaIsRecoveryUrl()) fiexeaShowView('signup'); });
   refresh();
 })();
 

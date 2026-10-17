@@ -90,7 +90,18 @@ Se han ejecutado `mobile:build`, generación de Android e iOS con Capacitor, `ca
 
 **Ejecutado adicionalmente el 18 de octubre:** compilación Gradle de Android con JDK 21 y SDK 36 en GitHub Actions y generación del APK debug. Se han ajustado las pruebas de acceso para la pantalla actual y la generación de recursos antes de las pruebas de paquete.
 
-**No ejecutado:** compilación Xcode, pruebas físicas o emulador, firma de publicación, compras de tienda, AAB/IPA ni envío a revisión. No se ha pagado ninguna cuenta de desarrollador.
+**Validación adicional del 18 de octubre (emuladores):**
+
+- Android: compilación, instalación y prueba automatizada en Android 15/API 35, perfil Pixel 6. Ocho comprobaciones satisfactorias: puente nativo, formulario de acceso visible, logo local, apertura de recuperación de contraseña, regreso al acceso, giro horizontal sin desbordamiento, segundo plano/reanudación y ausencia de excepciones JavaScript durante la prueba. Se conservan cuatro capturas, informe JSON y logcat.
+- iPhone: compilación sin firma con Xcode 26 para simulador; instalación, arranque y proceso vivo confirmados. Se ha inspeccionado la captura de la pantalla de acceso. Esto no comprueba todavía navegación autenticada ni funciones financieras en iOS.
+- Ambas ejecuciones pasan las 27 pruebas de Node y mobile:check. Estas pruebas de emulador no inician sesión, no envían correos, no alteran datos financieros y no realizan compras.
+- Android: https://github.com/josmi0125-coder/-fiexea/actions/runs/39075693112
+- iPhone: https://github.com/josmi0125-coder/-fiexea/actions/runs/39075423652
+- Los artefactos de capturas/informes y la compilación de simulador se conservan 14 días. La aplicación .app del simulador no es instalable en un iPhone físico.
+
+**Pendiente para TestFlight:** confirmar la cuenta y membresía Apple Developer del titular, el Team, el identificador definitivo y la ficha en App Store Connect; preparar la firma de distribución y subir una compilación para dispositivos. No hay un IPA firmado ni una invitación TestFlight. No se han añadido certificados, credenciales ni cuentas de pago. La compilación de simulador no sustituye estos pasos.
+
+**No ejecutado:** pruebas con sesión y datos dentro de emuladores, pruebas físicas, firma de publicación, compras de tienda, AAB/IPA ni envío a revisión. No se ha pagado ninguna cuenta de desarrollador.
 
 ## Documentación oficial consultada
 

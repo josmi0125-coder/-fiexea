@@ -136,6 +136,7 @@
   document.addEventListener('click', event => {
     if (!allowed && event.target.closest('.app,.nav')) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
-  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && (billingReady || window.FiexeaInvitations?.pending) && !userId) fiexeaShowView('signup'); });
+  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && !userId) fiexeaShowView('signup'); });
   refresh();
 })();
+

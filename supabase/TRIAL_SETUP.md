@@ -1,6 +1,6 @@
 # FIEXEA: prueba única y suscripción
 
-El registro público permanece cerrado automáticamente mientras `GET /functions/v1/create-checkout-session` no devuelva `billing_available: true`. El acceso de la cuenta existente se conserva.
+El registro gratuito permanece disponible aunque Stripe siga en modo de prueba. El acceso dura 72 horas desde la creación de la cuenta; `billing_available: false` impide iniciar cobros reales. El acceso de las cuentas existentes y del administrador se conserva.
 
 ## Control de acceso
 
@@ -29,3 +29,10 @@ Después de configurar estos valores, volver a desplegar las dos funciones para 
 Se verificaron dentro de transacciones revertidas: conservación del acceso existente, prueba activa, caducidad, rechazo de una suscripción de prueba, aceptación de un estado de pago real simulado, cancelación, bloqueo RLS, límite exacto de 72 horas y conservación de la caducidad al volver a registrar el mismo correo. No se efectuaron cobros ni se dejaron cuentas de prueba.
 
 `node --test tests/access.test.cjs` verifica el bloqueo, errores de red, cuentas admitidas y caducidad del contador. El pago real y el correo de confirmación de una nueva cuenta quedan pendientes de la activación del servicio.
+
+
+## Dominio y gestión de suscripciones
+
+Checkout admite `https://fiexea.es`, `https://www.fiexea.es` y el origen anterior de GitHub. Los retornos de pago y del portal apuntan a `https://fiexea.es/app.html`. El POST con `{ "action": "portal" }` crea una sesión de gestión solo para el cliente Stripe asociado al usuario autenticado. Configura en Stripe Customer Portal las opciones de cancelación antes del lanzamiento.
+
+En Supabase Auth, confirma que Site URL y las Redirect URLs permiten `https://fiexea.es/`, `https://fiexea.es/app.html` y las rutas de invitación utilizadas por la app. Completa el titular, NIF y domicilio de la información legal antes de la apertura comercial.

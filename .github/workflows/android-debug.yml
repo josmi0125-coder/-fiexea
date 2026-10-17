@@ -37,10 +37,10 @@ jobs:
           java-version: '21'
       - name: Install locked dependencies
         run: npm ci
-      - name: Test web and native integration
-        run: npm test
       - name: Bundle and sync native assets
         run: npm run mobile:sync
+      - name: Test web and native integration
+        run: npm test
       - name: Check development package
         run: npm run mobile:check
       - name: Install Android SDK packages

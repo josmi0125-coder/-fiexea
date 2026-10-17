@@ -71,6 +71,11 @@
             if (seconds === 0) { clearInterval(countdown); showGate(invited ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 3 días ha terminado', invited ? 'Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan para continuar.', !invited); }
           };
           tick(); countdown = setInterval(tick, 1000); lease = Math.min(lease, remaining + 10);
+        } else if (data.state === 'admin') {
+          clearInterval(countdown);
+          banner.hidden = false;
+          document.getElementById('fiexeaTrialRemaining').textContent = 'Administrador de FIEXEA · Acceso permanente';
+          document.getElementById('fiexeaTrialPlans').hidden = true;
         } else banner.hidden = true;
         timer = setTimeout(() => refresh(true), Math.max(100, lease));
       } catch (_) {

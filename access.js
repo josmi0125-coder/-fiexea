@@ -10,6 +10,19 @@
   const signupNotice = document.getElementById('fiexeaSignupAvailability');
   let userId = '', generation = 0, allowed = false, timer = null, countdown = null, inFlight = null;
   let billingReady = false, billingChecked = false;
+  let checkoutPending = new URLSearchParams(location.search).get('checkout') === 'success', checkoutAttempts = 0;
+  const checkoutNotice = document.createElement('div');
+  checkoutNotice.setAttribute('role','status'); checkoutNotice.setAttribute('aria-live','polite');
+  checkoutNotice.style.cssText='padding:12px 16px;background:var(--card,#fff);color:var(--text,#132b2b);border-bottom:1px solid #b8d6cd;text-align:center';
+  checkoutNotice.hidden=true; gate.insertAdjacentElement('afterend',checkoutNotice);
+  function checkoutMessage(text){checkoutNotice.textContent=text;checkoutNotice.hidden=!text;}
+  function clearCheckoutQuery(){
+    const url=new URL(location.href);url.searchParams.delete('checkout');
+    history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+  }
+  if(new URLSearchParams(location.search).get('checkout')==='cancelled'){
+    checkoutMessage('Has vuelto del proceso de pago. Puedes consultar tu suscripción desde Más → Cuenta.');clearCheckoutQuery();
+  }
   const setState = state => { document.documentElement.dataset.fiexeaAccess = state; };
   const showGate = (heading, detail, canPay = false) => {
     allowed = false; setState('blocked'); gate.hidden = false;
@@ -28,7 +41,7 @@
   }
   function signedOut() {
     generation++; userId = ''; allowed = false; inFlight = null; clearTimeout(timer); clearInterval(countdown);
-    gate.hidden = true; banner.hidden = true; setState('signedout');
+    gate.hidden = true; banner.hidden = true; checkoutMessage(''); window.resetPremiumView?.(); setState('signedout');
   }
   async function checkAccess(session, silent = false) {
     if (fiexeaIsRecoveryUrl()) { signedOut(); fiexeaShowGate(true); fiexeaShowView('reset'); return; }
@@ -53,6 +66,20 @@
         if (latest.session?.user?.id !== id) return;
         if (generation !== checkGeneration || userId !== id || fiexeaIsRecoveryUrl()) return;
         if (!data || typeof data.allowed !== 'boolean') throw new Error('invalid-access');
+        if(checkoutPending){
+          if(['paid','admin','existing'].includes(data.state)){
+            checkoutPending=false;clearCheckoutQuery();
+            checkoutMessage(data.state==='paid'?'Tu suscripción Premium está activa.':'El acceso a tu cuenta está actualizado.');
+            window.refreshProfilePremium?.(id);
+          }else if(checkoutAttempts++<15){
+            showGate('Confirmando tu suscripción','Estamos esperando la confirmación de Stripe. No vuelvas a pagar.');
+            retry.hidden=true;timer=setTimeout(()=>refresh(true),2000);return;
+          }else{
+            checkoutMessage('La confirmación está tardando. No vuelvas a pagar. Usa Actualizar acceso o contacta con soporte@fiexea.es.');
+            showGate('Tu pago aún no está confirmado','Tus datos siguen guardados. Pulsa Actualizar acceso para comprobarlo de nuevo.');
+            retry.hidden=false;return;
+          }
+        }
         if (!data.allowed) {
           showGate(data.state === 'invitation_expired' ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 3 días ha terminado', data.state === 'invitation_expired' ? 'La invitación ha caducado o se ha desactivado. Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.', data.state !== 'invitation_expired');
           return;
@@ -101,7 +128,7 @@
     if (event === 'SIGNED_OUT') signedOut();
     else if (session && !fiexeaIsRecoveryUrl()) setTimeout(() => checkAccess(session, event === 'TOKEN_REFRESHED'), 0);
   });
-  retry.addEventListener('click', () => refresh());
+  retry.addEventListener('click', () => { checkoutAttempts=0;refresh(); });
   document.getElementById('fiexeaAccessLogout').addEventListener('click', async () => { await fiexeaSupabase.auth.signOut(); signedOut(); fiexeaShowGate(true); fiexeaShowView('login'); });
   function showPlans() {
     // Viewing prices must remain available even before billing is activated.
@@ -138,6 +165,7 @@
     if (!allowed && event.target.closest('.app,.nav')) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
   billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && !userId && !fiexeaIsRecoveryUrl()) fiexeaShowView('signup'); });
+  window.FiexeaAccess={refresh};
   refresh();
 })();
 

@@ -1122,6 +1122,17 @@ async function refreshProfilePremium(expectedUserId){
   }catch(error){if(plan)plan.textContent=profileTranslate('No disponible');status.textContent=profileTranslate('No se pudo verificar el acceso');if(message)message.textContent=profileTranslate('Comprueba tu conexión y vuelve a intentarlo.');}
 }
 
+function setCloudRestoreMessage(message){
+  const output=document.getElementById('profileCloudRestoreStatus');
+  if(!output)return;
+  const text=String(message??'');
+  output.textContent=text?profileTranslate(text):'';
+  output.hidden=!text;
+}
+function setProfileFinancialSyncDisplay(message){
+  const output=document.getElementById('profileSyncStatus');
+  if(output)output.textContent=profileTranslate(String(message??''));
+}
 function setKeepLocalButtonVisible(visible){const button=document.getElementById('profileKeepLocalButton');if(button)button.hidden=!visible}
 async function refreshProfileFinancialSyncStatus(userId){
   const local=collectFinancialData(),snapshot=financialDataSnapshot(local);

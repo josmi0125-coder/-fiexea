@@ -1064,7 +1064,7 @@ function tab(n){
   if(moreMenu) moreMenu.hidden=n!==10;
   if(moreBtn){moreBtn.classList.toggle('open',n===10);moreBtn.setAttribute('aria-expanded',String(n===10))}
   document.querySelectorAll('[data-more-tab]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.moreTab)===n));
-  try{history.replaceState(null,'','#t'+n)}catch(e){}
+  try{if(!fiexeaIsRecoveryUrl()&&!window.FIEXEA_START_FORGOT&&!window.FIEXEA_RECOVERY_ERROR&&!/(?:^#|&)(?:access_token|refresh_token|type|error)=/.test(location.hash))history.replaceState(null,'','#t'+n)}catch(e){}
   window.scrollTo(0,0);
   try{render()}catch(e){console.error('FIEXEA render error:',e)}
 }

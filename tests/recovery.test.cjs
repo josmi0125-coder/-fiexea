@@ -18,3 +18,10 @@ test('PASSWORD_RECOVERY opens reset even if callback URL has already been cleane
 test('expired email link gives a way to request another link',async()=>{const x=await setup({hash:'#error=access_denied&error_code=otp_expired',session:null,event:null});assert.equal(x.el('fiexeaForgotView').hidden,false);assert.match(x.el('fiexeaForgotMsg').textContent,/caducado/);});
 test('direct forgot link opens the email form',async()=>{const x=await setup({hash:'#forgot',session:null,event:null});assert.equal(x.el('fiexeaForgotView').hidden,false);});
 test('successful password update releases recovery state',async()=>{const x=await setup();x.el('fiexeaNewPassword').value=x.el('fiexeaNewPassword2').value='test-password';await x.el('fiexeaResetForm').events.submit({preventDefault(){}});assert.equal(x.window.FIEXEA_PASSWORD_RECOVERY,false);assert.equal(x.el('fiexeaAuthGate').hidden,true);});
+
+test('tab initialization preserves auth fragments until the SDK has consumed them',()=>{
+ const statement=html.match(/try\{if\(!fiexeaIsRecoveryUrl\(\).*?history.replaceState\(null,'','#t'\+n\)\}catch\(e\)\{\}/)[0];
+ for(const hash of ['#access_token=fake&type=recovery','#access_token=fake&type=signup','#forgot']){
+  let replaced=false;vm.runInNewContext(statement,{n:0,location:{hash},window:{FIEXEA_START_FORGOT:hash==='#forgot'},fiexeaIsRecoveryUrl:()=>hash.includes('recovery'),history:{replaceState(){replaced=true}}});assert.equal(replaced,false);
+ }
+});

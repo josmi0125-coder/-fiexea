@@ -9,14 +9,27 @@
     { label: 'Suscripciones', category: 'suscripciones', cents: -3500 }
   ];
   const categories = {
-    vivienda: { name: 'Vivienda', limit: 90000 },
-    alimentacion: { name: 'Alimentación', limit: 35000 },
-    transporte: { name: 'Transporte', limit: 15000 },
-    suscripciones: { name: 'Suscripciones', limit: 6000 },
-    ocio: { name: 'Ocio', limit: 18000 },
-    otros: { name: 'Otros', limit: 20000 }
+    vivienda: { name: 'Vivienda', icon: '🏠', limit: 90000 },
+    alimentacion: { name: 'Alimentación', icon: '🛒', limit: 35000 },
+    transporte: { name: 'Transporte', icon: '🚗', limit: 15000 },
+    suscripciones: { name: 'Suscripciones', icon: '📺', limit: 6000 },
+    ocio: { name: 'Ocio', icon: '🎮', limit: 18000 },
+    otros: { name: 'Otros', icon: '📦', limit: 20000 }
   };
   let moves = initial();
+  const picker = document.getElementById('demo-category-picker');
+  const selectedCategory = document.getElementById('demo-category');
+  function renderPicker() {
+    picker.replaceChildren();
+    Object.entries(categories).forEach(([key, category]) => {
+      const button = el('button', undefined, 'demo-category-choice');
+      button.type = 'button';
+      button.setAttribute('aria-pressed', String(selectedCategory.value === key));
+      button.append(el('span', category.icon, 'demo-emoji'), el('span', category.name));
+      button.addEventListener('click', () => { selectedCategory.value = key; renderPicker(); });
+      picker.append(button);
+    });
+  }
   const format = cents => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(cents / 100);
   const el = (tag, text, cls) => {
     const node = document.createElement(tag);
@@ -35,9 +48,11 @@
     list.replaceChildren();
     [...moves].reverse().forEach(move => {
       const item = el('li');
-      const caption = el('div', move.label);
+      const caption = el('div', move.label, 'demo-move-copy');
       caption.append(el('small', categories[move.category]?.name || 'Ingreso'));
-      item.append(caption, el('b', (move.cents > 0 ? '+' : '−') + format(Math.abs(move.cents)), move.cents > 0 ? 'income' : ''));
+      const left = el('div', undefined, 'demo-move-main');
+      left.append(el('span', categories[move.category]?.icon || '💶', 'demo-move-icon'), caption);
+      item.append(left, el('b', (move.cents > 0 ? '+' : '−') + format(Math.abs(move.cents)), 'demo-move-amount' + (move.cents > 0 ? ' income' : '')));
       list.append(item);
     });
     const budgets = document.getElementById('demo-budgets');
@@ -46,7 +61,8 @@
       const spent = moves.filter(move => move.category === key).reduce((sum, move) => sum - move.cents, 0);
       const block = el('div', undefined, 'demo-budget');
       const label = el('div', undefined, 'demo-budget-head');
-      label.append(el('strong', category.name), el('span', format(spent) + ' / ' + format(category.limit)));
+      const categoryTitle = el('strong'); categoryTitle.append(el('span', category.icon, 'demo-budget-icon'), el('span', category.name));
+      label.append(categoryTitle, el('span', format(spent) + ' / ' + format(category.limit)));
       const bar = el('div', undefined, 'mini-bar');
       bar.setAttribute('aria-hidden', 'true');
       const fill = el('i');
@@ -91,12 +107,12 @@
       return;
     }
     moves.push({ label: label.slice(0, 60), cents: -cents, category });
-    render(); form.reset();
+    render(); form.reset(); selectedCategory.value = category; renderPicker();
     status.textContent = 'Gasto ficticio añadido. Puedes ver el cambio en Presupuesto.';
   });
   document.getElementById('reset-demo').addEventListener('click', () => {
-    moves = initial(); form.reset(); render(); choose('inicio');
+    moves = initial(); form.reset(); selectedCategory.value = 'ocio'; renderPicker(); render(); choose('inicio');
     status.textContent = 'Ejemplo reiniciado con los datos iniciales.';
   });
-  render();
+  renderPicker(); render();
 })();

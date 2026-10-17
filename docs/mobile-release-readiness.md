@@ -1,6 +1,6 @@
 # FIEXEA para Android y iPhone
 
-Estado a 17 de octubre de 2026: **proyectos nativos de desarrollo generados y sincronizados**, aún sin APK/AAB ni IPA compilados y sin publicar en tiendas.
+Estado a 18 de octubre de 2026: **primer APK Android de desarrollo compilado correctamente**, con los proyectos Android/iOS generados y sincronizados. Aún sin AAB de publicación ni IPA y sin publicar en tiendas.
 
 La rama `feature/mobile-android-ios-20261017` parte de la aplicación web actual, incluida la corrección del guardado de copias del 17 de octubre. Actualiza la preparación anterior de `feature/mobile-app-preparation` sin sobrescribirla. El `appId` provisional se conserva: **com.fiexea.mobile.dev**. Hay que confirmar el identificador definitivo antes de registrar las fichas de tienda.
 
@@ -16,6 +16,16 @@ La rama `feature/mobile-android-ios-20261017` parte de la aplicación web actual
 - Declaración de APIs de privacidad para iOS enlazada al target. Esto **no sustituye** las etiquetas App Privacy de App Store Connect ni Data Safety de Google Play.
 - En las copias móviles de desarrollo no se inicia Checkout ni el portal de Stripe. La web conserva su comportamiento. No se ha implementado todavía StoreKit ni Google Play Billing.
 - La comprobación `mobile:release-check` impide tratar esta preparación como una entrega lista para tiendas.
+
+## APK Android de prueba disponible
+
+La ejecución [Android development APK #39074880016](https://github.com/josmi0125-coder/-fiexea/actions/runs/39074880016) ha completado correctamente la instalación con lockfile, la sincronización Capacitor, 27 pruebas, las comprobaciones móviles, la compilación Gradle `assembleDebug` y la subida del artefacto.
+
+[Descargar FIEXEA-Android-development](https://github.com/josmi0125-coder/-fiexea/actions/runs/39074880016/artifacts/12115793838). Incluye `app-debug.apk` y `SHA256SUMS.txt`. El artefacto se conserva hasta el 31 de octubre de 2026 y puede requerir iniciar sesión en GitHub.
+
+Es un APK de desarrollo con firma debug e identificador provisional; no es el AAB firmado para Google Play. No se ha instalado ni probado en un dispositivo o emulador. Incluye el código web actualizado de la pantalla de suscripción; las compras web siguen desactivadas dentro de la versión nativa de prueba.
+
+El workflow `.github/workflows/android-debug.yml` permite repetir la compilación en esta rama sin claves de tienda ni permisos de escritura en el repositorio.
 
 ## Abrir y probar
 
@@ -78,7 +88,9 @@ El almacenamiento de la app está separado del de Safari/Chrome. La instalación
 
 Se han ejecutado `mobile:build`, generación de Android e iOS con Capacitor, `cap sync`, `mobile:check` y 27 pruebas de Node. Se han validado XML/plist y la presencia del manifiesto de privacidad en el target de Xcode. Los archivos web de producción permanecen sin cambios en esta rama.
 
-**No ejecutado:** compilación Gradle (este entorno no tiene Android SDK/JDK 21), compilación Xcode (este entorno es Linux), pruebas físicas, firma, compras de tienda ni envío a revisión. No se ha creado ningún instalador ni se ha pagado ninguna cuenta de desarrollador.
+**Ejecutado adicionalmente el 18 de octubre:** compilación Gradle de Android con JDK 21 y SDK 36 en GitHub Actions y generación del APK debug. Se han ajustado las pruebas de acceso para la pantalla actual y la generación de recursos antes de las pruebas de paquete.
+
+**No ejecutado:** compilación Xcode, pruebas físicas o emulador, firma de publicación, compras de tienda, AAB/IPA ni envío a revisión. No se ha pagado ninguna cuenta de desarrollador.
 
 ## Documentación oficial consultada
 

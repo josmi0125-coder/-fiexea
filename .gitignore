@@ -21,3 +21,5 @@ ios/**/xcuserdata/
 *.aab
 *.apk
 .DS_Store
+
+test-results/

@@ -48,6 +48,29 @@ jobs:
       - name: Build development APK
         working-directory: android
         run: bash gradlew --no-daemon assembleDebug
+      - name: Install emulator image
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "emulator" "system-images;android-35;google_apis;x86_64"'
+      - name: Boot Android emulator
+        run: |
+          sudo chmod a+rw /dev/kvm
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name fiexea-ci --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
+          "$ANDROID_HOME/emulator/emulator" -avd fiexea-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader > /tmp/fiexea-emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 240 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb install android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Exercise installed Android application
+        run: node scripts/android-emulator-smoke.mjs
+      - name: Retain emulator screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FIEXEA-Android-emulator-results
+          path: |
+            test-results/android/
+            /tmp/fiexea-emulator.log
+          if-no-files-found: warn
+          retention-days: 14
       - name: Record APK checksum
         run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

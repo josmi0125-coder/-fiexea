@@ -1,0 +1,68 @@
+name: iPhone simulator development build
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/mobile-android-ios-20261017]
+    paths:
+      - '.github/workflows/ios-simulator.yml'
+      - 'ios/**'
+      - 'mobile/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - 'capacitor.config.json'
+      - 'app.html'
+      - 'access.js'
+      - 'i18n.js'
+permissions:
+  contents: read
+concurrency:
+  group: ios-simulator-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Select Xcode 26
+        run: |
+          XCODE_APP=$(python3 -c 'import glob; print(sorted(glob.glob("/Applications/Xcode_26*.app"))[-1])')
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+      - name: Prepare and check app
+        run: |
+          npm ci
+          npm run mobile:sync
+          npm test
+          npm run mobile:check
+      - name: Compile for iPhone simulator without signing
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/fiexea-ios CODE_SIGNING_ALLOWED=NO build > /tmp/fiexea-ios-build.log 2>&1
+      - name: Install and launch on iPhone simulator
+        run: |
+          mkdir -p test-results/ios
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for devices in d["devices"].values() for v in devices if "iPhone" in v["name"]))')
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl install "$DEVICE_ID" /tmp/fiexea-ios/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$DEVICE_ID" com.fiexea.mobile.dev
+          sleep 10
+          xcrun simctl io "$DEVICE_ID" screenshot test-results/ios/01-iphone-launch.png
+          xcrun simctl spawn "$DEVICE_ID" launchctl list | grep com.fiexea.mobile.dev > test-results/ios/launch.txt
+          ditto -c -k --sequesterRsrc --keepParent /tmp/fiexea-ios/Build/Products/Debug-iphonesimulator/App.app test-results/ios/FIEXEA-simulator.app.zip
+      - name: Retain simulator evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FIEXEA-iPhone-simulator-results
+          path: |
+            test-results/ios/
+            /tmp/fiexea-ios-build.log
+          if-no-files-found: warn
+          retention-days: 14

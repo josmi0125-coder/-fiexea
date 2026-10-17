@@ -49,9 +49,11 @@ jobs:
         working-directory: android
         run: bash gradlew --no-daemon assembleDebug
       - name: Install emulator image
-        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "emulator" "system-images;android-35;google_apis;x86_64"'
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"'
       - name: Boot Android emulator
         run: |
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
           sudo chmod a+rw /dev/kvm
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name fiexea-ci --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
           "$ANDROID_HOME/emulator/emulator" -avd fiexea-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader > /tmp/fiexea-emulator.log 2>&1 &

@@ -75,8 +75,8 @@
             showGate('Confirmando tu suscripción','Estamos esperando la confirmación de Stripe. No vuelvas a pagar.');
             retry.hidden=true;timer=setTimeout(()=>refresh(true),2000);return;
           }else{
-            checkoutMessage('La confirmación está tardando. No vuelvas a pagar. Usa Actualizar acceso o contacta con soporte@fiexea.es.');
-            showGate('Tu pago aún no está confirmado','Tus datos siguen guardados. Pulsa Actualizar acceso para comprobarlo de nuevo.');
+            checkoutMessage('La confirmación está tardando. No vuelvas a pagar. Usa Volver a comprobar o contacta con soporte@fiexea.es.');
+            showGate('Tu pago aún no está confirmado','Tus datos siguen guardados. Pulsa Volver a comprobar para comprobarlo de nuevo.');
             retry.hidden=false;return;
           }
         }

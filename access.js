@@ -22,8 +22,8 @@
       const body = await response.json(); billingReady = body.billing_available === true;
     } catch (_) { billingReady = false; }
     billingChecked = true;
-    signupButton.disabled = !billingReady && !window.FiexeaInvitations?.pending;
-    signupNotice.textContent = window.FiexeaInvitations?.pending ? 'Acceso gratuito por invitación. Crea tu cuenta con el correo destinatario y confírmalo para activarla.' : billingReady ? 'Prueba única de 3 días desde la creación de la cuenta. Sin tarjeta para empezar.' : 'El registro de nuevas cuentas estará disponible próximamente. Si ya tienes cuenta, puedes iniciar sesión.';
+    signupButton.disabled = false;
+    signupNotice.textContent = window.FiexeaInvitations?.pending ? 'Acceso gratuito por invitación. Crea tu cuenta con el correo destinatario y confírmalo para activarla.' : billingReady ? 'Prueba única de 3 días desde la creación de la cuenta. Sin tarjeta para empezar.' : 'Puedes crear tu cuenta y probar FIEXEA 3 días sin tarjeta. La contratación de Premium estará disponible cuando se activen los pagos.';
     return billingReady;
   }
   function signedOut() {
@@ -104,13 +104,13 @@
   }
   plans.addEventListener('click', showPlans);
   document.getElementById('fiexeaTrialPlans').addEventListener('click', showPlans);
-  signupButton.addEventListener('click', () => { if (billingReady || window.FiexeaInvitations?.pending) fiexeaShowView('signup'); });
+  signupButton.addEventListener('click', () => fiexeaShowView('signup'));
   document.getElementById('fiexeaSignupBack').addEventListener('click', () => fiexeaShowView('login'));
   document.getElementById('fiexeaSignupForm').addEventListener('submit', async event => {
     event.preventDefault();
     const result = document.getElementById('fiexeaSignupMessage'), submit = document.getElementById('fiexeaSignupSubmit');
     result.textContent = '';
-    if (!await billingAvailability() && !window.FiexeaInvitations?.pending) { result.textContent = 'El registro todavía no está disponible. Puedes explorar la demo sin crear una cuenta.'; return; }
+    // El registro gratuito es independiente de la disponibilidad de Stripe; el acceso y el cobro se validan en Supabase.
     const email = document.getElementById('fiexeaSignupEmail').value.trim();
     const password = document.getElementById('fiexeaSignupPassword').value;
     if (password !== document.getElementById('fiexeaSignupPassword2').value) { result.textContent = 'Las contraseñas no coinciden.'; return; }

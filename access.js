@@ -22,8 +22,8 @@
       const body = await response.json(); billingReady = body.billing_available === true;
     } catch (_) { billingReady = false; }
     billingChecked = true;
-    signupButton.disabled = !billingReady;
-    signupNotice.textContent = billingReady ? 'Prueba única de 3 días desde la creación de la cuenta. Sin tarjeta para empezar.' : 'El registro de nuevas cuentas estará disponible próximamente. Si ya tienes cuenta, puedes iniciar sesión.';
+    signupButton.disabled = !billingReady && !window.FiexeaInvitations?.pending;
+    signupNotice.textContent = window.FiexeaInvitations?.pending ? 'Acceso gratuito por invitación. Crea tu cuenta con el correo destinatario y confírmalo para activarla.' : billingReady ? 'Prueba única de 3 días desde la creación de la cuenta. Sin tarjeta para empezar.' : 'El registro de nuevas cuentas estará disponible próximamente. Si ya tienes cuenta, puedes iniciar sesión.';
     return billingReady;
   }
   function signedOut() {
@@ -41,6 +41,11 @@
     retry.hidden = true;
     inFlight = (async () => {
       try {
+        if (window.FiexeaInvitations?.pending) {
+          try { await window.FiexeaInvitations.redeem(session); }
+          catch (error) { showGate('No se pudo activar la invitación', error.message); return; }
+        }
+        await window.FiexeaInvitations?.prepare(session);
         const { data, error } = await fiexeaSupabase.rpc('fiexea_access_status');
         if (error) throw error;
         const { data: latest } = await fiexeaSupabase.auth.getSession();
@@ -48,20 +53,22 @@
         if (generation !== checkGeneration || userId !== id) return;
         if (!data || typeof data.allowed !== 'boolean') throw new Error('invalid-access');
         if (!data.allowed) {
-          showGate('Tu prueba de 3 días ha terminado', 'Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.', true);
+          showGate(data.state === 'invitation_expired' ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 3 días ha terminado', data.state === 'invitation_expired' ? 'La invitación ha caducado o se ha desactivado. Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.', data.state !== 'invitation_expired');
           return;
         }
         allowed = true; setState('allowed'); gate.hidden = true; fiexeaAuthGate.hidden = true;
         let lease = 30000;
-        if (data.state === 'trial') {
-          const remaining = Math.max(0, Date.parse(data.trial_ends_at) - Date.parse(data.server_now));
+        if (data.state === 'trial' || data.state === 'invitation') {
+          const invited = data.state === 'invitation';
+          document.getElementById('fiexeaTrialPlans').hidden = invited;
+          const remaining = Math.max(0, Date.parse(invited ? data.invitation_ends_at : data.trial_ends_at) - Date.parse(data.server_now));
           const deadline = performance.now() + remaining;
           banner.hidden = false;
           const tick = () => {
             const seconds = Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
             const hours = Math.floor(seconds / 3600), minutes = Math.floor(seconds % 3600 / 60);
-            document.getElementById('fiexeaTrialRemaining').textContent = 'Prueba activa · Quedan ' + hours + ' h ' + minutes + ' min';
-            if (seconds === 0) { clearInterval(countdown); showGate('Tu prueba de 3 días ha terminado', 'Tus datos siguen guardados. Elige un plan para continuar.', true); }
+            document.getElementById('fiexeaTrialRemaining').textContent = (invited ? 'Invitación activa · Quedan ' : 'Prueba activa · Quedan ') + hours + ' h ' + minutes + ' min';
+            if (seconds === 0) { clearInterval(countdown); showGate(invited ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 3 días ha terminado', invited ? 'Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan para continuar.', !invited); }
           };
           tick(); countdown = setInterval(tick, 1000); lease = Math.min(lease, remaining + 10);
         } else banner.hidden = true;
@@ -97,20 +104,20 @@
   }
   plans.addEventListener('click', showPlans);
   document.getElementById('fiexeaTrialPlans').addEventListener('click', showPlans);
-  signupButton.addEventListener('click', () => { if (billingReady) fiexeaShowView('signup'); });
+  signupButton.addEventListener('click', () => { if (billingReady || window.FiexeaInvitations?.pending) fiexeaShowView('signup'); });
   document.getElementById('fiexeaSignupBack').addEventListener('click', () => fiexeaShowView('login'));
   document.getElementById('fiexeaSignupForm').addEventListener('submit', async event => {
     event.preventDefault();
     const result = document.getElementById('fiexeaSignupMessage'), submit = document.getElementById('fiexeaSignupSubmit');
     result.textContent = '';
-    if (!await billingAvailability()) { result.textContent = 'El registro todavía no está disponible. Puedes explorar la demo sin crear una cuenta.'; return; }
+    if (!await billingAvailability() && !window.FiexeaInvitations?.pending) { result.textContent = 'El registro todavía no está disponible. Puedes explorar la demo sin crear una cuenta.'; return; }
     const email = document.getElementById('fiexeaSignupEmail').value.trim();
     const password = document.getElementById('fiexeaSignupPassword').value;
     if (password !== document.getElementById('fiexeaSignupPassword2').value) { result.textContent = 'Las contraseñas no coinciden.'; return; }
     if (!document.getElementById('fiexeaSignupTerms').checked) { result.textContent = 'Lee y acepta las condiciones para crear tu cuenta.'; return; }
     submit.disabled = true;
     try {
-      const { data, error } = await fiexeaSupabase.auth.signUp({ email, password, options: { emailRedirectTo: fiexeaRedirectUrl() } });
+      const { data, error } = await fiexeaSupabase.auth.signUp({ email, password, options: { emailRedirectTo: window.FiexeaInvitations?.redirect() || fiexeaRedirectUrl() } });
       if (error) { result.textContent = fiexeaTranslateAuthError(error.message); return; }
       document.getElementById('fiexeaSignupForm').reset();
       result.textContent = 'Revisa tu correo para confirmar el acceso. Si ya tenías cuenta, inicia sesión o recupera tu contraseña.';
@@ -124,6 +131,6 @@
   document.addEventListener('click', event => {
     if (!allowed && event.target.closest('.app,.nav')) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
-  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && billingReady && !userId) fiexeaShowView('signup'); });
+  billingAvailability().then(() => { if (window.FIEXEA_START_SIGNUP && (billingReady || window.FiexeaInvitations?.pending) && !userId) fiexeaShowView('signup'); });
   refresh();
 })();

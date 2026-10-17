@@ -66,6 +66,9 @@
         if (latest.session?.user?.id !== id) return;
         if (generation !== checkGeneration || userId !== id || fiexeaIsRecoveryUrl()) return;
         if (!data || typeof data.allowed !== 'boolean') throw new Error('invalid-access');
+        if(!checkoutPending && (!document.getElementById('premiumModal')?.hidden || document.getElementById('t9')?.classList.contains('active'))){
+          window.refreshProfilePremium?.(id);
+        }
         if(checkoutPending){
           if(['paid','admin','existing'].includes(data.state)){
             checkoutPending=false;clearCheckoutQuery();

@@ -90,9 +90,9 @@
   });
   retry.addEventListener('click', () => refresh());
   document.getElementById('fiexeaAccessLogout').addEventListener('click', async () => { await fiexeaSupabase.auth.signOut(); signedOut(); fiexeaShowGate(true); fiexeaShowView('login'); });
-  async function showPlans() {
-    if (!billingChecked || !billingReady) await billingAvailability();
-    if (!billingReady) { message.textContent = 'Las suscripciones todavía no están disponibles. Tus datos se conservan. Vuelve a intentarlo más adelante.'; return; }
+  function showPlans() {
+    // Viewing prices must remain available even before billing is activated.
+    // Checkout performs its own availability and authorization checks.
     openPremiumModal();
   }
   plans.addEventListener('click', showPlans);

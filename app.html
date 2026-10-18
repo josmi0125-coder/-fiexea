@@ -819,7 +819,7 @@ html:not([data-theme="dark"]) #t10.more-page,html:not([data-theme="dark"]) #navM
         </div>
       </div>
       <div class="section"><div class="card"><div class="label">EVOLUCIÓN MENSUAL</div><div id="months"></div></div></div>
-      <div class="section card"><div class="label">TODOS LOS MOVIMIENTOS</div>
+      <div class="section card" id="legacyAllMovementsPanel" hidden style="display:none!important" aria-hidden="true"><div class="label">TODOS LOS MOVIMIENTOS</div>
         <div class="moves-filters" role="group" aria-label="Filtrar movimientos por tipo">
           <button class="moves-filter-chip active" type="button" data-move-filter="all" onclick="setMoveTypeFilter('all')">Todos</button><button class="moves-filter-chip" type="button" data-move-filter="expense" onclick="setMoveTypeFilter('expense')">💸 Gastos</button><button class="moves-filter-chip" type="button" data-move-filter="income" onclick="setMoveTypeFilter('income')">💰 Ingresos</button>
         </div>

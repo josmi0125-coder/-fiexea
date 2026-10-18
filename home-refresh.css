@@ -32,3 +32,22 @@
 html[data-theme="dark"] #t0 .home-metric{background:var(--card,#182b30);border-color:var(--line,#345055)}
 html[data-theme="dark"] #t0 .home-section-kicker{color:var(--text,#e8f2f1)}
 @media(max-width:520px){#t0 .home-chart-layout{gap:12px}#t0 .home-chart-donut{width:120px;height:120px}#t0 .home-chart-center{width:87px;height:87px}#t0 .home-chart-center strong{font-size:13px}#t0 .home-chart-row{font-size:11px}#t0 .home-chart-row b{font-size:11px}#t0 .home-shortcut{font-size:11px}#t0 .hero{padding:22px 20px}}
+
+/* Mobile polish: keep the iPhone status bar clear and make shortcuts consistent */
+@media(max-width:740px){
+ body:has(#t0.active) .app{padding-top:max(68px,calc(env(safe-area-inset-top,0px) + 20px))}
+ #t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #t0 .home-shortcut{display:flex;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:7px;min-height:92px;padding:10px 5px;text-align:center;line-height:1.25}
+ #t0 .home-shortcut span:first-child{font-size:26px;line-height:1.1}
+ #t0 .home-shortcut span:last-child{font-size:12px}
+ #t0 .home-month-grid{gap:10px}
+ #t0 .home-metric{min-height:118px;padding:14px 12px}
+ #t0 .home-section-kicker{margin-top:19px}
+}
+/* The main hero already contains net worth and liabilities: avoid repeating those two cards. */
+#t0 .home-overview-grid>.home-overview-card:nth-child(1),
+#t0 .home-overview-grid>.home-overview-card:nth-child(2){display:none}
+#t0 .home-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#t0 .home-chart-card{margin-top:12px}
+#t0 .home-chart-title{margin-bottom:12px}
+#t0 .home-chart-center small{line-height:1.2}

@@ -1,0 +1,38 @@
+/* FIEXEA: consistent pastel visual language across application tabs.
+   Presentation only: preserve existing controls, IDs, data and navigation. */
+#t1 .moves-summary-card,#t2 .summary-kpi,#t3 .goals-overview-grid>div,#t5 .analysis-kpi{border:1px solid #e1e9eb;border-radius:19px;box-shadow:0 6px 22px #183e4310;padding:15px 12px}
+#t1 .moves-summary-card:nth-child(1),#t5 .analysis-kpi:nth-child(1){background:linear-gradient(125deg,#fff,#e5f8ed);color:#137947}
+#t1 .moves-summary-card:nth-child(2),#t5 .analysis-kpi:nth-child(2){background:linear-gradient(125deg,#fff,#fff0f0);color:#bd4149}
+#t1 .moves-summary-card:nth-child(3),#t5 .analysis-kpi:nth-child(3){background:linear-gradient(125deg,#fff,#f0eaff);color:#754de2}
+#t5 .analysis-kpi:nth-child(4){background:linear-gradient(125deg,#fff,#e6f8ef);color:#137947}
+#t5 .analysis-kpi:nth-child(5){background:linear-gradient(125deg,#fff,#e8f2ff);color:#2b66ae}
+#t1 .category-manager-panel,#t1 .movement-category-detail,#t2 .debt-upcoming-card,#t2 .debt-editor,#t2 .debt-list-container,#t4 .wealth-section,#t5 .analysis-card,#t5 .analysis-period-card{border-radius:23px;box-shadow:0 7px 25px #183e4310}
+#t1 .category-manager-panel{background:linear-gradient(145deg,#fff,#f1f7ff)}
+#t1 .category-manager-list>*:nth-child(6n+1),#t1 .moves-category-grid>*:nth-child(6n+1){background:linear-gradient(135deg,#fff,#e6f8ef)}
+#t1 .category-manager-list>*:nth-child(6n+2),#t1 .moves-category-grid>*:nth-child(6n+2){background:linear-gradient(135deg,#fff,#eaf2ff)}
+#t1 .category-manager-list>*:nth-child(6n+3),#t1 .moves-category-grid>*:nth-child(6n+3){background:linear-gradient(135deg,#fff,#f1eaff)}
+#t1 .category-manager-list>*:nth-child(6n+4),#t1 .moves-category-grid>*:nth-child(6n+4){background:linear-gradient(135deg,#fff,#fff2d9)}
+#t1 .category-manager-list>*:nth-child(6n+5),#t1 .moves-category-grid>*:nth-child(6n+5){background:linear-gradient(135deg,#fff,#ffedf0)}
+#t1 .category-manager-list>*:nth-child(6n),#t1 .moves-category-grid>*:nth-child(6n){background:linear-gradient(135deg,#fff,#e8f7f7)}
+#t2 .summary-kpi:nth-child(1){background:linear-gradient(125deg,#fff,#fff0f0)}
+#t2 .summary-kpi:nth-child(2){background:linear-gradient(125deg,#fff,#e9f2ff)}
+#t2 .summary-kpi:nth-child(3){background:linear-gradient(125deg,#fff,#e7f8ed)}
+#t2 .debt-upcoming-card{background:linear-gradient(145deg,#fff,#f0f6ff)}
+#t2 .debt-editor{background:linear-gradient(145deg,#fff,#f7f9fc)}
+#t2 .debt-list-container{background:linear-gradient(145deg,#fff,#f1f8f6)}
+#t3 .goals-overview{background:linear-gradient(130deg,#f6f1ff,#eaf9f5);border-radius:24px}
+#t3 .goals-overview-grid>div:nth-child(4n+1){background:#eaf8ef}
+#t3 .goals-overview-grid>div:nth-child(4n+2){background:#eaf2ff}
+#t3 .goals-overview-grid>div:nth-child(4n+3){background:#fff2dd}
+#t3 .goals-overview-grid>div:nth-child(4n){background:#f0eaff}
+#t4 .wealth-overview-card{background:linear-gradient(135deg,#e7f8f2,#f4f0ff);border-radius:25px}
+#t4 .wealth-overview-breakdown>div:nth-child(1){background:#e8f8ee}
+#t4 .wealth-overview-breakdown>div:nth-child(2){background:#fff0f0}
+#t4 .wealth-overview-breakdown>div:nth-child(3){background:#eaf2ff}
+#t4 .wealth-section:nth-of-type(2){background:linear-gradient(135deg,#fff,#eaf8f0)}
+#t4 .wealth-section:nth-of-type(3){background:linear-gradient(135deg,#fff,#f1edff)}
+#t5 .analysis-period-card{background:linear-gradient(135deg,#fff,#eef7ff)}
+#t5 .analysis-card:nth-of-type(3n+1){background:linear-gradient(145deg,#fff,#f0f8f5)}
+#t5 .analysis-card:nth-of-type(3n+2){background:linear-gradient(145deg,#fff,#eef3ff)}
+#t5 .analysis-card:nth-of-type(3n){background:linear-gradient(145deg,#fff,#f8f1ff)}
+html[data-theme="dark"] :is(#t1,#t2,#t3,#t4,#t5) :is(.moves-summary-card,.summary-kpi,.analysis-kpi,.category-manager-panel,.category-manager-list>*,.moves-category-grid>*,.debt-upcoming-card,.debt-editor,.debt-list-container,.goals-overview,.goals-overview-grid>div,.wealth-overview-card,.wealth-section,.wealth-overview-breakdown>div,.analysis-period-card,.analysis-card){background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3)!important;border-color:var(--line,#345055)}

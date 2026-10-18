@@ -206,6 +206,13 @@
 html[data-theme="dark"] #t10 .more-menu-group button{background:#1d3430!important;border-color:#35514a!important;color:var(--text)!important}
 html[data-theme="dark"] #t10 .more-menu-group:nth-child(2n) button{background:#222f3d!important;border-color:#37495c!important}
 html[data-theme="dark"] #t10 .more-menu-group button .menu-icon{color:#6bd6c4!important}
+
+/* Keep the monthly trend legend within the analysis card on narrow phones. */
+#operationsAnalysisTrend{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+#operationsAnalysisTrend .operations-trend-legend{grid-column:1/-1;width:100%;min-width:0;max-width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:7px;margin:12px 0 0;padding:0 3px;overflow-wrap:anywhere}
+#operationsAnalysisTrend .operations-trend-legend span{display:inline-flex;align-items:center;white-space:nowrap;max-width:100%;min-width:0}
+#operationsAnalysisTrend .operations-trend-legend i{flex:none}
+@media(max-width:420px){#operationsAnalysisTrend .operations-trend-legend{column-gap:9px;font-size:11px}#operationsAnalysisTrend .operations-trend-legend span{font-size:11px}}
 </style>
 <style id="fiexea-header-polish">
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;margin-bottom:18px}

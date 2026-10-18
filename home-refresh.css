@@ -35,7 +35,7 @@ html[data-theme="dark"] #t0 .home-section-kicker{color:var(--text,#e8f2f1)}
 
 /* Mobile polish: keep the iPhone status bar clear and make shortcuts consistent */
 @media(max-width:740px){
- body:has(#t0.active) .app{padding-top:max(68px,calc(env(safe-area-inset-top,0px) + 20px))}
+ body:has(#t0.active) .app{padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
  #t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}
  #t0 .home-shortcut{display:flex;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:7px;min-height:92px;padding:10px 5px;text-align:center;line-height:1.25}
  #t0 .home-shortcut span:first-child{font-size:26px;line-height:1.1}
@@ -83,8 +83,9 @@ html[data-theme="dark"] #t0 .home-shortcut,html[data-theme="dark"] #t0 .home-ove
 /* iPhone home refinements */
 #t0 .home-shortcut:first-child span:first-child{color:#fff!important}
 @media(max-width:740px){
-  body .app{padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))!important}
-  html{scroll-padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))}
+  /* Apply the iPhone safe area once, with a compact content gap. */
+  body .app{padding-top:calc(env(safe-area-inset-top,0px) + 12px)!important}
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
 }
 
 /* Ensure the expense shortcut plus is white across iOS/Safari */

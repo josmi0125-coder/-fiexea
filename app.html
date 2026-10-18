@@ -819,13 +819,10 @@ html:not([data-theme="dark"]) #t10.more-page,html:not([data-theme="dark"]) #navM
         </div>
       </div>
       <div class="section"><div class="card"><div class="label">EVOLUCIÓN MENSUAL</div><div id="months"></div></div></div>
-      <div class="section card" id="legacyAllMovementsPanel" hidden style="display:none!important" aria-hidden="true"><div class="label">TODOS LOS MOVIMIENTOS</div>
-        <div class="moves-filters" role="group" aria-label="Filtrar movimientos por tipo">
-          <button class="moves-filter-chip active" type="button" data-move-filter="all" onclick="setMoveTypeFilter('all')">Todos</button><button class="moves-filter-chip" type="button" data-move-filter="expense" onclick="setMoveTypeFilter('expense')">💸 Gastos</button><button class="moves-filter-chip" type="button" data-move-filter="income" onclick="setMoveTypeFilter('income')">💰 Ingresos</button>
-        </div>
-        <div class="moves-filter-selects"><select id="movesMonthFilter" aria-label="Filtrar por mes" onchange="renderMoves()"><option value="all">📅 Todos los meses</option></select><select id="movesCategoryFilter" aria-label="Filtrar por categoría" onchange="renderMoves()"><option value="all">🏷️ Categorías</option></select></div>
-        <div id="moves" class="move-list"></div>
-      </div>
+      <!-- The legacy all-movements list was removed; movements are accessed through category cards. -->
+      <div id="moves" hidden></div>
+      <select id="movesMonthFilter" hidden aria-hidden="true"><option value="all">Todos los meses</option></select>
+      <select id="movesCategoryFilter" hidden aria-hidden="true"><option value="all">Categorías</option></select>
     </section>
 
     <section id="t2" class="tab">

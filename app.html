@@ -1653,7 +1653,7 @@ function renderWealthHistory(){
  const now=new Date(),month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const active=assets.reduce((sum,item)=>sum+(Number(item.value)||0),0);
  const liability=debts.reduce((sum,item)=>sum+Math.max(0,Number(item.balance)||0),0);
- let history=[];try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))history=data.filter(x=>x&&/^\\d{4}-\\d{2}$/.test(x.month)&&Number.isFinite(x.net)).slice(-120)}catch(e){}
+ let history=[];try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))history=data.filter(x=>x&&/^\d{4}-\d{2}$/.test(x.month)&&Number.isFinite(x.net)).slice(-120)}catch(e){}
  const snapshot={month,assets:active,debts:liability,net:active-liability};
  const idx=history.findIndex(x=>x.month===month);if(idx>=0)history[idx]=snapshot;else history.push(snapshot);
  history.sort((a,b)=>a.month.localeCompare(b.month));history=history.slice(-120);

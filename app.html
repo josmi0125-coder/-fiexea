@@ -523,7 +523,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding
 }
 html:not([data-theme="dark"]) #t10.more-page,html:not([data-theme="dark"]) #navMoreMenu,html:not([data-theme="dark"]) #t10 .more-menu-group{background:#f5f8fa!important;color:#14262b!important}
 </style>
-</head>
+<style id="fiexea-expense-plus-20261018">#t0 .home-shortcut:first-child .expense-plus-icon{background:#25b88b!important;background-image:none!important;border-radius:13px!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important}#t0 .home-shortcut:first-child .expense-plus-icon svg{display:block!important;opacity:1!important;filter:none!important}#t0 .home-shortcut:first-child .expense-plus-icon svg path{stroke:#fff!important}</style></head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
     <img class="fiexea-auth-logo" src="fiexea-logo.png" alt="FIEXEA" onerror="this.style.display='none'">
@@ -593,7 +593,7 @@ html:not([data-theme="dark"]) #t10.more-page,html:not([data-theme="dark"]) #navM
       <div class="home-chart-card" aria-label="Comparación de ingresos y gastos del mes"><div class="home-chart-title">Resumen visual del mes</div><div class="home-chart-layout"><div class="home-chart-donut" id="homeChartDonut"><div class="home-chart-center"><strong id="homeChartCenter">—</strong><small>Ingresos</small></div></div><div class="home-chart-legend"><div class="home-chart-row"><i class="home-chart-dot" style="background:#10a976"></i>Ingresos<b id="homeChartIncome">—</b></div><div class="home-chart-row"><i class="home-chart-dot" style="background:#ef565a"></i>Gastos<b id="homeChartExpense">—</b></div><div class="home-chart-row"><i class="home-chart-dot" style="background:#8664f4"></i>Balance<b id="homeChartBalance">—</b></div></div></div></div>
       <div class="home-section-kicker">Accesos rápidos</div>
       <div class="home-shortcuts">
-        <button class="home-shortcut" type="button" onclick="startHomeMovement('expense')"><span aria-hidden="true" style="color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:900">+</span><span>Añadir gasto</span></button>
+        <button class="home-shortcut" type="button" onclick="startHomeMovement('expense')"><span class="expense-plus-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="27" height="27" aria-hidden="true"><path d="M12 4v16M4 12h16" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/></svg></span><span>Añadir gasto</span></button>
         <button class="home-shortcut" type="button" onclick="startHomeMovement('income')"><span>💰</span><span>Añadir ingreso</span></button>
         <button class="home-shortcut" type="button" onclick="focusDebtCreation()"><span>💳</span><span>Añadir deuda</span></button>
         <button class="home-shortcut" type="button" onclick="focusGoalCreation()"><span>🎯</span><span>Crear objetivo</span></button>

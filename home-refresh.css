@@ -79,3 +79,10 @@ html[data-theme="dark"] #t0 .home-section-kicker{color:var(--text,#e8f2f1)}
 #t0 .home-click-card:has(#homeDebt){background:linear-gradient(120deg,#fff,#fff0e8)}
 html[data-theme="dark"] #t0 .home-shortcut,html[data-theme="dark"] #t0 .home-overview-card,html[data-theme="dark"] #t0 .home-click-card{background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3)}
 @media(max-width:380px){#t0 .home-shortcut{gap:4px!important;padding:6px!important}#t0 .home-shortcut span:first-child{flex-basis:28px;width:28px;height:28px;font-size:18px!important}#t0 .home-shortcut span:last-child{font-size:10px!important}}
+
+/* iPhone home refinements */
+#t0 .home-shortcut:first-child span:first-child{color:#fff!important}
+@media(max-width:740px){
+  body .app{padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))!important}
+  html{scroll-padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))}
+}

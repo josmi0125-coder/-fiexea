@@ -86,3 +86,6 @@ html[data-theme="dark"] #t0 .home-shortcut,html[data-theme="dark"] #t0 .home-ove
   body .app{padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))!important}
   html{scroll-padding-top:max(80px,calc(env(safe-area-inset-top,0px) + 42px))}
 }
+
+/* Ensure the expense shortcut plus is white across iOS/Safari */
+#t0 .home-shortcut:first-child span:first-child{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:900!important}

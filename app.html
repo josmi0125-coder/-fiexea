@@ -128,6 +128,18 @@
 #t2 .debt-card-details[open]>summary span{transform:rotate(180deg)}
 #t2 .debt-card-details .debt-metrics{margin-top:8px}
 #t2 .debt-essential-metrics{margin:10px 0 4px}
+
+/* Compact debt cards v2: mobile-friendly actions and tighter spacing */
+#t2 .debt-card{padding:12px}
+#t2 .debt-card .finance-item-head{margin-bottom:6px}
+#t2 .debt-card .debt-essential-metrics{margin:6px 0 2px;gap:6px}
+#t2 .debt-card .debt-metric{padding:8px;min-width:0}
+#t2 .debt-card .debt-card-details{margin-top:7px;padding-top:4px}
+#t2 .debt-card .debt-card-details>summary{padding:6px 2px}
+#t2 .debt-card .debt-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+#t2 .debt-card .debt-actions .btn{min-width:0;width:100%;padding:9px 5px;font-size:12px;line-height:1.25;white-space:normal}
+#t2 .debt-card .debt-actions .btn:last-child:nth-child(odd){grid-column:1/-1}
+@media(max-width:380px){#t2 .debt-card .debt-actions .btn{font-size:11px;padding:8px 4px}}
 </style>
 <style id="fiexea-header-polish">
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;margin-bottom:18px}

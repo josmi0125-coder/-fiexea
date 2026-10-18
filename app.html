@@ -150,6 +150,17 @@
 #t2 .debt-card .debt-metric{min-height:0!important;padding:7px!important}
 #t2 .debt-card .debt-metric strong{line-height:1.15!important}
 #t2 .debt-card .debt-essential-metrics{gap:6px!important}
+
+/* Uniform four summary tiles and discreet delete action */
+#t2 .debt-card .debt-essential-metrics{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:92px!important;align-items:stretch!important}
+#t2 .debt-card .debt-essential-metrics>.debt-metric{box-sizing:border-box!important;height:92px!important;min-height:92px!important;max-height:92px!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;padding:8px!important}
+#t2 .debt-card .debt-essential-metrics>.debt-metric>.debt-editable{width:100%!important;min-width:0!important}
+#t2 .debt-card .debt-essential-metrics .debt-metric-label{font-size:12px!important;line-height:1.15!important;margin:0!important}
+#t2 .debt-card .debt-essential-metrics .debt-metric-value{margin-top:5px!important;line-height:1.1!important}
+#t2 .debt-card .debt-essential-metrics .debt-status{display:block!important;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;font-size:clamp(12px,3.2vw,16px)!important;line-height:1.12!important;font-weight:800!important;margin-top:5px!important;width:100%!important}
+#t2 .debt-card .debt-management-actions{display:flex!important;justify-content:flex-end!important;grid-template-columns:none!important}
+#t2 .debt-card .debt-management-actions .btn.danger{display:inline-flex!important;flex:0 0 auto!important;width:auto!important;max-width:max-content!important;padding:4px 9px!important;min-height:28px!important;font-size:11px!important;border-radius:8px!important}
+@media(max-width:380px){#t2 .debt-card .debt-essential-metrics{grid-auto-rows:98px!important}#t2 .debt-card .debt-essential-metrics>.debt-metric{height:98px!important;min-height:98px!important;max-height:98px!important}}
 </style>
 <style id="fiexea-header-polish">
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;margin-bottom:18px}

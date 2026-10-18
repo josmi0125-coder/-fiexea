@@ -111,3 +111,26 @@ html:not([data-theme="dark"]) #t6,html:not([data-theme="dark"]) #moreScreen,html
 #t5 .analysis-debt-progress-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#0f766e,#25b18a);transition:width .25s ease}
 #t5 .analysis-debt-percent{font-weight:800;font-size:18px;color:var(--accent);margin:8px 0 0}
 html[data-theme="dark"] #t5 .analysis-debt-progress{background:#33494b}
+
+/* Live comparison of active loans, using the same data as the debt cards. */
+#t2 .debt-comparison{border-radius:23px;min-width:0;box-shadow:0 7px 25px #183e4310}
+#t2 .debt-comparison h3{margin:0 0 16px}
+#t2 .debt-comparison-total{display:grid;gap:5px;margin-bottom:18px}
+#t2 .debt-comparison-total strong{font-size:clamp(24px,6vw,32px);color:var(--accent);overflow-wrap:anywhere}
+#t2 .debt-comparison-switch{display:flex;gap:4px;padding:4px;background:#edf6f5;border-radius:14px;margin-bottom:18px}
+#t2 .debt-comparison-switch button{flex:1;min-width:0;border:0;border-radius:10px;padding:11px 8px;font:inherit;font-size:13px;font-weight:700;color:var(--accent);background:transparent;cursor:pointer}
+#t2 .debt-comparison-switch button[aria-pressed="true"]{background:#0f766e;color:#fff;box-shadow:0 2px 7px #183e4320}
+#t2 .debt-comparison-bars{display:grid;gap:16px}
+#t2 .debt-comparison-row{display:block;width:100%;min-width:0;text-align:left;border:0;border-radius:10px;padding:5px 0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+#t2 .debt-comparison-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:9px}
+#t2 .debt-comparison-name{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere}
+#t2 .debt-comparison-name strong{font-size:14px}
+#t2 .debt-comparison-name small{color:var(--muted);font-size:12px}
+#t2 .debt-comparison-value{font-size:14px;text-align:right;flex-shrink:0;color:var(--accent)}
+#t2 .debt-comparison-track{display:block;height:10px;overflow:hidden;border-radius:999px;background:#e3efed}
+#t2 .debt-comparison-track>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0f766e,#52b9a4)}
+#t2 .debt-comparison-row:focus-visible,#t2 .debt-comparison-switch button:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+#t2 .debt-card{scroll-margin-top:24px}
+#t2 .debt-comparison>p{margin:18px 0 0;line-height:1.5}
+html[data-theme="dark"] #t2 .debt-comparison-switch,html[data-theme="dark"] #t2 .debt-comparison-track{background:#253f40}
+@media(max-width:360px){#t2 .debt-comparison-head{flex-wrap:wrap}#t2 .debt-comparison-switch button{font-size:12px}}

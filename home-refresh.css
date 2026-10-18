@@ -51,3 +51,31 @@ html[data-theme="dark"] #t0 .home-section-kicker{color:var(--text,#e8f2f1)}
 #t0 .home-chart-card{margin-top:12px}
 #t0 .home-chart-title{margin-bottom:12px}
 #t0 .home-chart-center small{line-height:1.2}
+
+#t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#t0 .home-shortcut{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;min-height:66px!important;padding:8px!important;text-align:left!important;line-height:1.2}
+#t0 .home-shortcut span:first-child{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;font-size:22px!important}
+#t0 .home-shortcut span:last-child{font-size:12px!important;min-width:0}
+#t0 .home-shortcut:nth-child(1){background:linear-gradient(120deg,#fff,#e4f8f1);color:#087b6b}
+#t0 .home-shortcut:nth-child(2){background:linear-gradient(120deg,#fff,#e4f8e9);color:#167b43}
+#t0 .home-shortcut:nth-child(3){background:linear-gradient(120deg,#fff,#fff2d8);color:#946316}
+#t0 .home-shortcut:nth-child(4){background:linear-gradient(120deg,#fff,#efe8ff);color:#7148d2}
+#t0 .home-shortcut:nth-child(5){background:linear-gradient(120deg,#fff,#e6f1ff);color:#2467bc}
+#t0 .home-shortcut:nth-child(6){background:linear-gradient(120deg,#fff,#ffe7ec);color:#b84056}
+#t0 .home-shortcut:nth-child(1) span:first-child{background:#087b6b;color:white}
+#t0 .home-shortcut:nth-child(2) span:first-child{background:#d5f3e1}
+#t0 .home-shortcut:nth-child(3) span:first-child{background:#fff0c5}
+#t0 .home-shortcut:nth-child(4) span:first-child{background:#e9ddff}
+#t0 .home-shortcut:nth-child(5) span:first-child{background:#dbeafe}
+#t0 .home-shortcut:nth-child(6) span:first-child{background:#ffe0e6}
+#t0 .home-overview-grid>.home-overview-card:nth-child(1),#t0 .home-overview-grid>.home-overview-card:nth-child(2){display:none!important}
+#t0 .home-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#t0 .home-overview-card:nth-child(3){background:linear-gradient(120deg,#fff,#f0eaff)}
+#t0 .home-overview-card:nth-child(4){background:linear-gradient(120deg,#fff,#e4f8ec)}
+#t0 .home-click-card{border-radius:21px}
+#t0 .home-click-card:has(#scoreCircle){background:linear-gradient(120deg,#fff,#eaf7f5)}
+#t0 .home-click-card:has(.financial-analysis-icon){background:linear-gradient(120deg,#fff,#eaf2ff)}
+#t0 .home-click-card:has(#homeGoals){background:linear-gradient(120deg,#fff,#f3edff)}
+#t0 .home-click-card:has(#homeDebt){background:linear-gradient(120deg,#fff,#fff0e8)}
+html[data-theme="dark"] #t0 .home-shortcut,html[data-theme="dark"] #t0 .home-overview-card,html[data-theme="dark"] #t0 .home-click-card{background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3)}
+@media(max-width:380px){#t0 .home-shortcut{gap:4px!important;padding:6px!important}#t0 .home-shortcut span:first-child{flex-basis:28px;width:28px;height:28px;font-size:18px!important}#t0 .home-shortcut span:last-child{font-size:10px!important}}

@@ -207,6 +207,11 @@ html[data-theme="dark"] #t10 .more-menu-group button{background:#1d3430!importan
 html[data-theme="dark"] #t10 .more-menu-group:nth-child(2n) button{background:#222f3d!important;border-color:#37495c!important}
 html[data-theme="dark"] #t10 .more-menu-group button .menu-icon{color:#6bd6c4!important}
 
+/* Mobile legend: three equal columns, never overflow the card. */
+#operationsAnalysisTrend.operations-analysis-trend{grid-template-columns:repeat(6,minmax(0,1fr));width:100%;min-width:0;max-width:100%}
+#operationsAnalysisTrend .operations-trend-legend{grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;width:100%!important;min-width:0!important;max-width:100%!important;margin:12px 0 0!important;padding:0!important;box-sizing:border-box!important;overflow:hidden}
+#operationsAnalysisTrend .operations-trend-legend span{display:flex!important;justify-content:center;align-items:center;gap:4px;min-width:0;max-width:100%;white-space:nowrap;font-size:clamp(10px,2.8vw,12px)!important}
+#operationsAnalysisTrend .operations-trend-legend i{display:inline-block;flex:0 0 8px;margin:0}
 /* Keep the monthly trend legend within the analysis card on narrow phones. */
 #operationsAnalysisTrend{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
 #operationsAnalysisTrend .operations-trend-legend{grid-column:1/-1;width:100%;min-width:0;max-width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:7px;margin:12px 0 0;padding:0 3px;overflow-wrap:anywhere}

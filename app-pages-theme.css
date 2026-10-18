@@ -52,3 +52,18 @@ html[data-theme="dark"] :is(#t1,#t2,#t3,#t4,#t5) :is(.moves-summary-card,.summar
 #t1 .movement-monthly-section{background:linear-gradient(145deg,#fff,#f1f8f5)}
 #t1 .movement-history-section{background:linear-gradient(145deg,#fff,#f6f8ff)}
 html[data-theme="dark"] #t1 .movement-category-tile,html[data-theme="dark"] #t1 .movement-categories-section,html[data-theme="dark"] #t1 .movement-monthly-section,html[data-theme="dark"] #t1 .movement-history-section{background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3);border-color:var(--line,#345055)}
+
+/* FIEXEA Movimientos v3: exact live DOM target, override base card paint */
+#movementCategoriesOverview{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+#movementCategoriesOverview button.movement-category-tile{min-width:0;box-sizing:border-box;padding:10px 4px;border-radius:17px;border:1px solid #dde8e8;box-shadow:0 4px 13px rgba(21,77,79,.045)}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n+1){background:linear-gradient(140deg,#fff,#e7f7ed)!important}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n+2){background:linear-gradient(140deg,#fff,#eaf2ff)!important}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n+3){background:linear-gradient(140deg,#fff,#f0eaff)!important}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n+4){background:linear-gradient(140deg,#fff,#fff1d9)!important}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n+5){background:linear-gradient(140deg,#fff,#ffedf2)!important}
+#movementCategoriesOverview button.movement-category-tile:nth-child(6n){background:linear-gradient(140deg,#fff,#e7f7f7)!important}
+#movementCategoriesOverview .movement-category-tile-name{font-size:clamp(10px,2.8vw,13px);line-height:1.2;overflow-wrap:anywhere;hyphens:auto}
+#movementCategoriesOverview .movement-category-tile-total{font-size:clamp(9px,2.3vw,11px);white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+@media(max-width:360px){#movementCategoriesOverview{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) #movementCategoriesOverview button.movement-category-tile{background:#1b3034!important;color:#f0f8f7}}
+html[data-theme="dark"] #movementCategoriesOverview button.movement-category-tile{background:#1b3034!important;color:#f0f8f7}

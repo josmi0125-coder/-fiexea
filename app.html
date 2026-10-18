@@ -1649,15 +1649,15 @@ function deleteDebtPayment(debtId,paymentId){const debt=debts.find(item=>String(
 function renderWealthHistory(){
  const root=document.getElementById('wealthHistory');if(!root)return;
  const owner=typeof financialActiveUserId!=='undefined'&&financialActiveUserId?String(financialActiveUserId):'local';
- const key='fiexea_wealth_history_v1_'+owner;
+ const key='fiexea_wealth_history_v1',legacyKey=key+'_'+owner;
  const now=new Date(),month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const active=assets.reduce((sum,item)=>sum+(Number(item.value)||0),0);
  const liability=debts.reduce((sum,item)=>sum+Math.max(0,Number(item.balance)||0),0);
- let history=[];try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))history=data.filter(x=>x&&/^\d{4}-\d{2}$/.test(x.month)&&Number.isFinite(x.net)).slice(-120)}catch(e){}
- const snapshot={month,assets:active,debts:liability,net:active-liability};
+ let history=[];try{const shared=JSON.parse(localStorage.getItem(key)||'[]'),legacy=JSON.parse(localStorage.getItem(legacyKey)||'[]');const months=new Map();for(const row of [...(Array.isArray(legacy)?legacy:[]),...(Array.isArray(shared)?shared:[])])if(row&&/^\d{4}-\d{2}$/.test(row.month)&&Number.isFinite(row.net))months.set(row.month,row);history=[...months.values()].slice(-120)}catch(e){}
+ const snapshot={month,assets:active,debts:liability,net:active-liability,updatedAt:new Date().toISOString()};
  const idx=history.findIndex(x=>x.month===month);if(idx>=0)history[idx]=snapshot;else history.push(snapshot);
  history.sort((a,b)=>a.month.localeCompare(b.month));history=history.slice(-120);
- try{localStorage.setItem(key,JSON.stringify(history))}catch(e){}
+ try{const serialized=JSON.stringify(history);if(localStorage.getItem(key)!==serialized){localStorage.setItem(key,serialized);queueFinancialSync()}}catch(e){}
  const recent=history.slice(-12);
  if(recent.length<2){root.innerHTML='<strong>Primer registro: '+month+'</strong><p>Se ha registrado el patrimonio de este mes. La gráfica aparecerá cuando haya datos de otro mes. No se inventarán valores anteriores.</p>';return}
  const vals=recent.map(x=>x.net),min=Math.min(...vals),max=Math.max(...vals),range=Math.max(1,max-min),w=600,h=160,pad=18;
@@ -1688,7 +1688,7 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function exportJSON(){let data={moves,debts,goals,assets,budget,budgetCategories,activeMovementCategories,budgetMonth,hiddenBudgetCategories,plannerYear,plannerCategories,planRows,version:8};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='fiexea-copia.json';a.click()}
 function importJSON(event){const file=event.target.files&&event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async function(){try{const data=JSON.parse(reader.result);if(!data||typeof data!=="object"||!Array.isArray(data.moves)||!Array.isArray(data.debts)||!Array.isArray(data.goals)||!Array.isArray(data.assets)){throw new Error("formato")}if(!confirm("¿Restaurar esta copia? Los datos actuales de FIEXEA serán sustituidos por los de la copia."))return;moves=data.moves;debts=data.debts;goals=data.goals;assets=data.assets;budget=Number(data.budget)||0;if(Array.isArray(data.budgetCategories))budgetCategories=data.budgetCategories.map(c=>({id:String(c.id||uid()),name:String(c.name||'').trim(),type:c.type==='income'?'income':'expense',icon:categoryImageAsset(c.name)||(budgetIconOptions.some(([icon])=>icon===c.icon)?c.icon:budgetIconFor(c.name)),limit:Math.max(0,Number(c.limit)||0),aliases:Array.isArray(c.aliases)?c.aliases.map(String):[]})).filter(c=>c.name);activeMovementCategories=normalizeActiveMovementCategories(Array.isArray(data.activeMovementCategories)?data.activeMovementCategories:[]);if(/^\d{4}-(0[1-9]|1[0-2])$/.test(data.budgetMonth||''))budgetMonth=data.budgetMonth;if(Array.isArray(data.hiddenBudgetCategories))hiddenBudgetCategories=data.hiddenBudgetCategories.map(normalizeBudgetCategory).filter(Boolean);if(Array.isArray(data.planRows))planRows=data.planRows;if(Array.isArray(data.plannerCategories))plannerCategories=data.plannerCategories;if(!Array.isArray(data.budgetCategories)){budgetCategories=migrateLegacyBudgetCategories(plannerCategories,planRows,budgetMonth);hiddenBudgetCategories=[]}if(Number.isFinite(Number(data.plannerYear)))plannerYear=Number(data.plannerYear);migrateCanonicalMovementCategories();save();saveBudget();savePlanner();document.getElementById("budget").value=budget;render();try{const syncResult=await syncFinancialDataToSupabase();alert(syncResult.authenticated?"Copia restaurada y sincronizada correctamente.":"Copia restaurada localmente. Inicia sesión para sincronizarla.")}catch(syncError){console.error("No se pudo sincronizar la copia importada",syncError);showPersistenceNotice("La copia se restauró localmente, pero no se pudo sincronizar con Supabase.")}}catch(e){alert("No se pudo restaurar la copia. Comprueba que sea un archivo de copia de FIEXEA.")}finally{event.target.value=""}};reader.readAsText(file)}
 
-const FIEXEA_FINANCIAL_BACKUP_KEYS=Object.freeze(['fiexea_moves','fiexea_debts','fiexea_goals','fiexea_assets','fiexea_accounts','fiexea_budget','fiexea_budget_categories','fiexea_budget_month','fiexea_budget_hidden_categories','fiexea_planner_year','fiexea_planner_rows','fiexea_planner_categories','fiexea_analysis_year','fiexea_currency','fiexea_cycle_start_day','fiexea_active_categories']);
+const FIEXEA_FINANCIAL_BACKUP_KEYS=Object.freeze(['fiexea_moves','fiexea_debts','fiexea_goals','fiexea_assets','fiexea_accounts','fiexea_budget','fiexea_budget_categories','fiexea_budget_month','fiexea_budget_hidden_categories','fiexea_planner_year','fiexea_planner_rows','fiexea_planner_categories','fiexea_analysis_year','fiexea_currency','fiexea_cycle_start_day','fiexea_active_categories','fiexea_wealth_history_v1']);
 const FINANCIAL_DATA_STORAGE_KEYS=Object.freeze(FIEXEA_FINANCIAL_BACKUP_KEYS.filter(key=>!['fiexea_currency','fiexea_cycle_start_day','fiexea_analysis_year'].includes(key)));
 function markFinancialSyncPending(){try{localStorage.setItem(FINANCIAL_SYNC_PENDING_STORAGE_KEY,'1')}catch(error){console.warn('No se pudo registrar la sincronización pendiente',error)}}
 function isFinancialSyncPending(){try{return localStorage.getItem(FINANCIAL_SYNC_PENDING_STORAGE_KEY)==='1'}catch(_){return false}}
@@ -1723,6 +1723,16 @@ function financialDataMerge(local,remote){
     const mergedList=[...byId.values(),...withoutId.values()];
     merged[key]=key==='fiexea_active_categories'&&!mergedList.length?null:JSON.stringify(mergedList);
   }
+  // Preserve snapshots from both devices, using latest recorded time for a shared month.
+  try{
+    const read=raw=>{const value=JSON.parse(raw||'[]');return Array.isArray(value)?value.filter(x=>x&&/^\\d{4}-\\d{2}$/.test(x.month)&&Number.isFinite(x.net)):[]};
+    const monthly=new Map();
+    for(const row of [...read(remote.fiexea_wealth_history_v1),...read(local.fiexea_wealth_history_v1)]){
+      const prev=monthly.get(row.month);
+      if(!prev||String(row.updatedAt||'')>=String(prev.updatedAt||''))monthly.set(row.month,row);
+    }
+    merged.fiexea_wealth_history_v1=JSON.stringify([...monthly.values()].sort((a,b)=>a.month.localeCompare(b.month)).slice(-120));
+  }catch(error){console.warn('No se pudo combinar el historial de patrimonio',error)}
   for(const key of FIEXEA_FINANCIAL_BACKUP_KEYS){if(listKeys.includes(key))continue;if(local[key]!==null&&local[key]!==undefined)merged[key]=local[key]}
   if(local.fiexea_budget!==null&&local.fiexea_budget!==undefined&&Number(local.fiexea_budget)===0&&Number(remote.fiexea_budget)>0)merged.fiexea_budget=remote.fiexea_budget;
   return merged;

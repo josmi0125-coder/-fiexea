@@ -632,7 +632,17 @@ html:not([data-theme="dark"]) #t10.more-page,html:not([data-theme="dark"]) #navM
 #t10 .more-menu-group button[data-more-action="export"]{grid-column:auto!important}
 @media(max-width:390px){#t10 .more-menu-group button{min-height:96px!important;padding:12px 7px!important}}
 </style>
-</head>
+<style id="fiexea-more-small-tiles">
+/* Más: compact equal-height cards, including groups with one item */
+#t10 .more-menu-group{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+#t10 .more-menu-group button,
+#t10 .more-menu-group button:first-of-type:last-of-type,
+#t10 .more-menu-group button[data-more-action="export"]{grid-column:auto!important;min-height:78px!important;max-height:88px!important;height:78px!important;padding:8px 6px!important;gap:3px!important;align-content:center!important;justify-content:center!important}
+#t10 .more-menu-group button .more-menu-description{display:none!important}
+#t10 .more-menu-group button .menu-icon{font-size:23px!important;line-height:1.1!important;margin:0!important}
+#t10 .more-menu-group button strong{font-size:14px!important;line-height:1.2!important}
+@media(max-width:390px){#t10 .more-menu-group button,#t10 .more-menu-group button:first-of-type:last-of-type{min-height:74px!important;height:74px!important}}
+</style></head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
     <img class="fiexea-auth-logo" src="fiexea-logo.png" alt="FIEXEA" onerror="this.style.display='none'">

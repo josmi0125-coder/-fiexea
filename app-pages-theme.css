@@ -67,3 +67,14 @@ html[data-theme="dark"] #t1 .movement-category-tile,html[data-theme="dark"] #t1 
 @media(max-width:360px){#movementCategoriesOverview{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) #movementCategoriesOverview button.movement-category-tile{background:#1b3034!important;color:#f0f8f7}}
 html[data-theme="dark"] #movementCategoriesOverview button.movement-category-tile{background:#1b3034!important;color:#f0f8f7}
+
+
+/* FIEXEA 2026-10-18: compact category layout inspired by approved mockup */
+@media(max-width:700px){
+ #movementCategoriesOverview{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ #movementCategoriesOverview button.movement-category-tile{min-height:68px!important;padding:9px 10px!important;border-radius:14px!important;gap:5px!important;box-shadow:0 2px 9px #183e4308!important}
+ #movementCategoriesOverview .movement-category-tile-name{font-size:12px!important;line-height:1.25!important;hyphens:none!important;word-break:normal!important;overflow-wrap:break-word!important}
+ #movementCategoriesOverview .movement-category-tile-total{font-size:11px!important;line-height:1.25!important;overflow-wrap:normal!important}
+}
+/* Keep dark mode supported; force light-looking More screen only when light theme is active */
+html:not([data-theme="dark"]) #t6,html:not([data-theme="dark"]) #moreScreen,html:not([data-theme="dark"]) .more-page{background:#f5f8fa!important;color:#14262b!important}

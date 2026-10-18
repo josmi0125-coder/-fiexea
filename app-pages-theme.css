@@ -36,3 +36,19 @@
 #t5 .analysis-card:nth-of-type(3n+2){background:linear-gradient(145deg,#fff,#eef3ff)}
 #t5 .analysis-card:nth-of-type(3n){background:linear-gradient(145deg,#fff,#f8f1ff)}
 html[data-theme="dark"] :is(#t1,#t2,#t3,#t4,#t5) :is(.moves-summary-card,.summary-kpi,.analysis-kpi,.category-manager-panel,.category-manager-list>*,.moves-category-grid>*,.debt-upcoming-card,.debt-editor,.debt-list-container,.goals-overview,.goals-overview-grid>div,.wealth-overview-card,.wealth-section,.wealth-overview-breakdown>div,.analysis-period-card,.analysis-card){background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3)!important;border-color:var(--line,#345055)}
+
+/* Movimientos: pastel categories and legible compact four-column layout */
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n+1){background:linear-gradient(145deg,#fff,#e8f8ef)}
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n+2){background:linear-gradient(145deg,#fff,#eaf2ff)}
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n+3){background:linear-gradient(145deg,#fff,#f1eaff)}
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n+4){background:linear-gradient(145deg,#fff,#fff3dc)}
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n+5){background:linear-gradient(145deg,#fff,#ffedf0)}
+#t1 .movement-categories-overview>.movement-category-tile:nth-child(6n){background:linear-gradient(145deg,#fff,#e9f7f7)}
+#t1 .movement-category-tile{border-color:#e1e9eb;border-radius:17px;box-shadow:0 3px 12px #183e4309;overflow:hidden}
+#t1 .movement-category-tile-name{max-width:100%;overflow-wrap:anywhere;word-break:normal;hyphens:auto;line-height:1.22}
+#t1 .movement-category-tile-total{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+#t1 .movement-categories-section{background:linear-gradient(145deg,#fff,#f8fbff);border-radius:24px}
+#t1 .move-list>*,#t1 .move-list .move-item{border-radius:18px}
+#t1 .movement-monthly-section{background:linear-gradient(145deg,#fff,#f1f8f5)}
+#t1 .movement-history-section{background:linear-gradient(145deg,#fff,#f6f8ff)}
+html[data-theme="dark"] #t1 .movement-category-tile,html[data-theme="dark"] #t1 .movement-categories-section,html[data-theme="dark"] #t1 .movement-monthly-section,html[data-theme="dark"] #t1 .movement-history-section{background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3);border-color:var(--line,#345055)}

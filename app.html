@@ -188,6 +188,24 @@
 @media(max-width:380px){.wealth-compact-asset .wealth-asset-bottom{grid-template-columns:1fr}.wealth-compact-asset .wealth-asset-actions{justify-content:flex-end}}
 
 .wealth-history-graph svg{width:100%;height:145px;display:block}.wealth-history-axis,.wealth-history-rows>div{display:flex;justify-content:space-between;gap:12px}.wealth-history-axis{font-size:12px;margin:3px 0 12px}.wealth-history-rows{display:grid;gap:5px}.wealth-history-rows>div{padding:6px 0;border-bottom:1px solid var(--line)}.wealth-history-note small{display:block;margin-top:12px}
+
+/* FIEXEA Más: color-coded tiles aligned with the app's financial palette */
+#t10 .more-menu-group{border-bottom-color:var(--line)}
+#t10 .more-menu-group h3{color:var(--muted)}
+#t10 .more-menu-group button{border:1px solid #d9e9e4!important;border-radius:17px!important;background:#e9f6f1!important;color:var(--text)!important;box-shadow:0 3px 12px rgba(13,87,75,.035)!important}
+#t10 .more-menu-group button .menu-icon{color:#0f766e!important}
+#t10 .more-menu-group:nth-child(1) button{background:#e9f3ff!important;border-color:#d9e7f9!important}
+#t10 .more-menu-group:nth-child(2) button{background:#e8f7f0!important;border-color:#d5ebdf!important}
+#t10 .more-menu-group:nth-child(3) button{background:#edf5ff!important;border-color:#dce9f8!important}
+#t10 .more-menu-group:nth-child(4) button{background:#f2edff!important;border-color:#e4dafb!important}
+#t10 .more-menu-group:nth-child(5) button{background:#eaf7f4!important;border-color:#d6ece7!important}
+#t10 .more-menu-group:nth-child(6) button{background:#fff4e6!important;border-color:#f2e5cf!important}
+#t10 .more-menu-group:nth-child(7) button{background:#f3edff!important;border-color:#e7ddf7!important}
+#t10 .more-menu-group:nth-child(8) button{background:#fff0f0!important;border-color:#f2dddd!important}
+#t10 .more-menu-group button:active{filter:brightness(.96)}
+html[data-theme="dark"] #t10 .more-menu-group button{background:#1d3430!important;border-color:#35514a!important;color:var(--text)!important}
+html[data-theme="dark"] #t10 .more-menu-group:nth-child(2n) button{background:#222f3d!important;border-color:#37495c!important}
+html[data-theme="dark"] #t10 .more-menu-group button .menu-icon{color:#6bd6c4!important}
 </style>
 <style id="fiexea-header-polish">
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;margin-bottom:18px}

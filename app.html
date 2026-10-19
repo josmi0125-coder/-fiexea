@@ -452,7 +452,7 @@ html[data-theme="dark"] .account-summary-details>div,html[data-theme="dark"] .ac
 .wealth-section-heading h2{margin:0;font-size:17px}.wealth-section-heading p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
 .wealth-add-button{flex:none;min-height:46px;padding:10px 14px;font-weight:800}
 .wealth-editor .form{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.wealth-field{display:grid;gap:6px;min-width:0}.wealth-field label{font-size:13px;font-weight:800;color:var(--text)}
-.wealth-field input,.wealth-field select{width:100%;min-width:0}.wealth-editor .actions .btn{min-height:46px}
+.wealth-field input,.wealth-field select{width:100%;min-width:0;font-size:16px}.wealth-editor .actions .btn{min-height:46px}
 .wealth-assets-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.wealth-assets-list:empty{display:block}
 .wealth-assets-list .asset-card{min-width:0}.wealth-assets-list .finance-item-title small{font-size:12px}.wealth-assets-list .finance-item-value{grid-column:1/-1;background:var(--bg)}
 .wealth-assets-list .finance-item-value span{font-size:11px}.wealth-assets-list .finance-item-value strong{font-size:clamp(20px,4vw,26px)}
@@ -2491,17 +2491,18 @@ function initializeBottomNavigationAutoHide(){
   const reveal=()=>setBottomNavigationVisible(true);
   const isEditingField=()=>document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
   // Keep a keyboard-free height: Safari can leave the field focused after Done.
-  let keyboardViewportHeight=Math.max(window.innerHeight,window.visualViewport?.height||0);
+  let keyboardViewportHeight=Math.max(window.innerHeight,(window.visualViewport?.height||0)*(window.visualViewport?.scale||1));
   let keyboardViewportWidth=window.innerWidth;
   let keyboardWasEditing=false;
   const syncKeyboardNavigation=()=>{
     const viewport=window.visualViewport;
-    if(viewport&&Math.abs(viewport.scale-1)>0.05)return;
+    // Safari may zoom a focused field; compare heights in the same scale.
+    // Do not skip keyboard handling while that zoom is active.
     if(Math.abs(window.innerWidth-keyboardViewportWidth)>80){
       keyboardViewportWidth=window.innerWidth;
       keyboardViewportHeight=window.innerHeight;
     }
-    const height=viewport?.height||window.innerHeight;
+    const height=viewport?viewport.height*(viewport.scale||1):window.innerHeight;
     keyboardViewportHeight=Math.max(keyboardViewportHeight,window.innerHeight,height);
     const editing=!!isEditingField();
     const wasHidden=document.body.classList.contains('nav-keyboard-hidden');

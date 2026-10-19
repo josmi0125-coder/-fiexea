@@ -9,12 +9,12 @@
     { label: 'Suscripciones', category: 'suscripciones', cents: -3500 }
   ];
   const categories = {
-    vivienda: { name: 'Vivienda', icon: '🏠', limit: 90000 },
-    alimentacion: { name: 'Alimentación', icon: '🛒', limit: 35000 },
-    transporte: { name: 'Transporte', icon: '🚗', limit: 15000 },
-    suscripciones: { name: 'Suscripciones', icon: '📺', limit: 6000 },
-    ocio: { name: 'Ocio', icon: '🎮', limit: 18000 },
-    otros: { name: 'Otros', icon: '📦', limit: 20000 }
+    vivienda: { name: 'Vivienda', icon: '🏠' },
+    alimentacion: { name: 'Alimentación', icon: '🛒' },
+    transporte: { name: 'Transporte', icon: '🚗' },
+    suscripciones: { name: 'Suscripciones', icon: '📺' },
+    ocio: { name: 'Ocio', icon: '🎮' },
+    otros: { name: 'Otros', icon: '📦' }
   };
   let moves = initial();
   const picker = document.getElementById('demo-category-picker');
@@ -44,36 +44,45 @@
     document.getElementById('income').textContent = format(income);
     document.getElementById('expenses').textContent = format(expenses);
     document.getElementById('balance').textContent = format(income - expenses);
-    const list = document.getElementById('demo-moves');
+    const list = document.getElementById('demo-categories');
     list.replaceChildren();
-    [...moves].reverse().forEach(move => {
-      const item = el('li');
-      const caption = el('div', move.label, 'demo-move-copy');
-      caption.append(el('small', categories[move.category]?.name || 'Ingreso'));
-      const left = el('div', undefined, 'demo-move-main');
-      left.append(el('span', categories[move.category]?.icon || '💶', 'demo-move-icon'), caption);
-      item.append(left, el('b', (move.cents > 0 ? '+' : '−') + format(Math.abs(move.cents)), 'demo-move-amount' + (move.cents > 0 ? ' income' : '')));
-      list.append(item);
-    });
-    const budgets = document.getElementById('demo-budgets');
-    budgets.replaceChildren();
     Object.entries(categories).forEach(([key, category]) => {
-      const spent = moves.filter(move => move.category === key).reduce((sum, move) => sum - move.cents, 0);
-      const block = el('div', undefined, 'demo-budget');
-      const label = el('div', undefined, 'demo-budget-head');
-      const categoryTitle = el('strong'); categoryTitle.append(el('span', category.icon, 'demo-budget-icon'), el('span', category.name));
-      label.append(categoryTitle, el('span', format(spent) + ' / ' + format(category.limit)));
-      const bar = el('div', undefined, 'mini-bar');
-      bar.setAttribute('aria-hidden', 'true');
-      const fill = el('i');
-      fill.style.width = Math.min(100, Math.round(spent / category.limit * 100)) + '%';
-      if (spent > category.limit) fill.style.backgroundColor = '#a3431c';
-      bar.append(fill);
-      const note = el('small', spent > category.limit ? 'Superado en ' + format(spent - category.limit) : 'Disponible: ' + format(category.limit - spent), spent > category.limit ? 'budget-alert' : '');
-      block.append(label, bar, note);
-      budgets.append(block);
+      const entries = moves.filter(move => move.category === key);
+      const group = el('details', undefined, 'demo-category-group');
+      const summary = el('summary');
+      summary.append(el('span', category.icon + ' ' + category.name), el('strong', format(entries.reduce((sum, move) => sum - move.cents, 0))));
+      const items = el('ul', undefined, 'move-list');
+      [...entries].reverse().forEach(move => {
+        const item = el('li');
+        item.append(el('span', move.label), el('b', '−' + format(-move.cents)));
+        items.append(item);
+      });
+      if (!entries.length) items.append(el('li', 'Todavía no hay gastos en esta categoría.'));
+      group.append(summary, items); list.append(group);
     });
+    renderBudget();
   }
+  function renderBudget() {
+    const expenses = moves.reduce((sum, move) => sum - Math.min(0, move.cents), 0);
+    const input = document.getElementById('demo-limit');
+    const raw = input.value;
+    const limit = Math.round(Number(raw) * 100);
+    const valid = raw !== '' && input.validity.valid && Number.isFinite(limit) && limit > 0;
+    const remaining = document.getElementById('budget-remaining');
+    const note = document.getElementById('budget-note');
+    const progress = document.getElementById('budget-progress');
+    document.getElementById('budget-spent').textContent = format(expenses);
+    remaining.textContent = valid ? format(limit - expenses) : '—';
+    remaining.classList.toggle('budget-alert', valid && expenses > limit);
+    progress.hidden = !valid;
+    progress.value = valid ? Math.min(100, expenses / limit * 100) : 0;
+    progress.classList.toggle('over', valid && expenses > limit);
+    note.classList.toggle('budget-alert', valid && expenses > limit);
+    note.textContent = !valid ? (raw === '' ? 'Escribe un límite para ver cuánto te queda.' : 'Introduce un límite mayor que cero, con un máximo de dos decimales.') : expenses > limit ? 'Has superado tu límite en ' + format(expenses - limit) + '.' : 'Los gastos se descuentan automáticamente. Te queda no es tu saldo bancario.';
+  }
+  document.getElementById('demo-limit').addEventListener('input', renderBudget);
+  document.getElementById('demo-month').textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(new Date());
+
   const tabs = [...document.querySelectorAll('[role="tab"][data-view]')];
   function choose(view, focus = false) {
     tabs.forEach(tab => {
@@ -108,11 +117,13 @@
     }
     moves.push({ label: label.slice(0, 60), cents: -cents, category });
     render(); form.reset(); selectedCategory.value = category; renderPicker();
-    status.textContent = 'Gasto ficticio añadido. Puedes ver el cambio en Presupuesto.';
+    status.textContent = 'Gasto añadido a su categoría y descontado de Mi presupuesto.';
   });
   document.getElementById('reset-demo').addEventListener('click', () => {
-    moves = initial(); form.reset(); selectedCategory.value = 'ocio'; renderPicker(); render(); choose('inicio');
+    moves = initial(); document.getElementById('demo-limit').value = ''; form.reset(); selectedCategory.value = 'ocio'; renderPicker(); render(); choose('inicio');
     status.textContent = 'Ejemplo reiniciado con los datos iniciales.';
   });
+  document.getElementById('demo-open-moves').addEventListener('click', () => choose('movimientos', true));
   renderPicker(); render();
 })();
+

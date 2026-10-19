@@ -2275,7 +2275,16 @@ function renderBudgetAdvice(planned,spent,available,monthDate){
 }
 function toggleFinancialAnalysis(){
   const panel=document.getElementById('financialAnalysisPanel'),button=document.getElementById('financialAnalysisToggle');if(!panel||!button)return;
-  panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden){renderFinancialAnalysis();panel.scrollIntoView({behavior:'smooth',block:'start'})}
+  panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));
+  if(panel.hidden)return;
+  try{renderFinancialAnalysis()}finally{
+    // Wait until the revealed panel has its final layout before scrolling on mobile.
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(panel.hidden)return;
+      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      panel.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'});
+    }));
+  }
 }
 function changeFinancialAnalysisYear(value){const year=Number(value);if(!Number.isInteger(year)||year<1900||year>9999)return;analysisYear=year;localStorage.setItem('fiexea_analysis_year',String(year));queueFinancialSync();renderFinancialAnalysis()}
 function financialMovementsForMonth(monthKey){return moves.filter(move=>(move.date||'').slice(0,7)===monthKey&&['income','expense'].includes(move.type))}

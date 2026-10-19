@@ -1,12 +1,41 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://fiexea.es/</loc></url>
-  <url><loc>https://fiexea.es/demo.html</loc></url>
-  <url><loc>https://fiexea.es/informacion.html</loc></url>
-  <url><loc>https://fiexea.es/finanzas-personales.html</loc></url>
-  <url><loc>https://fiexea.es/control-de-gastos.html</loc></url>
-  <url><loc>https://fiexea.es/ahorro-y-presupuesto.html</loc></url>
-  <url><loc>https://fiexea.es/calculadora-ahorro.html</loc></url>
-  <url><loc>https://fiexea.es/presupuesto-mensual.html</loc></url>
-  <url><loc>https://fiexea.es/gastos-recurrentes.html</loc></url>
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://fiexea.es/</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/demo.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/informacion.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/finanzas-personales.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/control-de-gastos.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/ahorro-y-presupuesto.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/calculadora-ahorro.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/presupuesto-mensual.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/gastos-recurrentes.html</loc>
+  </url>
+  <url>
+    <loc>https://fiexea.es/video-fiexea.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://fiexea.es/assets/fiexea-demo-poster.webp</video:thumbnail_loc>
+      <video:title>Cómo usar FIEXEA: gastos, presupuesto y deudas en 18 segundos</video:title>
+      <video:description>Mira una demostración ilustrativa de FIEXEA: añade un gasto, consulta el límite mensual y revisa una deuda. Vídeo de 18 segundos con datos ficticios.</video:description>
+      <video:content_loc>https://fiexea.es/assets/fiexea-demo-18s.mp4</video:content_loc>
+      <video:duration>18</video:duration>
+      <video:publication_date>2026-10-19T06:05:33Z</video:publication_date>
+    </video:video>
+  </url>
 </urlset>

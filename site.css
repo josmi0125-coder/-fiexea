@@ -5,3 +5,28 @@
 @media(max-width:740px){.wrap{width:calc(100% - 36px)}.header-inner{min-height:73px;gap:16px}.brand{font-size:18px}.brand img{width:36px;height:36px}.menu-toggle{display:block;margin-left:auto}.site-nav{display:none;position:absolute;top:73px;left:0;right:0;padding:15px 18px 22px;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 20px 35px #173f3610;flex-direction:column;align-items:stretch;gap:0}.site-nav.open{display:flex}.site-nav a{padding:12px;font-size:15px}.site-nav .button{margin-top:10px}.hero{grid-template-columns:1fr;padding:43px 0 40px;gap:14px}h1{font-size:clamp(42px,9.8vw,60px);max-width:600px}.lead{font-size:17px}.hero-visual{padding:20px 0 16px;max-width:430px;width:100%;margin:auto}.hero-visual:before{inset:45px 0 20px}.phone{width:275px}.floating-note{right:0;top:60px}.hero-note{font-size:11px}.intro-strip{grid-template-columns:1fr;gap:18px;padding:24px 0}.intro-strip div{justify-content:flex-start;max-width:320px;margin:auto;width:100%}.section{padding:53px 0}.section-heading{display:block;margin-bottom:25px}.section-heading>.text-link{display:inline-block;margin-top:18px}.feature-grid{gap:12px}.feature{padding:21px}.feature h3{font-size:17px}.feature p{font-size:13px}.showcase{display:flex;overflow:auto;scroll-snap-type:x mandatory;gap:14px;padding-bottom:16px}.screen{min-width:83%;scroll-snap-align:start}.screen-body{min-height:250px;padding:18px;margin:0 17px 18px}.screen-header{padding:23px 24px 0}.steps{grid-template-columns:1fr;gap:18px}.step{padding-top:16px}.step-number{margin-bottom:8px}.step p{margin-bottom:0}.demo-callout{align-items:flex-start;flex-direction:column;gap:18px;padding:24px}.pricing-grid{grid-template-columns:1fr;gap:16px}.price-card,.price-card.highlight{padding:26px}.price-card ul{padding-top:15px;margin-bottom:17px}.price-badge{top:25px;right:22px}.about-grid,.faq-layout{grid-template-columns:1fr;gap:24px}.about-side{padding:24px}.closing{flex-direction:column;align-items:flex-start;padding:29px;gap:23px;margin-bottom:42px}.closing h2{font-size:30px}.footer-top{grid-template-columns:1fr 1fr;gap:27px}.footer-top>div:first-child{grid-column:1/-1}.footer-top p{max-width:400px}.footer-bottom{flex-direction:column;gap:8px}.legal-layout{grid-template-columns:1fr;gap:22px}.legal-nav{position:static;display:flex;flex-direction:row;flex-wrap:wrap;gap:12px}.legal-document{padding:22px}.page-intro h1{font-size:36px}}
 @media(max-width:380px){.feature-grid{grid-template-columns:1fr}.hero .actions .button{width:100%}.floating-note{right:-4px;font-size:10px;max-width:120px;padding:9px}.floating-note strong{font-size:13px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Mobile navigation and readable controls, October 2026. */
+.hero>*,.about-grid>*,.faq-layout>*,.footer-top>*,.download-layout>*,.video-layout>*{min-width:0}
+.feature h3,.feature p,.footer-links a,.legal-document p{overflow-wrap:anywhere}
+@media(max-width:1100px){
+ .header-inner{min-height:73px;gap:16px}
+ .menu-toggle{display:block;margin-left:auto;min-height:44px;min-width:44px}
+ .site-nav{display:none;position:absolute;top:73px;left:0;right:0;padding:15px 18px 22px;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 20px 35px #173f3610;flex-direction:column;align-items:stretch;gap:0;max-height:calc(100vh - 73px);max-height:calc(100dvh - 73px);overflow-y:auto;overscroll-behavior:contain}
+ .site-nav.open{display:flex}
+ .site-nav a{display:flex;align-items:center;min-height:44px;padding:12px;font-size:15px;overflow-wrap:anywhere}
+ .site-nav .button{margin-top:10px}
+}
+@media(max-width:740px){
+ input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px!important}
+ .footer-links{gap:2px}
+ .footer-links a{display:flex;align-items:center;min-height:44px}
+ .feature-grid,.pricing-grid,.install-grid,.steps,.footer-top{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pricing-grid,.install-grid,.steps{grid-template-columns:minmax(0,1fr)}
+ .actions .button{max-width:100%;white-space:normal}
+}
+@media(max-width:380px){
+ .feature-grid{grid-template-columns:minmax(0,1fr)}
+ .store-coming{flex-wrap:wrap}
+ .store-coming .coming-label{margin-left:45px}
+}

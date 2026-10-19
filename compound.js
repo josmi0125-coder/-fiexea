@@ -33,5 +33,5 @@ document.querySelectorAll('[data-compound-calculator]').forEach((root,index)=>{
  }catch(e){results.hidden=true;error.textContent=e.message;}});
 });
 const opener=document.getElementById('compoundOpen'),dialog=document.getElementById('compoundDialog');
-if(opener&&dialog){opener.addEventListener('click',()=>dialog.showModal());dialog.querySelector('[data-compound-close]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});}
+if(opener&&dialog){opener.addEventListener('click',()=>{dialog.showModal();dialog.scrollTop=0;const body=dialog.querySelector('.compound-dialog-body');if(body)body.scrollTop=0;dialog.querySelector('[data-compound-close]').focus({preventScroll:true});});dialog.querySelector('[data-compound-close]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});}
 })();

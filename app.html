@@ -591,6 +591,8 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 .nav{transition:transform .22s ease;will-change:transform}
 body.nav-scroll-hidden .nav{transform:translate3d(0,calc(100% + env(safe-area-inset-bottom,0px)),0)}
 body.nav-scroll-hidden .nav,body.nav-scroll-hidden .nav *{pointer-events:none!important}
+/* A translated fixed bar can remain above the iOS keyboard: remove it entirely. */
+body.nav-keyboard-hidden .nav{display:none!important}
 /* Keep Safari from zooming the page when these finance form fields receive focus. */
 .account-manual-form input,.account-manual-form select,.moves-secondary-input,.moves-secondary-select{font-size:16px}
 @media(max-width:360px){.navin{padding:0 4px;gap:0}.nav-label{font-size:9.8px;letter-spacing:-.35px}}
@@ -2464,6 +2466,7 @@ let bottomNavigationState='visible';
 function setBottomNavigationVisible(visible){
   const nav=document.querySelector('.nav');
   if(!nav)return;
+  if(document.body.classList.contains('nav-keyboard-hidden'))visible=false;
   const nextState=visible?'visible':'hidden';
   if(bottomNavigationState===nextState&&document.body.classList.contains('nav-scroll-hidden')===!visible){if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}return}
   bottomNavigationState=nextState;
@@ -2478,6 +2481,36 @@ function initializeBottomNavigationAutoHide(){
   bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;
   const reveal=()=>setBottomNavigationVisible(true);
   const isEditingField=()=>document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
+  // Keep a keyboard-free height: Safari can leave the field focused after Done.
+  let keyboardViewportHeight=Math.max(window.innerHeight,window.visualViewport?.height||0);
+  let keyboardViewportWidth=window.innerWidth;
+  let keyboardWasEditing=false;
+  const syncKeyboardNavigation=()=>{
+    const viewport=window.visualViewport;
+    if(viewport&&Math.abs(viewport.scale-1)>0.05)return;
+    if(Math.abs(window.innerWidth-keyboardViewportWidth)>80){
+      keyboardViewportWidth=window.innerWidth;
+      keyboardViewportHeight=window.innerHeight;
+    }
+    const height=viewport?.height||window.innerHeight;
+    keyboardViewportHeight=Math.max(keyboardViewportHeight,window.innerHeight,height);
+    const editing=!!isEditingField();
+    const wasHidden=document.body.classList.contains('nav-keyboard-hidden');
+    const hidden=(editing||keyboardWasEditing||wasHidden)&&keyboardViewportHeight-height>150;
+    keyboardWasEditing=editing;
+    document.body.classList.toggle('nav-keyboard-hidden',hidden);
+    if(hidden)setBottomNavigationVisible(false);
+    else if(wasHidden)reveal();
+  };
+  document.addEventListener('focusin',syncKeyboardNavigation);
+  document.addEventListener('focusout',()=>setTimeout(syncKeyboardNavigation,0));
+  window.addEventListener('resize',syncKeyboardNavigation,{passive:true});
+  window.addEventListener('pageshow',syncKeyboardNavigation,{passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',syncKeyboardNavigation,{passive:true});
+    window.visualViewport.addEventListener('scroll',syncKeyboardNavigation,{passive:true});
+  }
+  syncKeyboardNavigation();
   const applyVerticalIntent=(delta,currentY)=>{
     if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)setBottomNavigationVisible(false)}
     else if(delta<0){bottomNavigationUpDistance-=delta;bottomNavigationDownDistance=0;if(bottomNavigationUpDistance>=12)reveal()}

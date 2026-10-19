@@ -730,6 +730,15 @@ html[data-theme="dark"] .monthly-budget-content .monthly-budget-values>div:last-
 #t2 #debtEditorDetails>.debt-editor-toggle .debt-editor-chevron{color:inherit}
 #t2 #debtEditorDetails>.section-title-row,#t2 #debtEditorDetails>.form{margin-left:16px;margin-right:16px}
 #t2 #debtEditorDetails>.form{margin-bottom:16px}
+
+/* FIEXEA: annual analysis uses the same primary action style as Add debt */
+#t3 .analysis-annual-details{padding:0;border:0;background:transparent;overflow:hidden}
+#t3 .analysis-annual-details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:14px 16px;box-sizing:border-box;border-radius:17px;background:var(--primary-action-background)!important;color:#fff!important;font-size:17px;font-weight:850;list-style:none;box-shadow:var(--primary-action-shadow);cursor:pointer}
+#t3 .analysis-annual-details>summary::-webkit-details-marker{display:none}
+#t3 .analysis-annual-details>summary::after{content:'⌄';font-size:22px;line-height:1;transition:transform .2s}
+#t3 .analysis-annual-details[open]>summary::after{transform:rotate(180deg)}
+#t3 .analysis-annual-details[open]>summary{margin-bottom:14px}
+#t3 .analysis-annual-details>.financial-analysis-panel{padding:0 4px 8px}
 </style></head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">

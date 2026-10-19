@@ -731,14 +731,14 @@ html[data-theme="dark"] .monthly-budget-content .monthly-budget-values>div:last-
 #t2 #debtEditorDetails>.section-title-row,#t2 #debtEditorDetails>.form{margin-left:16px;margin-right:16px}
 #t2 #debtEditorDetails>.form{margin-bottom:16px}
 
-/* FIEXEA: annual analysis uses the same primary action style as Add debt */
+/* Annual analysis: one accessible toggle and one chevron. */
 .analysis-annual-details{padding:0;border:0;background:transparent;overflow:hidden}
-.analysis-annual-details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:14px 16px;box-sizing:border-box;border-radius:17px;background:var(--primary-action-background)!important;color:#fff!important;font-size:17px;font-weight:850;list-style:none;box-shadow:var(--primary-action-shadow);cursor:pointer}
-.analysis-annual-details>summary::-webkit-details-marker{display:none}
-.analysis-annual-details>summary::after{content:'⌄';font-size:22px;line-height:1;transition:transform .2s}
-.analysis-annual-details[open]>summary::after{transform:rotate(180deg)}
-.analysis-annual-details[open]>summary{margin-bottom:14px}
-.analysis-annual-details>.financial-analysis-panel{padding:0 4px 8px}
+.analysis-annual-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:58px;padding:14px 16px;box-sizing:border-box;border:0;border-radius:17px;color:#fff!important;font:inherit;font-size:17px;font-weight:850;text-align:left;box-shadow:var(--primary-action-shadow);cursor:pointer}
+.analysis-annual-toggle::before,.analysis-annual-toggle::after{content:none!important;display:none!important}
+.analysis-annual-toggle .financial-analysis-chevron{color:inherit;flex:none}
+.analysis-annual-toggle[aria-expanded="true"] .financial-analysis-chevron{transform:rotate(180deg)}
+.analysis-annual-details>.financial-analysis-panel{padding:14px 4px 8px}
+.analysis-annual-details>.financial-analysis-panel[hidden]{display:none!important}
 </style></head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
@@ -1021,14 +1021,14 @@ html[data-theme="dark"] .monthly-budget-content .monthly-budget-values>div:last-
   <article class="card analysis-card section"><div class="analysis-card-heading"><div><h3>📈 Evolución mensual</h3><span class="analysis-card-subtitle">Ingresos, gastos y balance registrados</span></div></div><div id="operationsAnalysisTrend" class="operations-analysis-trend"></div></article>
   <article class="card analysis-card section"><div class="analysis-card-heading"><div><h3>📅 Comparación con el periodo anterior</h3></div></div><div id="operationsAnalysisComparison" class="analysis-comparison-list"></div></article>
   <section class="analysis-detail-grid section"><article class="card analysis-card"><div class="analysis-card-heading"><h3>🧭 Resumen financiero</h3></div><div id="operationsAnalysisInsights" class="analysis-insights"></div></article><article class="card analysis-card"><div class="analysis-card-heading"><h3>💳 Deudas y patrimonio</h3></div><div id="operationsAnalysisDebtRatio" class="analysis-debt-ratio"></div><div id="operationsAnalysisNetWorth" class="analysis-net-worth"></div></article></section>
-  <details class="analysis-annual-details section" style="padding:0;border:0;background:transparent;overflow:hidden"><summary class="analysis-annual-toggle"><span>📆 Análisis anual</span></summary><div id="financialAnalysisPanel" class="financial-analysis-panel">
+  <div class="analysis-annual-details section"><button id="financialAnalysisToggle" class="analysis-annual-toggle" type="button" aria-expanded="false" aria-controls="financialAnalysisPanel" onclick="toggleFinancialAnalysis()"><span>📆 Análisis anual</span><span class="financial-analysis-chevron" aria-hidden="true">⌄</span></button><div id="financialAnalysisPanel" class="financial-analysis-panel" hidden>
      <section class="card analysis-card analysis-overview section">
        <div class="analysis-year-row"><div><span class="analysis-kicker">TU AÑO EN PERSPECTIVA</span><h3>Resumen anual</h3></div><label for="financialAnalysisYear">Año <select id="financialAnalysisYear" onchange="changeFinancialAnalysisYear(this.value)"></select></label></div>
        <div class="analysis-balance"><div><span>💵 Balance neto del año</span><span id="analysisBalanceStatus" class="analysis-balance-status">Sin datos suficientes</span></div><strong id="analysisYearSavings">0 €</strong></div>
        <div class="analysis-year-summary"><article class="analysis-kpi"><span>Ingresos del año</span><strong id="analysisYearIncome">0 €</strong></article><article class="analysis-kpi"><span>Gastos del año</span><strong id="analysisYearExpenses">0 €</strong></article><article class="analysis-kpi"><span>Porcentaje de ahorro</span><strong id="analysisSavingsRate">—</strong></article></div>
      </section>
      <!-- Category list removed: expense breakdown is already shown in the interactive donut above. -->
-  </div></details>
+  </div></div>
 </section>
 <section id="t7" class="tab">
   <div class="section">

@@ -13,3 +13,43 @@
 .calendar-page .calendar-filters label{display:block;min-width:0;max-width:none}
 .calendar-page .calendar-filters select{display:block;min-width:0;max-width:100%}
 @media(max-width:600px){.calendar-page .calendar-toolbar,.calendar-page .calendar-filters{grid-template-columns:minmax(0,1fr)}}
+
+/* Calendar uses FIEXEA's shared mint, blue, lilac and amber palette. */
+.calendar-page,.calendar-dialog,.calendar-home{
+ --calendar-mint:#e7f8ed;--calendar-blue:#eaf2ff;--calendar-lilac:#f0eaff;
+ --calendar-amber:#fff2d9;--calendar-rose:#ffedf0;--calendar-aqua:#e8f7f7;
+ --calendar-green-ink:#137947;--calendar-blue-ink:#2b66ae;--calendar-purple-ink:#754de2;
+ --calendar-amber-ink:#94600e;--calendar-rose-ink:#bd4149;
+}
+.calendar-page h2::before{content:"📅";display:inline-grid;place-items:center;width:40px;height:40px;margin-right:9px;border-radius:13px;background:var(--calendar-mint);vertical-align:middle;font-size:23px}
+.calendar-page .calendar-card,.calendar-home{background:linear-gradient(145deg,var(--card),var(--calendar-aqua));border-color:var(--line);box-shadow:0 7px 25px #183e4310}
+.calendar-page #calendarTaxFilters{background:linear-gradient(145deg,var(--card),var(--calendar-blue))}
+.calendar-page details.calendar-help{background:linear-gradient(145deg,var(--card),var(--calendar-lilac))}
+.calendar-page .calendar-tabs button{font-weight:600;box-shadow:0 3px 12px #183e4309}
+.calendar-page .calendar-tabs button:nth-child(1){background:linear-gradient(135deg,var(--card),var(--calendar-mint));color:var(--calendar-green-ink)}
+.calendar-page .calendar-tabs button:nth-child(2){background:linear-gradient(135deg,var(--card),var(--calendar-blue));color:var(--calendar-blue-ink)}
+.calendar-page .calendar-tabs button:nth-child(3){background:linear-gradient(135deg,var(--card),var(--calendar-lilac));color:var(--calendar-purple-ink)}
+.calendar-page .calendar-tabs button[aria-pressed=true]{background:linear-gradient(110deg,#0d998a,#095b54);border-color:#0f766e;color:#fff;box-shadow:0 4px 14px #0f766e26}
+.calendar-page .calendar-year-picker{background:linear-gradient(135deg,var(--card),var(--calendar-mint));box-shadow:0 3px 12px #183e4309}
+.calendar-page .calendar-year-picker output{color:var(--accent)}
+.calendar-page .calendar-summary>div:first-child{background:linear-gradient(125deg,var(--card),var(--calendar-blue));color:var(--calendar-blue-ink);box-shadow:0 6px 22px #183e4310}
+.calendar-page .calendar-summary>div:last-child{background:linear-gradient(125deg,var(--card),var(--calendar-amber));color:var(--calendar-amber-ink);box-shadow:0 6px 22px #183e4310}
+.calendar-page .calendar-months>details{--calendar-month-tint:var(--calendar-mint);--calendar-month-ink:var(--calendar-green-ink);background:linear-gradient(135deg,var(--card),var(--calendar-month-tint));box-shadow:0 4px 14px #183e430b}
+.calendar-page .calendar-months>details:nth-child(6n+2){--calendar-month-tint:var(--calendar-blue);--calendar-month-ink:var(--calendar-blue-ink)}
+.calendar-page .calendar-months>details:nth-child(6n+3){--calendar-month-tint:var(--calendar-lilac);--calendar-month-ink:var(--calendar-purple-ink)}
+.calendar-page .calendar-months>details:nth-child(6n+4){--calendar-month-tint:var(--calendar-amber);--calendar-month-ink:var(--calendar-amber-ink)}
+.calendar-page .calendar-months>details:nth-child(6n+5){--calendar-month-tint:var(--calendar-rose);--calendar-month-ink:var(--calendar-rose-ink)}
+.calendar-page .calendar-months>details:nth-child(6n){--calendar-month-tint:var(--calendar-aqua);--calendar-month-ink:var(--accent)}
+.calendar-page .calendar-months summary,.calendar-page .calendar-months summary strong{color:var(--calendar-month-ink)}
+.calendar-page .calendar-badge,.calendar-home .calendar-badge{background:var(--calendar-amber);color:var(--calendar-amber-ink)}
+.calendar-page .calendar-badge.paid{background:var(--calendar-mint);color:var(--calendar-green-ink)}
+.calendar-page input[type=checkbox],.calendar-dialog input[type=checkbox]{accent-color:var(--accent)}
+.calendar-page .calendar-actions button:not(.calendar-pay),.calendar-dialog .calendar-actions button:not(.calendar-pay),.calendar-home button{background:linear-gradient(135deg,var(--card),var(--calendar-blue));color:var(--calendar-blue-ink)}
+.calendar-dialog{background:linear-gradient(145deg,var(--card),var(--calendar-aqua))}
+.calendar-page .calendar-actions .calendar-pay,.calendar-dialog .calendar-actions .calendar-pay{background:linear-gradient(110deg,#0d998a,#095b54);border-color:#0f766e;color:#fff}
+html[data-theme="dark"] :is(.calendar-page,.calendar-dialog,.calendar-home){
+ --calendar-mint:#19372e;--calendar-blue:#1c2d43;--calendar-lilac:#30253f;
+ --calendar-amber:#3b321e;--calendar-rose:#402827;--calendar-aqua:#1b3536;
+ --calendar-green-ink:#8cdcad;--calendar-blue-ink:#9cc6ff;--calendar-purple-ink:#c7b2ff;
+ --calendar-amber-ink:#f0c46f;--calendar-rose-ink:#ffaaa0;
+}

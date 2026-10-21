@@ -80,3 +80,16 @@ test('existing backups remain valid and calendar is included in new backups',()=
  assert.equal(validate(legacy),true);assert.equal(validate({...legacy,fiexea_scheduled_expenses:'[]'}),true);
  assert.match(html,/function render\(\)\{save\(\);window\.fiexeaRenderCalendar\?\.\(\)/);
 });
+
+
+test('moving a paid due date to a past month or year does not recreate the old pending charge',()=>{
+ const p={id:'p',date:'2026-10-21',repeat:'once',amount:290};
+ const m={id:'m',type:'expense',scheduledExpenseId:'p',scheduledOriginalDate:'2026-10-21',scheduledDate:'2025-09-02',date:'2025-09-02',amount:290};
+ assert.equal(M.calendarRows([p],[m],2026).length,0);
+ const rows=M.calendarRows([p],[m],2025);assert.equal(rows.length,1);assert.equal(rows[0].due,'2025-09-02');assert.equal(rows[0].move.id,'m');
+});
+test('editing the scheduled date preserves the receipt and updates the existing payment',async()=>{
+ const h=harness();h.setup();await h.pay();h.env.moves[0].receipt={name:'recibo.pdf'};
+ h.setup({moveId:h.env.moves[0].id});h.node('calPayDue').value='2026-09-02';h.node('calPayDate').value='2026-09-02';await h.pay();
+ assert.equal(h.env.moves.length,1);assert.equal(h.env.moves[0].scheduledDate,'2026-09-02');assert.equal(h.env.moves[0].scheduledOriginalDate,'2026-10-01');assert.equal(h.env.moves[0].receipt.name,'recibo.pdf');
+});

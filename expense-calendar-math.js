@@ -18,8 +18,8 @@ function paidMoves(entries){return entries.filter(x=>x.type==='expense'&&x.sched
 function calendarRows(plans,entries,year){
  const paid=paidMoves(entries),rows=[],seen=new Set();
  for(const plan of plans)for(const due of occurrences(plan,year)){
-  const move=paid.find(x=>String(x.scheduledExpenseId)===String(plan.id)&&x.scheduledDate===due);
-  if(move)seen.add(String(move.id));rows.push({plan,move,due,amount:move?Number(move.amount):Number(plan.amount)});
+  const move=paid.find(x=>String(x.scheduledExpenseId)===String(plan.id)&&(x.scheduledOriginalDate||x.scheduledDate)===due);
+  if(move){if(move.scheduledDate.startsWith(year+'-')){seen.add(String(move.id));rows.push({plan,move,due:move.scheduledDate,amount:Number(move.amount)})}continue}rows.push({plan,move,due:move?move.scheduledDate:due,amount:move?Number(move.amount):Number(plan.amount)});
  }
  for(const move of paid)if(move.scheduledDate.startsWith(year+'-')&&!seen.has(String(move.id)))rows.push({plan:plans.find(x=>String(x.id)===String(move.scheduledExpenseId)),move,due:move.scheduledDate,amount:Number(move.amount)});
  return rows.sort((a,b)=>a.due.localeCompare(b.due));
@@ -30,3 +30,4 @@ function taxRows(entries,year,property='',category='',onlyReview=true){
 function csvCell(value){const text=String(value??'');return '"'+(/^[\s]*[=+\-@]/.test(text)?"'"+text:text).replace(/"/g,'""')+'"'}
 const api={validDate,occurrences,paidMoves,calendarRows,taxRows,csvCell};root.FiexeaCalendarMath=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
+

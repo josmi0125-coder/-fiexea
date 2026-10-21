@@ -90,6 +90,13 @@ test('moving a paid due date to a past month or year does not recreate the old p
 });
 test('editing the scheduled date preserves the receipt and updates the existing payment',async()=>{
  const h=harness();h.setup();await h.pay();h.env.moves[0].receipt={name:'recibo.pdf'};
- h.setup({moveId:h.env.moves[0].id});h.node('calPayDue').value='2026-09-02';h.node('calPayDate').value='2026-09-02';await h.pay();
+ h.setup({moveId:h.env.moves[0].id});h.node('calPayDate').value='2026-09-02';await h.pay();
  assert.equal(h.env.moves.length,1);assert.equal(h.env.moves[0].scheduledDate,'2026-09-02');assert.equal(h.env.moves[0].scheduledOriginalDate,'2026-10-01');assert.equal(h.env.moves[0].receipt.name,'recibo.pdf');
+});
+
+test('one payment date updates both calendar placement and movement date',async()=>{
+ const h=harness();h.setup();h.node('calPayDate').value='2025-08-12';await h.pay();
+ assert.equal(h.env.moves[0].date,'2025-08-12');assert.equal(h.env.moves[0].scheduledDate,'2025-08-12');
+ assert.equal(M.calendarRows(JSON.parse(h.data.get('fiexea_scheduled_expenses')),h.env.moves,2026).filter(r=>!r.move).length,0);
+ h.setup();await h.pay();assert.equal(h.env.moves.length,1);
 });

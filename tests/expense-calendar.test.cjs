@@ -46,7 +46,7 @@ function harness(){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={confirmPayment,setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={confirmPayment,savePlan,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
  const api=env.window.__calendarTest;
@@ -106,4 +106,14 @@ test('pending receipt transfers to its payment but not to later recurring charge
  const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));plans[0].receipt=receipt;plans[0].receiptDate='2026-10-01';h.data.set('fiexea_scheduled_expenses',JSON.stringify(plans));
  h.setup();await h.pay();assert.equal(h.env.moves[0].receipt.name,'seguro.pdf');
  h.setup({due:'2027-10-01'});await h.pay();assert.equal(h.env.moves[1].receipt,undefined);
+});
+
+test('editing a schedule updates the category of its paid movements and preserves payment details',async()=>{
+ const h=harness();const receipt={name:'IBI.pdf',data:'original'};
+ h.env.moves=[{id:'paid',type:'expense',scheduledExpenseId:'p',cat:'Otros',date:'2026-08-03',amount:133.60,receipt},{id:'unrelated',type:'expense',cat:'Otros',amount:20}];
+ h.api.setEditor('p');h.node('calendarEditor').open=true;
+ for(const [id,value] of Object.entries({calName:'Contribución Atico',calAmount:'133.60',calDate:'2026-08-03',calRepeat:'once',calCategory:'Gastos Atico',calProperty:'Atico'}))h.node(id).value=value;
+ await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves[0].cat,'Gastos Atico');assert.equal(h.env.moves[0].amount,133.60);assert.equal(h.env.moves[0].date,'2026-08-03');assert.equal(h.env.moves[0].receipt,receipt);assert.equal(h.env.moves[1].cat,'Otros');
+ assert.equal(JSON.parse(h.data.get('fiexea_moves'))[0].cat,'Gastos Atico');
 });

@@ -118,9 +118,9 @@ test('editing a schedule updates the category of its paid movements and preserve
  assert.equal(JSON.parse(h.data.get('fiexea_moves'))[0].cat,'Gastos Atico');
 });
 
-test('category dropdown includes saved expense categories and suggestions without duplicates',()=>{
- const h=harness();h.env.moves=[{type:'expense',cat:'Gastos Ático'},{type:'expense',cat:'gastos atico'},{type:'income',cat:'Nómina'}];
- h.env.categoryOptionsForType=()=>[{name:'Dentista'},{name:'Seguros'}];h.env.movementCategoryIsActive=c=>c.name==='Dentista';
- const choices=h.api.categoryChoices('Categoría antigua');assert.ok(choices.mine.includes('Gastos Ático'));assert.ok(choices.mine.includes('Dentista'));assert.ok(choices.mine.includes('Categoría antigua'));assert.ok(!choices.mine.includes('Nómina'));assert.equal(choices.mine.filter(c=>/gastos/i.test(c)).length,1);assert.ok(!choices.suggested.includes('Seguros'));assert.ok(choices.suggested.includes('Impuestos'));
- h.node('calCategory').value='__calendar_new_category__';h.node('calNewCategory').value='  Nueva casa  ';assert.equal(h.api.selectedCategory(),'Nueva casa');
+test('category dropdown only contains categories active in Movimientos',()=>{
+ const h=harness();h.env.moves=[{type:'expense',cat:'Gastos Ático'},{type:'income',cat:'Nómina'}];
+ h.env.categoryOptionsForType=()=>[{name:'Dentista'},{name:'Seguros'},{name:'DENTISTA'},{name:'Nómina'}];h.env.movementCategoryIsActive=c=>c.name.toLowerCase()==='dentista';
+ const choices=h.api.categoryChoices('Categoría antigua');assert.deepEqual(Array.from(choices),['Dentista']);
+ h.node('calCategory').value='Dentista';assert.equal(h.api.selectedCategory(),'Dentista');
 });

@@ -118,9 +118,9 @@ test('editing a schedule updates the category of its paid movements and preserve
  assert.equal(JSON.parse(h.data.get('fiexea_moves'))[0].cat,'Gastos Atico');
 });
 
-test('category dropdown only contains categories active in Movimientos',()=>{
+test('category dropdown includes the full expense catalog even when categories are not active',()=>{
  const h=harness();h.env.moves=[{type:'expense',cat:'Gastos Ático'},{type:'income',cat:'Nómina'}];
- h.env.categoryOptionsForType=()=>[{name:'Dentista'},{name:'Seguros'},{name:'DENTISTA'},{name:'Nómina'}];h.env.movementCategoryIsActive=c=>c.name.toLowerCase()==='dentista';
- const choices=h.api.categoryChoices('Categoría antigua');assert.deepEqual(Array.from(choices),['Dentista']);
+ h.env.categoryOptionsForType=type=>{assert.equal(type,'expense');return [{name:'Dentista'},{name:'Seguros'},{name:'DENTISTA'},{name:'Categoría propia'}]};h.env.movementCategoryIsActive=c=>c.name.toLowerCase()==='dentista';
+ const choices=h.api.categoryChoices('Categoría antigua');assert.deepEqual(Array.from(choices),['Categoría propia','Dentista','Seguros']);
  h.node('calCategory').value='Dentista';assert.equal(h.api.selectedCategory(),'Dentista');
 });

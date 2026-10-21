@@ -73,7 +73,7 @@ function showDialog(id){returnFocus=document.activeElement;$(id).showModal()}
 function categoryChoices(){
  const catalog=typeof categoryOptionsForType==='function'?categoryOptionsForType('expense'):[];
  const seen=new Set();
- return catalog.filter(c=>typeof movementCategoryIsActive==='function'&&movementCategoryIsActive(c)).map(c=>String(c.name||'').trim()).filter(name=>{const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');if(!name||seen.has(key))return false;seen.add(key);return true}).sort((a,b)=>a.localeCompare(b,'es'));
+ return catalog.map(c=>String(c.name||'').trim()).filter(name=>{const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');if(!name||seen.has(key))return false;seen.add(key);return true}).sort((a,b)=>a.localeCompare(b,'es'));
 }
 function fillCategorySelect(current){
  const choices=categoryChoices();

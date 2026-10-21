@@ -39,6 +39,7 @@ function renderCalendar(){
  if(sessionOwner!==currentOwner){closeDialogs();sessionOwner=currentOwner}
  const plans=read(),rows=allRows(plans),pending=rows.filter(r=>!r.move),paid=rows.filter(r=>r.move);
  $('calendarYear').textContent=year;
+ $('calendarSummary').classList.toggle('calendar-annual-summary',view==='annual');
  $('calendarPrevYear').disabled=year<=1900;
  $('calendarNextYear').disabled=year>=2199;
  document.querySelectorAll('[data-calendar-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.calendarView===view)));
@@ -47,14 +48,14 @@ function renderCalendar(){
  $('calendarExport').hidden=view!=='tax';
  $('calendarReceiptExport').hidden=view!=='tax';
  refreshFilters();
- $('calendarSummary').innerHTML='<div><small>Previsto en '+year+'</small><strong class="money">'+e(amount(rows.reduce((s,r)=>s+r.amount,0)))+'</strong></div><div><small>Pendiente en '+year+'</small><strong class="money">'+e(amount(pending.reduce((s,r)=>s+r.amount,0)))+'</strong></div>';
+ $('calendarSummary').innerHTML='<h3 class="calendar-summary-title">Resumen del año</h3><div><small>Previsto en '+year+'</small><strong class="money">'+e(amount(rows.reduce((s,r)=>s+r.amount,0)))+'</strong></div><div><small>Pendiente en '+year+'</small><strong class="money">'+e(amount(pending.reduce((s,r)=>s+r.amount,0)))+'</strong></div>';
  if(view==='upcoming'){
   const next=upcoming(plans);
   $('calendarSummary').hidden=true;
   $('calendarContent').innerHTML='<div class="calendar-card"><h3>Próximos cobros</h3><p class="calendar-help">Pendientes anteriores y pagos previstos hasta el final del próximo año.</p>'+ (next.length?next.map(rowMarkup).join(''):'<p class="calendar-empty">No tienes cobros pendientes.<br>Añade tu primer gasto con fecha.</p>')+'</div>';
  }else if(view==='annual'){
   $('calendarSummary').hidden=false;
-  $('calendarContent').innerHTML='<div class="calendar-months">'+Array.from({length:12},(_,i)=>{
+  $('calendarContent').innerHTML='<h3 class="calendar-months-title">Gastos por mes</h3><div class="calendar-months">'+Array.from({length:12},(_,i)=>{
    const key=year+'-'+String(i+1).padStart(2,'0'),list=rows.filter(r=>r.due.startsWith(key)),total=list.reduce((s,r)=>s+r.amount,0),name=new Date(year,i,1).toLocaleDateString(window.fiexeaLocale||'es-ES',{month:'long'});
    return '<details><summary>'+e(name)+'<small>'+list.length+' cobros · '+list.filter(r=>!r.move).length+' pendientes</small><strong class="money">'+e(amount(total))+'</strong></summary>'+(list.length?list.map(rowMarkup).join(''):'<p class="calendar-empty">Sin gastos previstos</p>')+'</details>';
   }).join('')+'</div>';

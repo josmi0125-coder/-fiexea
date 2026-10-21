@@ -32,8 +32,8 @@
 .calendar-page .calendar-tabs button[aria-pressed=true]{background:linear-gradient(110deg,#0d998a,#095b54);border-color:#0f766e;color:#fff;box-shadow:0 4px 14px #0f766e26}
 .calendar-page .calendar-year-picker{background:linear-gradient(135deg,var(--card),var(--calendar-mint));box-shadow:0 3px 12px #183e4309}
 .calendar-page .calendar-year-picker output{color:var(--accent)}
-.calendar-page .calendar-summary>div:first-child{background:linear-gradient(125deg,var(--card),var(--calendar-blue));color:var(--calendar-blue-ink);box-shadow:0 6px 22px #183e4310}
-.calendar-page .calendar-summary>div:last-child{background:linear-gradient(125deg,var(--card),var(--calendar-amber));color:var(--calendar-amber-ink);box-shadow:0 6px 22px #183e4310}
+.calendar-page .calendar-summary>div:first-of-type{background:linear-gradient(125deg,var(--card),var(--calendar-blue));color:var(--calendar-blue-ink);box-shadow:0 6px 22px #183e4310}
+.calendar-page .calendar-summary>div:last-of-type{background:linear-gradient(125deg,var(--card),var(--calendar-amber));color:var(--calendar-amber-ink);box-shadow:0 6px 22px #183e4310}
 .calendar-page .calendar-months>details{--calendar-month-tint:var(--calendar-mint);--calendar-month-ink:var(--calendar-green-ink);background:linear-gradient(135deg,var(--card),var(--calendar-month-tint));box-shadow:0 4px 14px #183e430b}
 .calendar-page .calendar-months>details:nth-child(6n+2){--calendar-month-tint:var(--calendar-blue);--calendar-month-ink:var(--calendar-blue-ink)}
 .calendar-page .calendar-months>details:nth-child(6n+3){--calendar-month-tint:var(--calendar-lilac);--calendar-month-ink:var(--calendar-purple-ink)}
@@ -53,3 +53,9 @@ html[data-theme="dark"] :is(.calendar-page,.calendar-dialog,.calendar-home){
  --calendar-green-ink:#8cdcad;--calendar-blue-ink:#9cc6ff;--calendar-purple-ink:#c7b2ff;
  --calendar-amber-ink:#f0c46f;--calendar-rose-ink:#ffaaa0;
 }
+
+/* Annual totals form a separate block above the monthly cards. */
+.calendar-page .calendar-annual-summary{padding:16px;margin:16px 0 26px;border:1px solid var(--accent,#0f766e);border-top:4px solid var(--accent,#0f766e);border-radius:18px;background:var(--card);box-shadow:0 5px 18px #183e430a}
+.calendar-page .calendar-summary-title{grid-column:1/-1;margin:0 0 2px;font-size:16px;color:var(--text)}
+.calendar-page .calendar-annual-summary>div{padding:12px;border-radius:11px;box-shadow:none!important}
+.calendar-page .calendar-months-title{margin:0 0 12px;padding-top:4px;font-size:17px;color:var(--text)}

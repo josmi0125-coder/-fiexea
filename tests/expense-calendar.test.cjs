@@ -100,3 +100,10 @@ test('one payment date updates both calendar placement and movement date',async(
  assert.equal(M.calendarRows(JSON.parse(h.data.get('fiexea_scheduled_expenses')),h.env.moves,2026).filter(r=>!r.move).length,0);
  h.setup();await h.pay();assert.equal(h.env.moves.length,1);
 });
+
+test('pending receipt transfers to its payment but not to later recurring charges',async()=>{
+ const h=harness();const receipt={name:'seguro.pdf',type:'application/pdf',data:'data:application/pdf;base64,YQ=='};
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));plans[0].receipt=receipt;plans[0].receiptDate='2026-10-01';h.data.set('fiexea_scheduled_expenses',JSON.stringify(plans));
+ h.setup();await h.pay();assert.equal(h.env.moves[0].receipt.name,'seguro.pdf');
+ h.setup({due:'2027-10-01'});await h.pay();assert.equal(h.env.moves[1].receipt,undefined);
+});

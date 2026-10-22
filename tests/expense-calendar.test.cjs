@@ -44,7 +44,7 @@ test('CSV protects formula-like user input and escapes quotes',()=>{
 });
 function harness(){
  const nodes={},data=new Map(),alerts=[];
- const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,close(){}});
+ const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
  const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  vm.runInNewContext(source,env);
@@ -123,4 +123,28 @@ test('category dropdown includes the full expense catalog even when categories a
  h.env.categoryOptionsForType=type=>{assert.equal(type,'expense');return [{name:'Dentista'},{name:'Seguros'},{name:'DENTISTA'},{name:'Categoría propia'}]};h.env.movementCategoryIsActive=c=>c.name.toLowerCase()==='dentista';
  const choices=h.api.categoryChoices('Categoría antigua');assert.deepEqual(Array.from(choices),['Categoría propia','Dentista','Seguros']);
  h.node('calCategory').value='Dentista';assert.equal(h.api.selectedCategory(),'Dentista');
+});
+
+
+test('installments keep separate dates, unequal amounts and receipts under one tax group',()=>{
+ const p={id:'first',name:'Contribución',receipt:{name:'agosto.pdf'},receiptDate:'2026-08-03'};
+ const parts=M.installmentPlans(p,[{date:'2026-08-03',amount:133.6},{date:'2026-10-01',amount:140}],'g');
+ assert.equal(new Set(parts.map(p=>p.id)).size,2);assert.equal(parts[0].receipt.name,'agosto.pdf');assert.equal(parts[1].receipt,undefined);assert.equal(parts[1].date,'2026-10-01');assert.equal(parts[1].amount,140);
+ assert.throws(()=>M.installmentPlans(p,[{date:'2026-02-30',amount:1},{date:'2026-10-01',amount:1}],'g'));
+});
+test('tax groups sum only filtered paid amounts and keep different properties separate',()=>{
+ const plans=[{id:'a',taxGroupId:'g',taxGroupName:'Contribución'},{id:'b',taxGroupId:'g',taxGroupName:'Contribución'}];
+ const entries=plans.map((p,i)=>({id:'m'+i,type:'expense',scheduledExpenseId:p.id,scheduledDate:'2026-08-03',date:i?'2026-10-22':'2026-08-03',amount:133.6,property:'Ático',taxReview:true}));
+ assert.equal(M.taxGroups(M.taxRows(entries,2026),plans)[0].total,267.2);
+ assert.equal(M.taxGroups(M.taxRows([{...entries[0],date:'2027-01-01'},entries[1]],2026),plans)[0].total,133.6);
+ assert.equal(M.taxGroups([entries[0],{...entries[1],property:'Otra vivienda'}],plans).length,2);
+});
+test('grouping existing schedules preserves each paid amount, date and receipt',async()=>{
+ const h=harness();h.data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'a',name:'Contribución 1/2',category:'Suministros'},{id:'b',name:'Contribución 2/2',category:'Suministros'}]));
+ h.env.moves=['a','b'].map((id,i)=>({id:'m'+i,scheduledExpenseId:id,type:'expense',amount:133.6,date:i?'2026-10-22':'2026-08-03',cat:'Suministros',receipt:{name:id+'.pdf'}}));
+ h.api.setEditor('b');h.node('calendarEditor').open=true;
+ for(const [id,value]of Object.entries({calName:'Contribución 2/2',calAmount:'133.6',calDate:'2026-10-01',calRepeat:'once',calCategory:'Suministros',calProperty:'Ático',calGroup:'a'}))h.node(id).value=value;
+ await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.equal(plans[0].taxGroupId,plans[1].taxGroupId);assert.equal(h.env.moves.length,2);assert.equal(h.env.moves[0].date,'2026-08-03');assert.equal(h.env.moves[1].receipt.name,'b.pdf');assert.equal(M.taxGroups(h.env.moves,plans)[0].total,267.2);
+ h.node('calendarEditor').open=true;h.node('calGroup').value='';await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);assert.equal(M.taxGroups(h.env.moves,JSON.parse(h.data.get('fiexea_scheduled_expenses'))).length,2);
 });

@@ -28,6 +28,18 @@ function taxRows(entries,year,property='',category='',onlyReview=true){
  return paidMoves(entries).filter(x=>x.date.startsWith(year+'-')&&(!onlyReview||x.taxReview)&&(!property||x.property===property)&&(!category||x.cat===category)).sort((a,b)=>a.date.localeCompare(b.date));
 }
 function csvCell(value){const text=String(value??'');return '"'+(/^[\s]*[=+\-@]/.test(text)?"'"+text:text).replace(/"/g,'""')+'"'}
-const api={validDate,occurrences,paidMoves,calendarRows,taxRows,csvCell};root.FiexeaCalendarMath=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+function installmentPlans(plan,installments,groupId){
+ if(!Array.isArray(installments)||installments.length<2||installments.length>24||!groupId)throw new Error('Revisa el número de pagos.');
+ if(installments.some(x=>!validDate(x.date)||!Number.isFinite(x.amount)||x.amount<=0||x.amount>999999999))throw new Error('Revisa la fecha y el importe de cada plazo.');
+ return installments.map((x,i)=>{const result={...plan,id:i===0?plan.id:groupId+'-part-'+(i+1),name:plan.name+' '+(i+1)+'/'+installments.length,date:x.date,amount:Math.round(x.amount*100)/100,repeat:'once',end:'',taxGroupId:groupId,taxGroupName:plan.taxGroupName||plan.name};if(i){delete result.receipt;delete result.receiptDate}return result});
+}
+function taxGroups(entries,plans=[]){
+ const groups=new Map();
+ for(const m of entries){const p=plans.find(x=>String(x.id)===String(m.scheduledExpenseId)),id=p?p.taxGroupId:m.taxGroupId,name=(p?p.taxGroupName:m.taxGroupName)||m.desc||'Gasto',key=JSON.stringify([id?'group':'move',String(id||m.id),m.property||'']);
+ if(!groups.has(key))groups.set(key,{name,entries:[],total:0});const group=groups.get(key);group.entries.push(m);group.total+=Math.round(Number(m.amount)*100);}
+ return [...groups.values()].map(g=>({...g,total:g.total/100}));
+}
+const api={installmentPlans,taxGroups,validDate,occurrences,paidMoves,calendarRows,taxRows,csvCell};root.FiexeaCalendarMath=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
+
 

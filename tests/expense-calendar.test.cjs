@@ -46,7 +46,7 @@ function harness(){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
  const api=env.window.__calendarTest;
@@ -163,3 +163,12 @@ test('receipt saved on an already-paid schedule reaches only its matching paymen
  h.node('calendarEditor').open=true;h.node('calReceipt').files=[replacement];await h.api.savePlan({preventDefault(){}});
  assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves[0].receipt.name,'nuevo.pdf');assert.equal(h.env.moves[1].receipt,undefined);
 });
+
+ test('one-off paid receipt remains visible after the schedule date was corrected',()=>{
+ const h=harness(),receipt={name:'IBI.png'},plan={id:'p',repeat:'once',date:'2026-08-03',receiptDate:'2026-08-03',receipt};
+ const move={id:'august',type:'expense',scheduledExpenseId:'p',scheduledOriginalDate:'2026-10-22',scheduledDate:'2026-08-03',date:'2026-08-03',amount:133.6};
+ h.env.moves=[move];h.data.set('fiexea_scheduled_expenses',JSON.stringify([plan]));
+ assert.equal(h.api.planReceipt(plan,move),receipt);assert.match(h.api.rowMarkup({move,due:move.scheduledDate,amount:133.6}),/📎 Recibo/);
+ assert.equal(h.api.planReceipt({...plan,repeat:'yearly'},move),null);
+ h.env.moves.push({...move,id:'ambiguous'});assert.equal(h.api.planReceipt(plan,move),null);
+ });

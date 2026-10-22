@@ -12,7 +12,14 @@ function date(value){return M.validDate(value)?new Date(value+'T12:00:00').toLoc
 function filename(name){return String(name||'recibo').replace(/[\\/:*?"<>|]/g,'-')}
 function download(blob,name){const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download=filename(name);document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 function allRows(plans){return M.calendarRows(plans,moves,year)}
-function planReceipt(plan,move,due){return plan?.receipt&&plan.receiptDate===(move?.scheduledOriginalDate||move?.scheduledDate||due)?plan.receipt:null}
+function planReceipt(plan,move,due){
+ if(!plan?.receipt)return null;
+ const receiptDate=plan.receiptDate||plan.date;
+ if(receiptDate===(move?.scheduledOriginalDate||move?.scheduledDate||due))return plan.receipt;
+ // A one-off expense can have an edited date while its paid movement retains the original date.
+ if(move&&plan.repeat==='once'&&String(move.scheduledExpenseId)===String(plan.id)&&M.paidMoves(moves).filter(m=>String(m.scheduledExpenseId)===String(plan.id)).length===1)return plan.receipt;
+ return null;
+}
 function filteredTax(){const plans=read();return M.taxRows(moves,year,$('calendarProperty').value,$('calendarCategory').value,$('calendarOnlyReview').checked).map(m=>m.receipt?m:{...m,receipt:planReceipt(plans.find(p=>String(p.id)===String(m.scheduledExpenseId)),m)})}
 function upcoming(plans){
  const now=today(),current=Number(now.slice(0,4)),rows=[];

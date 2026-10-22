@@ -148,3 +148,18 @@ test('grouping existing schedules preserves each paid amount, date and receipt',
  const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.equal(plans[0].taxGroupId,plans[1].taxGroupId);assert.equal(h.env.moves.length,2);assert.equal(h.env.moves[0].date,'2026-08-03');assert.equal(h.env.moves[1].receipt.name,'b.pdf');assert.equal(M.taxGroups(h.env.moves,plans)[0].total,267.2);
  h.node('calendarEditor').open=true;h.node('calGroup').value='';await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);assert.equal(M.taxGroups(h.env.moves,JSON.parse(h.data.get('fiexea_scheduled_expenses'))).length,2);
 });
+
+test('receipt saved on an already-paid schedule reaches only its matching payment',async()=>{
+ const h=harness(),receipt={name:'contribucion.pdf',type:'application/pdf',data:'data:application/pdf;base64,YQ=='};
+ h.data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Contribución',date:'2026-08-03',repeat:'yearly',category:'Suministros',receipt,receiptDate:'2026-08-03'}]));
+ h.env.moves=[{id:'august',type:'expense',scheduledExpenseId:'p',scheduledOriginalDate:'2026-08-03',scheduledDate:'2026-08-05',date:'2026-08-05',amount:133.6},{id:'next-year',type:'expense',scheduledExpenseId:'p',scheduledDate:'2027-08-03',date:'2027-08-03',amount:140}];
+ h.api.setEditor('p');h.node('calendarEditor').open=true;
+ for(const [id,value]of Object.entries({calName:'Contribución',calAmount:'133.6',calDate:'2026-08-03',calRepeat:'yearly',calCategory:'Suministros',calProperty:'Ático'}))h.node(id).value=value;
+ await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,2);assert.equal(h.env.moves[0].receipt.name,receipt.name);assert.equal(h.env.moves[0].date,'2026-08-05');assert.equal(h.env.moves[0].amount,133.6);assert.equal(h.env.moves[1].receipt,undefined);
+ assert.equal(JSON.parse(h.data.get('fiexea_moves'))[0].receipt.name,receipt.name);
+ const replacement={name:'nuevo.pdf',type:'application/pdf',size:1};
+ h.env.FileReader=class{readAsDataURL(){this.result='data:application/pdf;base64,Yg==';this.onload()}};
+ h.node('calendarEditor').open=true;h.node('calReceipt').files=[replacement];await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves[0].receipt.name,'nuevo.pdf');assert.equal(h.env.moves[1].receipt,undefined);
+});

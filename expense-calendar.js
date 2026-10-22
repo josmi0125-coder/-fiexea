@@ -12,7 +12,8 @@ function date(value){return M.validDate(value)?new Date(value+'T12:00:00').toLoc
 function filename(name){return String(name||'recibo').replace(/[\\/:*?"<>|]/g,'-')}
 function download(blob,name){const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download=filename(name);document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 function allRows(plans){return M.calendarRows(plans,moves,year)}
-function filteredTax(){return M.taxRows(moves,year,$('calendarProperty').value,$('calendarCategory').value,$('calendarOnlyReview').checked)}
+function planReceipt(plan,move,due){return plan?.receipt&&plan.receiptDate===(move?.scheduledOriginalDate||move?.scheduledDate||due)?plan.receipt:null}
+function filteredTax(){const plans=read();return M.taxRows(moves,year,$('calendarProperty').value,$('calendarCategory').value,$('calendarOnlyReview').checked).map(m=>m.receipt?m:{...m,receipt:planReceipt(plans.find(p=>String(p.id)===String(m.scheduledExpenseId)),m)})}
 function upcoming(plans){
  const now=today(),current=Number(now.slice(0,4)),rows=[];
  const first=Math.min(current,...plans.filter(p=>M.validDate(p.date)).map(p=>Number(p.date.slice(0,4))));
@@ -29,7 +30,7 @@ function refreshFilters(){
  $('calendarCategory').innerHTML=optionList([...new Set(list.map(x=>x.cat).filter(Boolean))].sort(),category,'Todas las categorías');
 }
 function rowMarkup(row){
- const m=row.move,p=row.plan||(m?read().find(x=>String(x.id)===String(m.scheduledExpenseId)):null),id=m?.scheduledExpenseId||p.id,receipt=m?.receipt||(!m&&p?.receiptDate===row.due?p.receipt:null);
+ const m=row.move,p=row.plan||(m?read().find(x=>String(x.id)===String(m.scheduledExpenseId)):null),id=m?.scheduledExpenseId||p.id,receipt=m?.receipt||planReceipt(p,m,row.due);
  return '<article class="calendar-item"><div class="calendar-row"><div><strong>'+e(m?.desc||p?.name||'Gasto')+'</strong><small>'+e(date(m?.date||row.due))+'</small><small>'+e(m?.cat||p?.category||'Otros')+((m?.property||p?.property)?' · '+e(m?.property||p?.property):'')+'</small></div><strong class="money">'+e(amount(row.amount))+'</strong></div><span class="calendar-badge '+(m?'paid':'')+'">'+(m?'Pagado':row.due<today()?'Pendiente · fecha pasada':'Pendiente')+'</span><div class="calendar-actions">'+(!m?'<button class="calendar-pay" type="button" data-calendar-action="pay" data-id="'+e(id)+'" data-date="'+e(row.due)+'">Confirmar pago</button>':'<button type="button" data-calendar-action="payment" data-id="'+e(m.id)+'">Editar pago</button>')+(p?'<button type="button" data-calendar-action="edit" data-id="'+e(p.id)+'">Editar gasto</button>':'')+(p&&m?'<button type="button" data-calendar-action="group" data-id="'+e(p.id)+'">Agrupar gasto</button>':'')+(receipt?'<button type="button" data-calendar-action="receipt" data-id="'+e(m?.id||p.id)+'" data-date="'+e(row.due)+'">📎 Recibo</button>':'')+'</div></article>';
 }
 function taxGroupsMarkup(list,plans){
@@ -134,7 +135,7 @@ async function savePlan(event){
   const alreadyPaid=!editId&&$('calAlreadyPaid').checked;
   if(alreadyPaid&&start>today())throw new Error('Un pago realizado debe tener una fecha de hoy o anterior.');
   const before=moves,previous=localStorage.getItem(KEY);
-  const recategorized=moves.map(m=>{const plan=plans.find(x=>String(x.id)===String(m.scheduledExpenseId));if(!plan)return m;const next={...m,taxGroupId:plan.taxGroupId||'',taxGroupName:plan.taxGroupName||''};if(String(plan.id)===String(p.id))next.cat=p.category;return JSON.stringify(next)===JSON.stringify(m)?m:next}),categoryUpdated=recategorized.some((m,i)=>m!==moves[i]);
+  const recategorized=moves.map(m=>{const plan=plans.find(x=>String(x.id)===String(m.scheduledExpenseId));if(!plan)return m;const next={...m,taxGroupId:plan.taxGroupId||'',taxGroupName:plan.taxGroupName||''};if(String(plan.id)===String(p.id)){next.cat=p.category;const attached=planReceipt(p,m);if(attached&&(receipt||!m.receipt))next.receipt=attached;}return JSON.stringify(next)===JSON.stringify(m)?m:next}),categoryUpdated=recategorized.some((m,i)=>m!==moves[i]);
   try{
    if(categoryUpdated){localStorage.setItem('fiexea_moves',JSON.stringify(recategorized));moves=recategorized}
    if(alreadyPaid){const draft={id:uid(),type:'expense',desc:name,cat:p.category,amount:p.amount,date:start,scheduledExpenseId:p.id,scheduledDate:start,property:p.property,taxReview:p.taxReview,taxGroupId:p.taxGroupId||'',taxGroupName:p.taxGroupName||'',...(p.receiptDate===start&&p.receipt?{receipt:p.receipt}:{})};localStorage.setItem('fiexea_moves',JSON.stringify([...moves,draft]));moves=[...moves,draft]}
@@ -151,7 +152,7 @@ function openPayment(id,due,moveId=''){
  $('calendarPayForm').reset();$('calendarPayTitle').textContent=m?'Editar pago':'Confirmar pago';$('calendarPayConcept').textContent=m?.desc||p.name;
  $('calPayName').value=m?.desc||p?.name||'';
  $('calPayDate').value=m?.date||today();$('calPayAmount').value=m?.amount??p.amount;$('calPayTax').checked=m?!!m.taxReview:!!p.taxReview;$('calPayProperty').value=m?.property??p?.property??'';
- $('calendarReceiptNote').textContent=(m?.receipt||(!m&&p?.receiptDate===due?p.receipt:null))?'Adjunto: '+(m?.receipt||p.receipt).name+'. Puedes reemplazarlo.':'Adjunta una imagen o PDF (máximo 500 KB).';
+ $('calendarReceiptNote').textContent=(m?.receipt||planReceipt(p,m,due))?'Adjunto: '+(m?.receipt||p.receipt).name+'. Puedes reemplazarlo.':'Adjunta una imagen o PDF (máximo 500 KB).';
  $('calPayAccount').innerHTML='<option value="">Sin cuenta asignada</option>'+accounts.map(a=>'<option value="'+e(a.id)+'"'+(String(a.id)===String(m?.accountId)?' selected':'')+'>'+e(a.name||a.label||'Cuenta')+'</option>').join('');
  $('calendarExistingLabel').hidden=!!m;
  const candidates=moves.filter(x=>x.type==='expense'&&!x.scheduledExpenseId).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -181,7 +182,7 @@ async function confirmPayment(event){
   if(!Number.isFinite(value)||value<=0||!M.validDate(paidDate))throw new Error('Revisa el importe y la fecha de pago.');
   if(paidDate>today())throw new Error('Para una fecha futura, conserva el gasto como pendiente.');
   const draft={...(m||{}),id:m?.id||uid(),type:'expense',amount:Math.round(value*100)/100,date:paidDate,cat:m?.cat||p?.category||'Otros',desc:name,scheduledExpenseId:token.id,scheduledOriginalDate:m?.scheduledOriginalDate||token.due,scheduledDate:dueDate,property:$('calPayProperty').value.trim(),taxReview:$('calPayTax').checked,taxGroupId:p?.taxGroupId||m?.taxGroupId||'',taxGroupName:p?.taxGroupName||m?.taxGroupName||''};
-  const account=accounts.find(a=>String(a.id)===String($('calPayAccount').value));if(account)draft.accountId=account.id;else delete draft.accountId;if(receipt)draft.receipt=receipt;else if(!draft.receipt&&p?.receiptDate===token.due&&p.receipt)draft.receipt=p.receipt;
+  const account=accounts.find(a=>String(a.id)===String($('calPayAccount').value));if(account)draft.accountId=account.id;else delete draft.accountId;if(receipt)draft.receipt=receipt;else if(!draft.receipt&&planReceipt(p,m,token.due))draft.receipt=planReceipt(p,m,token.due);
   const before=moves,next=moves.map(x=>x===m?draft:x);if(!m)next.push(draft);
   /* Persist before replacing in-memory state, so a full browser storage cannot create a false paid state. */
   const serialized=JSON.stringify(next);if(receipt&&serialized.length>2500000)throw new Error('No queda espacio para más justificantes. Guarda el pago sin adjunto o utiliza un archivo menor.');
@@ -226,7 +227,7 @@ function start(){
   const id=b.dataset.id,action=b.dataset.calendarAction;
   if(action==='group'){openEditor(id);$('calGroup').scrollIntoView({block:'center'});$('calGroup').focus()}
   if(action==='edit')openEditor(id);if(action==='pay')openPayment(id,b.dataset.date);if(action==='payment')openPayment('','',id);
-  if(action==='receipt'){const m=moves.find(x=>String(x.id)===String(id)),p=read().find(x=>String(x.id)===String(id)),receipt=m?.receipt||(p?.receiptDate===b.dataset.date?p.receipt:null);try{download(receiptBlob(receipt),receipt.name)}catch(error){alert(error.message)}}
+  if(action==='receipt'){const m=moves.find(x=>String(x.id)===String(id)),p=read().find(x=>String(x.id)===String(m?.scheduledExpenseId||id)),receipt=m?.receipt||planReceipt(p,m,b.dataset.date);try{download(receiptBlob(receipt),receipt.name)}catch(error){alert(error.message)}}
  };
  window.fiexeaRenderCalendar=renderCalendar;window.openExpenseCalendar=openCalendar;
  renderCalendar();

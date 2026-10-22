@@ -16,12 +16,13 @@ function occurrences(plan,year){
 }
 function paidMoves(entries){return entries.filter(x=>x.type==='expense'&&x.scheduledExpenseId&&validDate(x.scheduledDate)&&validDate(x.date))}
 function calendarRows(plans,entries,year){
- const paid=paidMoves(entries),rows=[],seen=new Set();
+ const paid=paidMoves(entries),rows=[],seen=new Set(),plansById=new Map(plans.map(p=>[String(p.id),p])),paymentsByDate=new Map();
+ for(const move of paid){const key=JSON.stringify([String(move.scheduledExpenseId),move.scheduledOriginalDate||move.scheduledDate]);if(!paymentsByDate.has(key))paymentsByDate.set(key,move);}
  for(const plan of plans)for(const due of occurrences(plan,year)){
-  const move=paid.find(x=>String(x.scheduledExpenseId)===String(plan.id)&&(x.scheduledOriginalDate||x.scheduledDate)===due);
+  const move=paymentsByDate.get(JSON.stringify([String(plan.id),due]));
   if(move){if(move.scheduledDate.startsWith(year+'-')){seen.add(String(move.id));rows.push({plan,move,due:move.scheduledDate,amount:Number(move.amount)})}continue}rows.push({plan,move,due:move?move.scheduledDate:due,amount:move?Number(move.amount):Number(plan.amount)});
  }
- for(const move of paid)if(move.scheduledDate.startsWith(year+'-')&&!seen.has(String(move.id)))rows.push({plan:plans.find(x=>String(x.id)===String(move.scheduledExpenseId)),move,due:move.scheduledDate,amount:Number(move.amount)});
+ for(const move of paid)if(move.scheduledDate.startsWith(year+'-')&&!seen.has(String(move.id)))rows.push({plan:plansById.get(String(move.scheduledExpenseId)),move,due:move.scheduledDate,amount:Number(move.amount)});
  return rows.sort((a,b)=>a.due.localeCompare(b.due));
 }
 function taxRows(entries,year,property='',category='',onlyReview=true){
@@ -34,8 +35,8 @@ function installmentPlans(plan,installments,groupId){
  return installments.map((x,i)=>{const result={...plan,id:i===0?plan.id:plan.id+'-part-'+(i+1),name:plan.name.replace(/\s+\d+\/\d+$/,'')+' '+(i+1)+'/'+installments.length,date:x.date,amount:Math.round(x.amount*100)/100,repeat:'once',end:'',taxGroupId:groupId,taxGroupName:plan.taxGroupName||plan.name.replace(/\s+\d+\/\d+$/,'')};if(i){delete result.receipt;delete result.receiptDate}if(x.receipt){result.receipt=x.receipt;result.receiptDate=x.date}return result});
 }
 function taxGroups(entries,plans=[]){
- const groups=new Map();
- for(const m of entries){const p=plans.find(x=>String(x.id)===String(m.scheduledExpenseId)),id=p?p.taxGroupId:m.taxGroupId,name=(p?p.taxGroupName:m.taxGroupName)||m.desc||'Gasto',key=JSON.stringify([id?'group':'move',String(id||m.id),m.property||'']);
+ const groups=new Map(),plansById=new Map(plans.map(p=>[String(p.id),p]));
+ for(const m of entries){const p=plansById.get(String(m.scheduledExpenseId)),id=p?p.taxGroupId:m.taxGroupId,name=(p?p.taxGroupName:m.taxGroupName)||m.desc||'Gasto',key=JSON.stringify([id?'group':'move',String(id||m.id),m.property||'']);
  if(!groups.has(key))groups.set(key,{name,entries:[],total:0});const group=groups.get(key);group.entries.push(m);group.total+=Math.round(Number(m.amount)*100);}
  return [...groups.values()].map(g=>({...g,total:g.total/100}));
 }

@@ -4,6 +4,7 @@
 const BUCKET='expense-receipts',TYPES=['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif'];
 function create({client,getOwner}){
  const pending=new Map(),blobs=new Map();let database;
+ function remember(path,blob){blobs.delete(path);blobs.set(path,blob);let bytes=0;for(const file of blobs.values())bytes+=file.size;while(bytes>4*1024*1024&&blobs.size>1){const first=blobs.keys().next().value;bytes-=blobs.get(first).size;blobs.delete(first)}}
  const ownerNow=()=>String(getOwner()||'');
  function assertOwner(owner){if(!owner||ownerNow()!==owner)throw new Error('La cuenta ha cambiado. Abre el gasto de nuevo.');}
  async function authorize(owner){assertOwner(owner);const {data,error}=await client.auth.getSession();if(error)throw error;assertOwner(owner);if(data?.session?.user?.id!==owner)throw new Error('Inicia sesión para guardar o abrir el recibo.');}
@@ -20,14 +21,14 @@ function create({client,getOwner}){
    const {error}=await client.storage.from(BUCKET).upload(path,blob,{contentType:receipt.type,upsert:false});assertOwner(owner);
    if(error){if(String(error.statusCode||error.status)!=='409'&&error.error!=='Duplicate')throw new Error('No se pudo guardar el recibo. Comprueba la conexión y vuelve a intentarlo.');
     const existing=await client.storage.from(BUCKET).download(path);assertOwner(owner);if(existing.error||!existing.data||await digest(existing.data)!==hash)throw new Error('No se pudo verificar el recibo guardado.');}
-   await cache('put',path,blob);assertOwner(owner);blobs.set(path,blob);return{bucket:BUCKET,path,owner};
+   await cache('put',path,blob);assertOwner(owner);remember(path,blob);return{bucket:BUCKET,path,owner};
   })().catch(error=>{pending.delete(key);throw error}));
   const reference=await pending.get(key);assertOwner(owner);const {data,...metadata}=receipt;return{...metadata,...reference};
  }
  async function download(receipt){if(receipt?.data)return inlineBlob(receipt);const owner=ownerNow();validateRef(receipt,owner);
   let blob=blobs.get(receipt.path)||await cache('get',receipt.path);assertOwner(owner);
   if(!blob){await authorize(owner);const result=await client.storage.from(BUCKET).download(receipt.path);assertOwner(owner);if(result.error||!result.data)throw new Error('No se pudo abrir el recibo. Comprueba la conexión y vuelve a intentarlo.');blob=result.data;if(await digest(blob)!==receipt.path.split('/')[1])throw new Error('No se pudo verificar el recibo.');await cache('put',receipt.path,blob);}
-  assertOwner(owner);blobs.set(receipt.path,blob);return blob;
+  assertOwner(owner);remember(receipt.path,blob);return blob;
  }
  async function walk(value,convert){if(Array.isArray(value))return Promise.all(value.map(item=>walk(item,convert)));if(!value||typeof value!=='object')return value;const copy={...value};for(const key of Object.keys(copy)){if(key==='receipt'&&copy[key])copy[key]=await convert(copy[key]);else if(key.startsWith('fiexea_')&&typeof copy[key]==='string'&&/^[\[{]/.test(copy[key])){let parsed;try{parsed=JSON.parse(copy[key])}catch(_){continue}copy[key]=JSON.stringify(await walk(parsed,convert));}else if(copy[key]&&typeof copy[key]==='object')copy[key]=await walk(copy[key],convert);}return copy;}
  async function compact(value,owner=ownerNow()){return walk(value,r=>storeInline(r,owner));}

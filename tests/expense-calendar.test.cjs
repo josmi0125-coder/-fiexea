@@ -46,7 +46,7 @@ function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -209,4 +209,18 @@ test('creating installments saves each receipt and ignores the manual group sele
  assert.deepEqual(h.alerts,[]);assert.equal(JSON.parse(h.data.get('fiexea_scheduled_expenses')).length,2);
  assert.equal(h.env.moves[0].amount,133.6);assert.equal(h.env.moves[0].date,'2026-08-03');assert.equal(h.env.moves[0].receipt.data,undefined);
  assert.ok([...h.data.values()].join('').length<limit/5);
+ });
+
+ test('calendar refresh keeps expanded months and skips unchanged markup',()=>{
+ const h=harness();h.env.presentationCurrency='EUR';h.env.document.getElementById=id=>h.node(id);h.env.document.querySelectorAll=()=>[];h.node('calendarSummary').classList={toggle(){}};
+ h.node('calendarContent').querySelectorAll=()=>[{dataset:{calendarMonth:'2026-10'}}];h.api.setView('annual');h.api.renderCalendar();
+ assert.match(h.node('calendarContent').innerHTML,/data-calendar-month="2026-10" open/);
+ h.node('calendarContent').innerHTML='unchanged';h.api.renderCalendar();assert.equal(h.node('calendarContent').innerHTML,'unchanged');
+ h.env.moves=[{id:'m',type:'expense',scheduledExpenseId:'p',scheduledDate:'2026-10-01',date:'2026-10-01',amount:100}];h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/data-calendar-month="2026-10" open/);
+ });
+ test('receipt upload shows progress and rejects repeated submissions until complete',async()=>{
+ const h=harness();h.setup();let reader;h.env.FileReader=class{readAsDataURL(){reader=this}};h.node('calPayReceipt').files=[{name:'recibo.pdf',size:1,type:'application/pdf'}];h.node('calendarPaySubmit').textContent='Guardar pago';
+ const saving=h.pay();assert.equal(h.node('calendarPaySubmit').disabled,true);assert.equal(h.node('calendarPaySubmit').textContent,'Guardando…');
+ await h.pay();assert.equal(h.env.moves.length,0);
+ reader.result='data:application/pdf;base64,YQ==';reader.onload();await saving;assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,1);assert.equal(h.node('calendarPaySubmit').disabled,false);assert.equal(h.node('calendarPaySubmit').textContent,'Guardar pago');
  });

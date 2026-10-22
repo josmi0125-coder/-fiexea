@@ -59,3 +59,17 @@ html[data-theme="dark"] :is(.calendar-page,.calendar-dialog,.calendar-home){
 .calendar-page .calendar-summary-title{grid-column:1/-1;margin:0 0 2px;font-size:16px;color:var(--text)}
 .calendar-page .calendar-annual-summary>div{padding:12px;border-radius:11px;box-shadow:none!important}
 .calendar-page .calendar-months-title{margin:0 0 12px;padding-top:4px;font-size:17px;color:var(--text)}
+
+/* Keep form controls usable without horizontal scrolling on phones. */
+.calendar-dialog form,.calendar-dialog label{min-width:0}
+.calendar-dialog form{grid-template-columns:minmax(0,1fr)}
+.calendar-dialog input,.calendar-dialog select{box-sizing:border-box;max-width:100%;min-width:0;font-size:16px}
+.calendar-dialog>header{position:sticky!important;top:-22px;z-index:3;background:var(--card);margin:-22px -22px 0;padding:16px 22px;border-bottom:1px solid var(--line)}
+.calendar-dialog .calendar-actions{position:sticky;bottom:-22px;z-index:2;background:var(--card);padding:12px 0 max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--line);flex-wrap:wrap;gap:8px}
+.calendar-dialog .calendar-actions button{min-height:46px;font-size:14px}
+.calendar-dialog .calendar-actions button:disabled{cursor:wait;opacity:.7}
+.calendar-dialog .calendar-saving-status{flex-basis:100%;order:2;margin:0}
+.calendar-dialog .calendar-saving-status:empty{display:none}
+.calendar-dialog [data-installment]{margin:0;padding:16px;display:grid;gap:12px}
+.calendar-dialog [data-installment] h3{margin:0;font-size:16px}
+.calendar-page .calendar-actions button{min-height:44px;touch-action:manipulation}

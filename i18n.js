@@ -528,6 +528,7 @@
     return s;
   };
   function setText(node) {
+    if(node.parentElement?.closest("script,style,noscript,template,svg"))return;
     let original = textSources.has(node) ? textSources.get(node) : node.nodeValue;
     if (textSources.has(node) && node.nodeValue !== textRendered.get(node)) { original = node.nodeValue; textSources.set(node, original); }
     if (!textSources.has(node)) textSources.set(node, original);
@@ -536,7 +537,7 @@
     textRendered.set(node, translated);
   }
   function translateElement(el) {
-    if (!(el instanceof Element)) return;
+    if (!(el instanceof Element) || el.matches("script,style,noscript,template,svg")) return;
     if (el.matches("input,textarea")) {
       for (const a of ["placeholder", "aria-label", "title"]) if (el.hasAttribute(a)) setAttr(el, a);
       return;

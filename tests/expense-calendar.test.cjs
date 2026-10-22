@@ -42,11 +42,12 @@ test('CSV protects formula-like user input and escapes quotes',()=>{
  assert.equal(M.csvCell('=SUM(1)'),'"\'=SUM(1)"');
  assert.equal(M.csvCell('Casa "A"'),'"Casa ""A"""');
 });
-function harness(){
+function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
  const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
  const api=env.window.__calendarTest;
@@ -66,7 +67,7 @@ test('link an existing movement, then update payment without duplicating',async(
 });
 test('future dates and storage failures leave charges unpaid',async()=>{
  const h=harness();h.setup();h.node('calPayDate').value='2026-11-01';await h.pay();assert.equal(h.env.moves.length,0);
- h.setup();h.env.localStorage.setItem=()=>{throw Error('QuotaExceeded')};await h.pay();assert.equal(h.env.moves.length,0);assert.equal(h.alerts.pop(),'QuotaExceeded');
+ h.setup();h.env.localStorage.setItem=()=>{throw Error('QuotaExceeded')};await h.pay();assert.equal(h.env.moves.length,0);assert.match(h.alerts.pop(),/almacenamiento del navegador está lleno/);
 });
 test('account change during confirmation cannot write into the new account',async()=>{
  const h=harness();h.setup();h.env.financialActiveUserId='B';await h.pay();assert.equal(h.env.moves.length,0);assert.match(h.alerts.pop(),/cuenta ha cambiado/);
@@ -186,3 +187,26 @@ test('creating installments saves each receipt and ignores the manual group sele
  assert.equal(plans[1].name,'Residuos 1/2');assert.equal(plans[2].name,'Residuos 2/2');assert.equal(plans[1].taxGroupName,'Residuos');
  assert.equal(plans[1].receipt.name,'julio.pdf');assert.equal(plans[1].receiptDate,'2026-07-01');assert.equal(plans[2].receipt.name,'agosto.pdf');assert.equal(plans[2].receiptDate,'2026-08-03');assert.equal(h.env.moves.length,0);
 });
+
+ test('saving with a full browser moves legacy receipt copies out before persisting the expense',async()=>{
+ const compact=async value=>JSON.parse(JSON.stringify(value),(key,value)=>{
+  if(key==='receipt'&&value?.data){const {data,...metadata}=value;return {...metadata,bucket:'expense-receipts',path:'A/hash',owner:'A'}}
+  if(key.startsWith('fiexea_')&&typeof value==='string'){try{return JSON.stringify(awaitlessCompact(JSON.parse(value)))}catch(_){}}
+  return value;
+ });
+ function awaitlessCompact(value){if(Array.isArray(value))return value.map(awaitlessCompact);if(value&&typeof value==='object'){const out={...value};for(const key of Object.keys(out)){if(key==='receipt'&&out[key]?.data){const{data,...metadata}=out[key];out[key]={...metadata,bucket:'expense-receipts',path:'A/hash',owner:'A'}}else out[key]=awaitlessCompact(out[key]);}return out;}return value;}
+ const h=harness({receiptStorage:{create:()=>({compact,storeInline:async r=>{const{data,...metadata}=r;return {...metadata,bucket:'expense-receipts',path:'A/hash',owner:'A'}}})}});
+ const receipt={name:'IBI.pdf',type:'application/pdf',data:'data:application/pdf;base64,'+'YQ=='.repeat(10000)};
+ const plans=[{id:'p',name:'IBI',date:'2026-08-03',repeat:'once',category:'Suministros',receipt,receiptDate:'2026-08-03'}];
+ h.env.moves=[{id:'old',type:'expense',scheduledExpenseId:'p',scheduledDate:'2026-08-03',date:'2026-08-03',amount:133.6,receipt}];
+ h.data.set('fiexea_scheduled_expenses',JSON.stringify(plans));h.data.set('fiexea_moves',JSON.stringify(h.env.moves));
+ h.data.set('fiexea_financial_cache_v1_A',JSON.stringify({fiexea_moves:JSON.stringify(h.env.moves)}));
+ const limit=[...h.data.values()].join('').length+50;
+ const normalSet=h.env.localStorage.setItem;h.env.localStorage.setItem=(key,value)=>{const used=[...h.data.entries()].filter(([k])=>k!==key).reduce((sum,[,v])=>sum+v.length,0)+String(value).length;if(used>limit)throw new Error('QuotaExceeded');normalSet(key,value)};
+ h.api.setEditor('');h.node('calendarEditor').open=true;
+ for(const [id,value]of Object.entries({calName:'Residuos',calAmount:'51.65',calDate:'2026-07-01',calRepeat:'once',calCategory:'Suministros'}))h.node(id).value=value;
+ await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(JSON.parse(h.data.get('fiexea_scheduled_expenses')).length,2);
+ assert.equal(h.env.moves[0].amount,133.6);assert.equal(h.env.moves[0].date,'2026-08-03');assert.equal(h.env.moves[0].receipt.data,undefined);
+ assert.ok([...h.data.values()].join('').length<limit/5);
+ });

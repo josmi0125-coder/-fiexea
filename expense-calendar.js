@@ -3,6 +3,19 @@
 'use strict';
 const M=window.FiexeaCalendarMath,KEY='fiexea_scheduled_expenses';
 if(!M)return;
+const ReceiptStore=window.FiexeaReceiptStorage&&typeof fiexeaSupabase!=='undefined'?window.FiexeaReceiptStorage.create({client:fiexeaSupabase,getOwner:()=>financialAppReady&&(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id'))||''}):null;
+if(ReceiptStore)window.fiexeaReceiptStorage=ReceiptStore;
+function saveError(error){return /quota|exceeded/i.test(error?.name+' '+error?.message)?'El almacenamiento del navegador está lleno. Conéctate a Internet y vuelve a guardar para trasladar los recibos a tu cuenta. No borres los datos de FIEXEA.':error.message;}
+async function compactExistingReceipts(owner){
+ if(!ReceiptStore)return;
+ const keys=[KEY,'fiexea_moves','fiexea_financial_cache_v1_'+encodeURIComponent(owner)];
+ for(const key of keys){const raw=localStorage.getItem(key);if(!raw||!raw.includes('data:'))continue;
+  const compact=await ReceiptStore.compact(JSON.parse(raw),owner),next=JSON.stringify(compact);
+  if((financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id'))!==owner)throw new Error('La cuenta ha cambiado. Abre el gasto de nuevo.');
+  if(localStorage.getItem(key)!==raw)throw new Error('Los datos han cambiado mientras se guardaba el recibo. Vuelve a pulsar Guardar.');
+  if(next!==raw){localStorage.setItem(key,next);if(key==='fiexea_moves')moves=compact;queueFinancialSync();}
+ }
+}
 let view='upcoming',year=new Date().getFullYear(),editId='',payment=null,returnFocus=null,sessionOwner=null;
 const $=id=>document.getElementById(id),e=value=>esc(value),today=()=>localMoveDate();
 function read(){const raw=localStorage.getItem(KEY);if(!raw)return[];const value=JSON.parse(raw);if(!Array.isArray(value))throw new Error('El calendario guardado tiene un formato no compatible.');return value}
@@ -137,6 +150,7 @@ async function savePlan(event){
   const installmentDrafts=split?[...$('calSplitRows').querySelectorAll('[data-installment]')].map(row=>({date:row.querySelector('[type=date]').value,amount:Number(row.querySelector('[type=number]').value),file:row.querySelector('[type=file]').files[0]})):[];
   const receipt=await readReceipt($('calReceipt').files[0]);
   const installmentReceipts=await Promise.all(installmentDrafts.map(row=>readReceipt(row.file)));
+  await compactExistingReceipts(owner);
   if(!financialAppReady||editId!==editorId||!$('calendarEditor').open||(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'')!==owner)throw new Error('La cuenta o el formulario han cambiado. Abre el gasto de nuevo.');
   const plans=read(),index=plans.findIndex(x=>String(x.id)===String(editId)),p={id:editId||uid(),name,amount:Math.round(value*100)/100,date:start,end,repeat:$('calRepeat').value,category:selectedCategory()||'Otros',property:$('calProperty').value.trim(),taxReview:$('calTax').checked};
   const previousPlan=plans[index];if(receipt){p.receipt=receipt;p.receiptDate=start}else if(previousPlan?.receipt){p.receipt=previousPlan.receipt;p.receiptDate=previousPlan.receiptDate||previousPlan.date}
@@ -159,7 +173,7 @@ async function savePlan(event){
    write(plans);if(alreadyPaid||categoryUpdated)save();
   }catch(error){moves=before;localStorage.setItem('fiexea_moves',JSON.stringify(before));if(previous===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,previous);throw error}
   year=Number(start.slice(0,4));view='annual';$('calendarEditor').close();render();renderCalendar();showSaveToast(alreadyPaid?'Pago guardado.':'Gasto previsto guardado.');
- }catch(error){alert('No se pudo guardar el gasto: '+error.message)}finally{button.disabled=false}
+ }catch(error){alert('No se pudo guardar el gasto: '+saveError(error))}finally{button.disabled=false}
 }
 function openPayment(id,due,moveId=''){
  const m=moveId?moves.find(x=>String(x.id)===String(moveId)):null,p=read().find(x=>String(x.id)===String(id||m?.scheduledExpenseId));
@@ -179,13 +193,14 @@ function openPayment(id,due,moveId=''){
 function readReceipt(file){return new Promise((resolve,reject)=>{
  if(!file){resolve(null);return}
  if(file.size>500*1024||!['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(file.type)){reject(new Error('Selecciona una imagen o PDF de hasta 500 KB.'));return}
- const r=new FileReader();r.onerror=()=>reject(new Error('No se pudo leer el justificante.'));r.onload=()=>resolve({name:filename(file.name),type:file.type,data:r.result});r.readAsDataURL(file);
+ const r=new FileReader();r.onerror=()=>reject(new Error('No se pudo leer el justificante.'));r.onload=()=>{const receipt={name:filename(file.name),type:file.type,data:r.result};if(ReceiptStore)ReceiptStore.storeInline(receipt).then(resolve,reject);else resolve(receipt)};r.readAsDataURL(file);
 })}
 async function confirmPayment(event){
  event.preventDefault();if(!payment||!financialAppReady)return;
  const activePayment=payment,token={...payment},button=$('calendarPaySubmit');button.disabled=true;
  try{
   const receipt=await readReceipt($('calPayReceipt').files[0]);
+  await compactExistingReceipts(token.owner);
   if(!payment||payment!==activePayment||payment.owner!==token.owner||sessionOwner!==token.owner||(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'')!==token.owner)throw new Error('La cuenta ha cambiado. Abre el pago de nuevo.');
   const plans=read(),p=plans.find(x=>String(x.id)===String(token.id)),existingId=$('calPayExisting').value;
   let m=token.moveId?moves.find(x=>String(x.id)===String(token.moveId)):existingId?moves.find(x=>String(x.id)===String(existingId)):null;
@@ -202,13 +217,13 @@ async function confirmPayment(event){
   const account=accounts.find(a=>String(a.id)===String($('calPayAccount').value));if(account)draft.accountId=account.id;else delete draft.accountId;if(receipt)draft.receipt=receipt;else if(!draft.receipt&&planReceipt(p,m,token.due))draft.receipt=planReceipt(p,m,token.due);
   const before=moves,next=moves.map(x=>x===m?draft:x);if(!m)next.push(draft);
   /* Persist before replacing in-memory state, so a full browser storage cannot create a false paid state. */
-  const serialized=JSON.stringify(next);if(receipt&&serialized.length>2500000)throw new Error('No queda espacio para más justificantes. Guarda el pago sin adjunto o utiliza un archivo menor.');
+  const serialized=JSON.stringify(next);if(!ReceiptStore&&receipt&&serialized.length>2500000)throw new Error('No queda espacio para más justificantes. Guarda el pago sin adjunto o utiliza un archivo menor.');
   localStorage.setItem('fiexea_moves',serialized);moves=next;
   try{save()}catch(error){moves=before;localStorage.setItem('fiexea_moves',JSON.stringify(before));throw error}
   $('calendarPayment').close();payment=null;year=Number(dueDate.slice(0,4));render();showSaveToast('Pago guardado en Movimientos.');
- }catch(error){alert(error.message||'No se pudo guardar el pago.')}finally{button.disabled=false}
+ }catch(error){alert(saveError(error)||'No se pudo guardar el pago.')}finally{button.disabled=false}
 }
-function receiptBlob(receipt){if(!receipt||!/^data:(application\/pdf|image\/(jpeg|png|webp|heic|heif));base64,/.test(receipt.data||''))throw new Error('El justificante no tiene un formato compatible.');const raw=atob(receipt.data.split(',')[1]),bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return new Blob([bytes],{type:receipt.type})}
+async function receiptBlob(receipt){if(ReceiptStore)return ReceiptStore.download(receipt);if(!receipt||!/^data:(application\/pdf|image\/(jpeg|png|webp|heic|heif));base64,/.test(receipt.data||''))throw new Error('El justificante no tiene un formato compatible.');const raw=atob(receipt.data.split(',')[1]),bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return new Blob([bytes],{type:receipt.type})}
 function exportCSV(){
  const list=filteredTax();if(!list.length){alert('No hay pagos para exportar con estos filtros.');return}
  const plans=read(),rows=[['Agrupación','Concepto','Categoría','Vivienda','Fecha prevista','Fecha real de pago','Importe','Revisar para renta','Justificante'],...list.map(m=>[plans.find(p=>String(p.id)===String(m.scheduledExpenseId))?.taxGroupName||m.taxGroupName||m.desc,m.desc,m.cat,m.property,m.scheduledDate,m.date,Number(m.amount).toFixed(2).replace('.',','),m.taxReview?'Sí':'No',m.receipt?.name||''])];
@@ -216,7 +231,7 @@ function exportCSV(){
 }
 async function shareReceipts(){
  const list=filteredTax().filter(m=>m.receipt);if(!list.length){alert('No hay justificantes adjuntos con estos filtros.');return}
- const files=list.map((m,i)=>new File([receiptBlob(m.receipt)],m.date+'-'+(i+1)+'-'+filename(m.receipt.name),{type:m.receipt.type}));
+ const files=await Promise.all(list.map(async(m,i)=>new File([await receiptBlob(m.receipt)],m.date+'-'+(i+1)+'-'+filename(m.receipt.name),{type:m.receipt.type})));
  if(navigator.canShare?.({files})){try{await navigator.share({files,title:'Justificantes FIEXEA '+year})}catch(error){if(error.name!=='AbortError')alert('No se pudieron compartir los justificantes.')}return}
  if(files.length===1){download(files[0],files[0].name);return}
  alert('Tu navegador no permite compartir varios archivos. Abre cada botón «Recibo» para descargarlos.');
@@ -239,12 +254,12 @@ function start(){
  $('calendarDelete').onclick=()=>{if(!confirm('¿Eliminar este gasto y sus cobros pendientes? Los pagos ya registrados se conservarán en Movimientos y en la vista para la renta.'))return;try{write(read().filter(x=>String(x.id)!==String(editId)));$('calendarEditor').close();renderCalendar()}catch(error){alert(error.message)}};
  $('calPayExisting').onchange=()=>{const m=moves.find(x=>String(x.id)===String($('calPayExisting').value));if(m){$('calPayDate').value=m.date;$('calPayAmount').value=m.amount;$('calPayAccount').value=m.accountId||''}};
  for(const id of ['calendarEditor','calendarPayment']){$(id).addEventListener('close',()=>{if(id==='calendarPayment')payment=null;if(returnFocus?.isConnected)returnFocus.focus()});$(id).querySelectorAll('[data-calendar-close]').forEach(b=>b.onclick=()=>$(id).close())}
- $('calendarContent').onclick=event=>{
+ $('calendarContent').onclick=async event=>{
   const b=event.target.closest('[data-calendar-action]');if(!b)return;
   const id=b.dataset.id,action=b.dataset.calendarAction;
   if(action==='group'){openEditor(id);$('calGroup').scrollIntoView({block:'center'});$('calGroup').focus()}
   if(action==='edit')openEditor(id);if(action==='pay')openPayment(id,b.dataset.date);if(action==='payment')openPayment('','',id);
-  if(action==='receipt'){const m=moves.find(x=>String(x.id)===String(id)),p=read().find(x=>String(x.id)===String(m?.scheduledExpenseId||id)),receipt=m?.receipt||planReceipt(p,m,b.dataset.date);try{download(receiptBlob(receipt),receipt.name)}catch(error){alert(error.message)}}
+  if(action==='receipt'){const m=moves.find(x=>String(x.id)===String(id)),p=read().find(x=>String(x.id)===String(m?.scheduledExpenseId||id)),receipt=m?.receipt||planReceipt(p,m,b.dataset.date);try{b.disabled=true;const blob=await receiptBlob(receipt);download(blob,receipt.name)}catch(error){alert(error.message)}finally{b.disabled=false}}
  };
  window.fiexeaRenderCalendar=renderCalendar;window.openExpenseCalendar=openCalendar;
  renderCalendar();

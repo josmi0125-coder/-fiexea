@@ -172,3 +172,17 @@ test('receipt saved on an already-paid schedule reaches only its matching paymen
  assert.equal(h.api.planReceipt({...plan,repeat:'yearly'},move),null);
  h.env.moves.push({...move,id:'ambiguous'});assert.equal(h.api.planReceipt(plan,move),null);
  });
+
+test('creating installments saves each receipt and ignores the manual group selector',async()=>{
+ const h=harness();h.api.setEditor('');h.node('calendarEditor').open=true;h.node('calSplit').checked=true;
+ for(const [id,value]of Object.entries({calName:'Residuos 1/2',calAmount:'51.65',calDate:'2026-07-01',calRepeat:'once',calCategory:'Suministros',calGroup:'p'}))h.node(id).value=value;
+ h.node('calReceipt').files=[{name:'julio.pdf',type:'application/pdf',size:1}];
+ const secondFile={name:'agosto.pdf',type:'application/pdf',size:1};
+ h.node('calSplitRows').querySelectorAll=()=>[{querySelector(selector){return selector==='[type=date]'?{value:'2026-08-03'}:selector==='[type=number]'?{value:'51.65'}:{files:[secondFile]}}}];
+ h.env.FileReader=class{readAsDataURL(file){this.result='data:application/pdf;base64,'+(file.name==='julio.pdf'?'YQ==':'Yg==');this.onload()}};
+ await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.equal(plans.length,3);
+ assert.equal(plans[0].taxGroupId,undefined);assert.equal(plans[1].taxGroupId,plans[2].taxGroupId);
+ assert.equal(plans[1].name,'Residuos 1/2');assert.equal(plans[2].name,'Residuos 2/2');assert.equal(plans[1].taxGroupName,'Residuos');
+ assert.equal(plans[1].receipt.name,'julio.pdf');assert.equal(plans[1].receiptDate,'2026-07-01');assert.equal(plans[2].receipt.name,'agosto.pdf');assert.equal(plans[2].receiptDate,'2026-08-03');assert.equal(h.env.moves.length,0);
+});

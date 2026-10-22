@@ -31,7 +31,7 @@ function csvCell(value){const text=String(value??'');return '"'+(/^[\s]*[=+\-@]/
 function installmentPlans(plan,installments,groupId){
  if(!Array.isArray(installments)||installments.length<2||installments.length>24||!groupId)throw new Error('Revisa el número de pagos.');
  if(installments.some(x=>!validDate(x.date)||!Number.isFinite(x.amount)||x.amount<=0||x.amount>999999999))throw new Error('Revisa la fecha y el importe de cada plazo.');
- return installments.map((x,i)=>{const result={...plan,id:i===0?plan.id:groupId+'-part-'+(i+1),name:plan.name+' '+(i+1)+'/'+installments.length,date:x.date,amount:Math.round(x.amount*100)/100,repeat:'once',end:'',taxGroupId:groupId,taxGroupName:plan.taxGroupName||plan.name};if(i){delete result.receipt;delete result.receiptDate}return result});
+ return installments.map((x,i)=>{const result={...plan,id:i===0?plan.id:plan.id+'-part-'+(i+1),name:plan.name+' '+(i+1)+'/'+installments.length,date:x.date,amount:Math.round(x.amount*100)/100,repeat:'once',end:'',taxGroupId:groupId,taxGroupName:plan.taxGroupName||plan.name};if(i){delete result.receipt;delete result.receiptDate}return result});
 }
 function taxGroups(entries,plans=[]){
  const groups=new Map();

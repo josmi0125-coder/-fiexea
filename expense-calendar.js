@@ -293,6 +293,7 @@ function start(){
  group?.insertAdjacentHTML('beforeend','<button type="button" id="calendarMenuOpen"><span class="menu-icon" aria-hidden="true">📅</span>Calendario de gastos</button>');
  document.body.insertAdjacentHTML('beforeend',dialogs);
  $('calendarHomeOpen').onclick=$('calendarMenuOpen').onclick=openCalendar;
+ if($('calendarMovementsOpen'))$('calendarMovementsOpen').onclick=openCalendar;
  $('calendarAdd').onclick=()=>openEditor();
  $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(note&&input.files[0])note.textContent='Seleccionado: '+input.files[0].name+'. Se guardará al pulsar Guardar gasto.'}});
  $('calSplit').onchange=updateInstallments;$('calSplitCount').onchange=updateInstallments;$('calGroup').onchange=()=>{$('calGroup').dataset.retainedGroup='';$('calGroup').dataset.retainedName=''};

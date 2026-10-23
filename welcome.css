@@ -86,3 +86,6 @@
  .fiexea-welcome-benefits{gap:5px;margin-bottom:9px}
  .fiexea-welcome-benefits li{padding:7px 9px}
 }
+
+/* Small, crisp brand mark on the mobile welcome. */
+@media(max-width:600px){#fiexeaAuthGate .fiexea-auth-brand .fiexea-auth-logo{width:36px;height:36px}#fiexeaAuthGate .fiexea-auth-brand{gap:9px}#fiexeaAuthGate .fiexea-auth-title{font-size:20px}}

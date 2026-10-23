@@ -75,7 +75,7 @@ function init(){
  $('receiptScanForm').addEventListener('submit',saveScan);document.querySelectorAll('[data-receipt-open]').forEach(b=>b.addEventListener('click',open));document.querySelectorAll('[data-receipt-close]').forEach(b=>b.addEventListener('click',close));
  for(const[type,button]of [['Camera','Camera'],['Gallery','Gallery']]){$('receiptScan'+button).addEventListener('click',()=>{if(!$('receiptScanSave').disabled)$('receiptScan'+type+'File').click()});$('receiptScan'+type+'File').addEventListener('change',e=>{const file=e.target.files[0];e.target.value='';if(file){status('Imagen seleccionada: '+file.name+'. Preparando lectura…');scan(file)}else status('No se ha seleccionado ninguna imagen.')})}
  for(const id of ['receiptScanName','receiptScanAmount','receiptScanDate'])$(id).addEventListener('input',()=>{$('receiptScanAllowDuplicate').checked=false;updateDuplicates()});$('receiptScanExisting').addEventListener('change',()=>{$('receiptScanReplace').checked=false;updateDuplicates()});
- $('receiptScanner').addEventListener('cancel',e=>{e.preventDefault();close()});window.FiexeaReceiptScanner={open,close};
+ $('receiptScanner').addEventListener('cancel',e=>{e.preventDefault();close()});window.FiexeaReceiptScanner={open,close,scan};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
-    <loc>https://fiexea.es/</loc><lastmod>2026-10-20</lastmod>
+    <loc>https://fiexea.es/</loc><lastmod>2026-10-23</lastmod>
   </url>
 
   <url>
-    <loc>https://fiexea.es/informacion.html</loc>
+    <loc>https://fiexea.es/informacion.html</loc><lastmod>2026-10-23</lastmod>
   </url>
   <url>
     <loc>https://fiexea.es/finanzas-personales.html</loc>
@@ -40,4 +40,5 @@
   <url><loc>https://fiexea.es/como-organizar-suscripciones.html</loc></url>
   <url><loc>https://fiexea.es/como-empezar-presupuesto.html</loc></url>
   <url><loc>https://fiexea.es/interes-compuesto.html</loc><lastmod>2026-10-20</lastmod></url>
+  <url><loc>https://fiexea.es/escanear-recibos.html</loc><lastmod>2026-10-23</lastmod></url>
 </urlset>

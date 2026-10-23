@@ -15,8 +15,20 @@ function parse(text){
    if(value)totals.push({value,score:/a pagar|importe total|grand total|amount due|total compra/.test(key)?2:1});
   }
  }
+ // Bank transfer and payment confirmations may show IMPORTE rather than TOTAL.
+ const full=norm(lines.join(' '));
+ if(!totals.length&&/justificante|operacion|cargo|abanca|transferencia/.test(full)){
+  for(let i=0;i<lines.length;i++){
+   const key=norm(lines[i]);
+   if(/\bimporte\b|\btotal\b/.test(key)){
+    const candidates=[lines[i],lines[i+1]||'',lines[i+2]||''];
+    for(const candidate of candidates){const amounts=(candidate.match(/\b\d{1,3}(?:[. ]\d{3})*,\d{2}\b|\b\d+[.,]\d{2}\b/g)||[]).map(money).filter(Boolean);if(amounts.length){totals.push({value:amounts.at(-1),score:/\btotal\b/.test(key)?3:2});break}}
+   }
+  }
+ }
  totals.sort((a,b)=>b.score-a.score);const best=totals[0],ambiguous=!!best&&totals.some(t=>t.score===best.score&&t.value!==best.value);
- const name=lines.slice(0,7).find(s=>/[a-záéíóúñ]{3}/i.test(s)&&!/(factura|ticket|recibo|copia|bienvenid|cif|nif|fecha|telefono|www\.|https?:|\d{5})/i.test(s))||'';
+ const bank=/\babanca\b/.test(norm(lines.join(' ')))?'ABANCA · Justificante de operación':null;
+ const name=bank||lines.slice(0,7).find(s=>/[a-záéíóúñ]{3}/i.test(s)&&!/(factura|ticket|recibo|copia|bienvenid|cif|nif|fecha|telefono|www\.|https?:|\d{5})/i.test(s))||'';
  let category='';const all=norm(lines.join(' '));
  for(const[pattern,cat]of [[/mercadona|consum\b|carrefour|lidl|aldi|supermercado|alimentacion/,'Alimentación'],[/gasolinera|repsol|cepsa|combustible|gasoil|gasolina/,'Gasolina'],[/farmacia/,'Salud'],[/restaurante|cafeteria|bar\b|menu del dia/,'Restaurantes'],[/gimnasio|gym/,'Gym'],[/seguro|poliza/,'Seguros'],[/electricidad|iberdrola|endesa|naturgy|agua/,'Suministros']]){if(pattern.test(all)){category=cat;break}}
  return {name:name.slice(0,100),amount:ambiguous?null:best?.value||null,date,category,warnings:[...(!name?['Revisa el comercio.']:[]),...(!best||ambiguous?['No se ha identificado un total único. Introduce el importe.']:[]),...(!date?['No se ha identificado una fecha válida.']:[]),...(/\b(?:usd|gbp|dolar|pound)\b|[$£]/i.test(all)?['Revisa la moneda: no se convierten divisas automáticamente.']:[])]};

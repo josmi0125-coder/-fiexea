@@ -18,7 +18,7 @@ async function prepare(file){
 function categories(){return typeof categoryOptionsForType==='function'?categoryOptionsForType('expense'):[]}
 function fillReview(parsed){
  const d=draft;d.parsed=parsed;
- if(calendarContext){const context=calendarContext;context.apply(parsed,d.receipt);close();calendarContext=null;return}
+ if(calendarContext){$('receiptScanName').value=parsed.name||'';$('receiptScanAmount').value=parsed.amount||'';$('receiptScanDate').value=parsed.date||'';$('receiptScanWarning').textContent=['Revisa el resultado antes de aplicarlo al gasto.',...(parsed.warnings||[])].join(' ');$('receiptScanWarning').hidden=false;$('receiptScanForm').hidden=false;$('receiptScanExisting').closest('label').hidden=true;$('receiptScanNewFields').hidden=true;$('receiptScanSave').textContent='Aplicar datos al gasto';return}
 $('receiptScanName').value=parsed.name;$('receiptScanAmount').value=parsed.amount||'';$('receiptScanDate').value=parsed.date||'';
  const select=$('receiptScanCategory');select.replaceChildren(new Option('Selecciona una categoría',''));for(const c of categories())select.add(new Option(c.name,String(c.id)));
  const suggestion=categories().find(c=>M.norm(c.name)===M.norm(parsed.category));if(suggestion)select.value=String(suggestion.id);
@@ -45,7 +45,7 @@ function updateDuplicates(){
 }
 async function saveScan(event){
  event.preventDefault();if(busy||$('receiptScanSave').disabled)return;const d=draft;try{assertDraft(d)}catch(e){status(e.message);return}
- const v=values(),existingId=$('receiptScanExisting').value,existing=existingId?moves.find(m=>String(m.id)===existingId&&m.type==='expense'):null,cat=categories().find(c=>String(c.id)===$('receiptScanCategory').value),paid=$('receiptScanPaid').checked;
+ if(calendarContext){const parsed={...d.parsed,name:$('receiptScanName').value.trim(),amount:Number($('receiptScanAmount').value)||null,date:$('receiptScanDate').value};try{calendarContext.apply(parsed,d.receipt);calendarContext=null;close()}catch(error){status(error.message||'No se pudieron aplicar los datos')}return}const v=values(),existingId=$('receiptScanExisting').value,existing=existingId?moves.find(m=>String(m.id)===existingId&&m.type==='expense'):null,cat=categories().find(c=>String(c.id)===$('receiptScanCategory').value),paid=$('receiptScanPaid').checked;
  if(!d.receipt){status('Selecciona primero una foto.');return}
  if(existingId&&!existing){status('El gasto ya no existe. Vuelve a seleccionarlo.');return}
  if(!existing&&(!v.name||!Number.isFinite(v.amount)||v.amount<=0||v.amount>999999999||!M.validDate(v.date)||!cat)){status('Completa el comercio, un importe válido, la fecha y la categoría.');return}

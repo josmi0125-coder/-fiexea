@@ -254,7 +254,20 @@ function installSectionGuides(){
 
 function init(){
  installSectionGuides();
- new MutationObserver(installSectionGuides).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
+ if(typeof MutationObserver==='function'){
+  const root=document.querySelector('main')||document.body;
+  let pending=false;
+  const observer=new MutationObserver(()=>{
+   if(pending)return;
+   pending=true;
+   requestAnimationFrame(()=>{
+    pending=false;
+    observer.disconnect();
+    try{installSectionGuides()}finally{observer.observe(root,{childList:true,subtree:true})}
+   });
+  });
+  observer.observe(root,{childList:true,subtree:true});
+ }
  const helpButton=document.getElementById('guidedToursOpen');
  const updateHelpLabel=()=>{if(helpButton)helpButton.textContent='🧭 '+tr('Guías paso a paso')};updateHelpLabel();
  helpButton?.addEventListener('click',()=>showChooser());

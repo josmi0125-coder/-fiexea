@@ -14,11 +14,13 @@
 .fiexea-welcome-benefits li:nth-child(3) .fiexea-welcome-icon{background:#eee6fb;color:#8058b6}
 .fiexea-welcome-benefits strong{display:block;font-size:14px;line-height:1.4;color:#234c3e}
 .fiexea-welcome-benefits div>span{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:#526d62}
-#fiexeaWelcomeSignup{display:block;width:100%;min-height:50px;border:0;border-radius:14px;padding:14px;background:var(--primary-action-background,linear-gradient(125deg,#0e9685,#07564f));color:#fff;font-size:16px;font-weight:800;cursor:pointer}
-#fiexeaWelcomeLogin,#fiexeaWelcomeBack{display:block;width:100%;min-height:48px;white-space:normal;line-height:1.5;color:#0b6c5d;background:transparent;border:0;font-size:14px;font-weight:700;padding:12px 4px;cursor:pointer}
+#fiexeaWelcomeTrial{display:block;width:100%;min-height:50px;border:0;border-radius:14px;padding:14px;background:var(--primary-action-background,linear-gradient(125deg,#0e9685,#07564f));color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+#fiexeaWelcomeSignup,#fiexeaWelcomeLogin,#fiexeaWelcomeBack{display:block;width:100%;min-height:48px;white-space:normal;line-height:1.5;color:#0b6c5d;background:transparent;border:0;font-size:14px;font-weight:700;padding:12px 4px;cursor:pointer}
 #fiexeaWelcomeBack{margin-top:8px;text-align:left}
 .fiexea-welcome-legal{margin:12px 0 0;text-align:center;font-size:12px;line-height:1.8;color:#567569}
 .fiexea-welcome-legal a{color:inherit;text-underline-offset:3px;display:inline-block;padding:4px}
 #fiexeaWelcomeView button:focus-visible,#fiexeaWelcomeBack:focus-visible{outline:3px solid #0c8c76;outline-offset:3px}
 @media(max-width:370px){#fiexeaAuthGate .fiexea-auth-card{padding:22px 18px}.fiexea-welcome-benefits li{padding:10px;gap:10px}.fiexea-welcome-benefits strong{font-size:13px}}
 @media(max-height:740px){#fiexeaAuthGate .fiexea-auth-logo{width:56px;height:56px}.fiexea-welcome-eyebrow{margin:8px 0 16px}.fiexea-welcome-intro{margin:12px auto 18px}.fiexea-welcome-benefits{gap:8px;margin-bottom:18px}}
+
+.fiexea-guest-note{font-size:12px;line-height:1.5;text-align:center;color:#526d62;margin:10px 0}#fiexeaGuestError{color:#b42318;font-size:13px;text-align:center}#fiexeaAuthGate{overflow-y:auto}

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="access.css?v=2026.10.17-trial">
 <meta name="referrer" content="no-referrer">
 <script src="invitations.js?v=2026.10.17-invitations" defer></script>
-<script src="access.js?v=2026.10.18-subscription" defer></script>
+<script src="access.js?v=20261023-guest" defer></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
 <script>
@@ -786,7 +786,7 @@ html[data-theme="dark"] #t1 #calendarMovementsOpen:hover{background:#214b41!impo
 @media(max-width:370px){.movement-category-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <link rel="stylesheet" href="guided-tours.css?v=20261023-4"><script src="guided-tours-i18n.js?v=20261023-4" defer></script><script src="guided-tours.js?v=20261023-4" defer></script>
-<link rel="stylesheet" href="welcome.css?v=20261023-1">
+<link rel="stylesheet" href="welcome.css?v=20261023-guest">
 </head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
@@ -802,7 +802,10 @@ html[data-theme="dark"] #t1 #calendarMovementsOpen:hover{background:#214b41!impo
         <li><span class="fiexea-welcome-icon" aria-hidden="true">▦</span><div><strong>Organiza tus pagos y deudas</strong><span>Consulta las fechas y lo que queda pendiente.</span></div></li>
         <li><span class="fiexea-welcome-icon" aria-hidden="true">◎</span><div><strong>Planifica tu ahorro</strong><span>Define tus objetivos y sigue tus avances.</span></div></li>
       </ul>
-      <button id="fiexeaWelcomeSignup" type="button">Crear cuenta</button>
+      <button id="fiexeaWelcomeTrial" type="button">Probar gratis 3 días</button>
+      <p class="fiexea-guest-note">Sin correo, sin contraseña y sin tarjeta. Los datos de prueba se guardan en este navegador.</p>
+      <p id="fiexeaGuestError" role="alert"></p>
+      <button id="fiexeaWelcomeSignup" class="fiexea-auth-link" type="button">Crear cuenta</button>
       <button id="fiexeaWelcomeLogin" class="fiexea-auth-link" type="button">Ya tengo cuenta · Iniciar sesión</button>
       <p class="fiexea-welcome-legal"><a href="informacion.html#privacy" target="_blank" rel="noopener">Privacidad</a><span aria-hidden="true"> · </span><a href="informacion.html#terms" target="_blank" rel="noopener">Condiciones</a></p>
     </section>

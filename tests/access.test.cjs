@@ -3,15 +3,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('access.js','utf8');
-async function run(state, { session = true, fail = false, remaining = 7200000, invitations = null, recovery = false } = {}) {
+async function run(state, { session = true, fail = false, remaining = 7200000, invitations = null, recovery = false, storage = new Map() } = {}) {
   const elements = new Map();
   function element(id) {
-    if(!elements.has(id)) elements.set(id,{hidden:true,disabled:false,textContent:'',value:'',checked:false,style:{},classList:{contains(){return false}},setAttribute(){},insertAdjacentElement(){},addEventListener(){},reset(){}});
+    if(!elements.has(id)) elements.set(id,{hidden:true,disabled:false,textContent:'',value:'',checked:false,style:{},classList:{contains(){return false}},setAttribute(){},insertAdjacentElement(){},appendChild(){},addEventListener(name,fn){this[name]=fn},reset(){}});
     return elements.get(id);
   }
   let monotonic = 0;
   const intervals=[];
-  const context = {console, Promise, Date, Math, Number, URLSearchParams,location:{search:''}, setTimeout(){return 1;},clearTimeout(){},setInterval(fn){intervals.push(fn);return 1;},clearInterval(){},performance:{now:()=>monotonic},document:{createElement:()=>element('created'),getElementById:element,documentElement:{dataset:{}},addEventListener(){},visibilityState:'visible'},window:{addEventListener(){},FiexeaInvitations:invitations},FIEXEA_SUPABASE_URL:'https://example.invalid',fiexeaAuthGate:element('auth'),fiexeaShowGate(){},fiexeaShowView(){},fiexeaIsRecoveryUrl:()=>recovery,openPremiumModal(){},fetch:async()=>({ok:true,json:async()=>({billing_available:false})}),fiexeaSupabase:{auth:{getSession:async()=>({data:{session:session?{user:{id:'example-user'}}:null},error:null}),onAuthStateChange(){}},rpc:async()=>({data:{state,allowed:['existing','trial','paid','invitation'].includes(state),server_now:'2026-10-17T00:00:00Z',invitation_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString(),trial_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString()},error:fail?new Error('offline'):null})}};
+  const context = {localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},console, Promise, Date, Math, Number, URLSearchParams,location:{search:''}, setTimeout(){return 1;},clearTimeout(){},setInterval(fn){intervals.push(fn);return 1;},clearInterval(){},performance:{now:()=>monotonic},document:{createElement:()=>element('created'),getElementById:element,documentElement:{dataset:{}},addEventListener(){},visibilityState:'visible'},window:{addEventListener(){},FiexeaInvitations:invitations},FIEXEA_SUPABASE_URL:'https://example.invalid',fiexeaAuthGate:element('auth'),fiexeaShowGate(){},fiexeaShowView(){},fiexeaIsRecoveryUrl:()=>recovery,openPremiumModal(){},fetch:async()=>({ok:true,json:async()=>({billing_available:false})}),fiexeaSupabase:{auth:{getSession:async()=>({data:{session:session?{user:{id:'example-user'}}:null},error:null}),onAuthStateChange(){}},rpc:async()=>({data:{state,allowed:['existing','trial','paid','invitation'].includes(state),server_now:'2026-10-17T00:00:00Z',invitation_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString(),trial_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString()},error:fail?new Error('offline'):null})}};
   vm.runInNewContext(source,context);
   await new Promise(resolve=>setImmediate(resolve));
   return {context,element,intervals,advance:value=>monotonic=value};
@@ -29,3 +29,27 @@ test('invalid invitation never falls back to a free trial',async()=>{const x=awa
 
 
 test("access checks cannot hide password recovery behind a trial or paid screen",async()=>{for(const state of ["paid","expired"]){const x=await run(state,{recovery:true});assert.notEqual(x.context.document.documentElement.dataset.fiexeaAccess,"allowed");assert.equal(x.element("fiexeaAccessGate").hidden,true);}});
+
+ test('guest starts without an auth request and resumes the same deadline',async()=>{
+ const storage=new Map(); const x=await run('trial',{session:false,storage});
+ await x.element('fiexeaWelcomeTrial').click();
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'allowed');
+ const started=JSON.parse(storage.get('fiexea_guest_trial_v1')).started;
+ const y=await run('trial',{session:false,storage});
+ assert.equal(y.context.document.documentElement.dataset.fiexeaAccess,'allowed');
+ assert.equal(JSON.parse(storage.get('fiexea_guest_trial_v1')).started,started);
+ });
+ test('expired guest cannot restart the three day trial',async()=>{
+ const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now()-73*3600000,lastSeen:Date.now()})],['fiexea_guest_active','1']]);
+ const x=await run('trial',{session:false,storage});
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+ await x.element('fiexeaWelcomeTrial').click();
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+ });
+ test('guest expiry and recovery preserve the auth boundary',async()=>{
+ const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now(),lastSeen:Date.now()})],['fiexea_guest_active','1']]);
+ const x=await run('trial',{session:false,storage}); x.advance(73*3600000);x.intervals[0]();
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+ const y=await run('trial',{session:false,storage,recovery:true});
+ assert.notEqual(y.context.document.documentElement.dataset.fiexeaAccess,'allowed');
+ });

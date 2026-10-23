@@ -321,3 +321,21 @@ test('editing an orphan payment retains its receipt and changes no other payment
 test('opening an orphan expense editor does not create or write a schedule',()=>{
  const h=harness(),m={id:'gym',type:'expense',desc:'Gym',cat:'Gym',amount:290,date:'2026-10-01',scheduledDate:'2026-10-01',scheduledExpenseId:'missing'};h.env.moves=[m];const before=h.data.get('fiexea_scheduled_expenses');openSavedExpense(h,m);assert.equal(h.data.get('fiexea_scheduled_expenses'),before);assert.equal(h.env.moves[0],m);
 });
+
+test('changing tax filters refreshes visible groups, totals and receipt counts without data changes',()=>{
+ const h=harness();h.env.presentationCurrency='EUR';h.env.document.getElementById=id=>h.node(id);h.env.document.querySelectorAll=()=>[];h.node('calendarSummary').classList={toggle(){}};
+ h.env.moves=[
+ {id:'gym',type:'expense',scheduledExpenseId:'gym-plan',scheduledDate:'2026-10-01',date:'2026-10-01',amount:290,desc:'Iron gym',cat:'Gym',property:'Alberic',taxReview:true,receipt:{name:'gym.pdf'}},
+ {id:'water',type:'expense',scheduledExpenseId:'water-plan',scheduledDate:'2026-10-01',date:'2026-10-01',amount:100,desc:'Agua',cat:'Suministros',property:'Valencia',taxReview:true},
+ {id:'other',type:'expense',scheduledExpenseId:'other-plan',scheduledDate:'2026-10-01',date:'2026-10-01',amount:20,desc:'Otro recibo',cat:'Suministros',property:'Valencia',taxReview:false}
+ ];
+ h.api.setView('tax');h.node('calendarOnlyReview').checked=true;h.api.renderCalendar();
+ assert.match(h.node('calendarContent').innerHTML,/Iron gym/);assert.match(h.node('calendarContent').innerHTML,/Agua/);
+ h.node('calendarCategory').value='Gym';h.api.renderCalendar();
+ assert.match(h.node('calendarContent').innerHTML,/Iron gym/);assert.doesNotMatch(h.node('calendarContent').innerHTML,/Agua/);assert.match(h.node('calendarSummary').innerHTML,/>290</);assert.match(h.node('calendarSummary').innerHTML,/1 \/ 1/);
+ h.node('calendarCategory').value='Suministros';h.api.renderCalendar();
+ assert.doesNotMatch(h.node('calendarContent').innerHTML,/Iron gym/);assert.match(h.node('calendarSummary').innerHTML,/>100</);
+ h.node('calendarProperty').value='Alberic';h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/No hay pagos/);
+ h.node('calendarCategory').value='';h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/Iron gym/);
+ h.node('calendarProperty').value='';h.node('calendarOnlyReview').checked=false;h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/Otro recibo/);assert.match(h.node('calendarSummary').innerHTML,/>410</);
+});

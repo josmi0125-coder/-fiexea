@@ -62,7 +62,7 @@ function renderCalendar(){
  if(!$('t11'))return;
  const currentOwner=financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'';
  if(sessionOwner!==currentOwner){closeDialogs();sessionOwner=currentOwner}
- const key=JSON.stringify([currentOwner,today(),view,year,window.fiexeaLocale||'',presentationCurrency,localStorage.getItem(KEY),moves]);
+ const key=JSON.stringify([currentOwner,today(),view,year,$('calendarProperty').value,$('calendarCategory').value,$('calendarOnlyReview').checked,window.fiexeaLocale||'',presentationCurrency,localStorage.getItem(KEY),moves]);
  if(key===calendarRenderKey)return;
  const openMonths=new Set([...$('calendarContent').querySelectorAll?.('[data-calendar-month][open]')||[]].map(node=>node.dataset.calendarMonth));
  const plans=read(),rows=allRows(plans),pending=rows.filter(r=>!r.move);

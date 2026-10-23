@@ -4,9 +4,16 @@ Se integra la web publicada hasta el commit `328e1a8cd297a12a8177808c17ceebb26da
 
 Se corrige el empaquetador para incluir todos los recursos web locales y conservar los scripts situados después del modal Premium. La sincronización copia el mismo paquete a Android e iOS. Los workflows también se ejecutan al cambiar CSS, JavaScript, páginas y assets. Las pruebas web CommonJS y los módulos nativos ESM conservan su formato correspondiente.
 
-Validación local: paquete generado, `cap sync` para ambas plataformas y comprobaciones móviles correctas. La suite completa incorpora una regresión para comprobar que calendario, recibos, calculadora y guías no desaparecen del paquete nativo. Se ejecutarán las compilaciones y pruebas de emulador en GitHub Actions; los enlaces de octubre anteriores corresponden a versiones históricas.
+Validación local: paquete generado, `cap sync` para ambas plataformas y comprobaciones móviles correctas. La suite completa incorpora una regresión para comprobar que calendario, recibos, calculadora y guías no desaparecen del paquete nativo. Las 118 pruebas de Node pasan tanto localmente como en GitHub Actions. Las compilaciones y los arranques en emulador/simulador han terminado correctamente; los enlaces de octubre anteriores corresponden a versiones históricas.
 
 **No es una publicación en tiendas.** Se mantiene el identificador de desarrollo y siguen pendientes las compras nativas, firma de distribución, cuenta/Team y fichas de tienda. No se ha creado un AAB/IPA de publicación. La compilación iOS es para simulador.
+
+## Resultados nuevos del 23 de octubre
+
+- [Android: compilación, APK y pruebas en emulador correctas](https://github.com/josmi0125-coder/-fiexea/actions/runs/39936296532). Pasan las 118 pruebas de código y las comprobaciones de puente nativo, acceso, logo, recuperación, rotación y segundo plano.
+- [Descargar el APK Android 1.1 de desarrollo y su checksum](https://github.com/josmi0125-coder/-fiexea/actions/runs/39936296532/artifacts/12494630818). Es un ZIP de GitHub con firma debug; puede requerir iniciar sesión. Retención: 14 días.
+- [iPhone: compilación sin firma, instalación y arranque en simulador correctos](https://github.com/josmi0125-coder/-fiexea/actions/runs/39936296571). Incluye captura e informe de arranque, junto con la app del simulador. No es una instalación para un iPhone físico ni una entrega TestFlight.
+- Estas pruebas de arranque no inician sesión ni verifican compras o todos los formularios con datos reales. La prueba completa de las funciones financieras usa la suite de código, sin operaciones sobre cuentas de producción.
 
 ---
 

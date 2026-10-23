@@ -44,9 +44,9 @@ test('CSV protects formula-like user input and escapes quotes',()=>{
 });
 function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
- const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
+ const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},classList:{remove(){},toggle(){}},focus(){},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openCalendar,closeCalendar,openEditor,deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openCalendar,closeCalendar,openEditor,openCalendarReceiptScanner,deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -349,4 +349,25 @@ test('calendar back returns to the screen that opened it',()=>{
  }
  const h=harness(),tabs=[];h.env.document.querySelector=()=>({id:'t11'});h.env.tab=n=>tabs.push(n);
  h.api.openCalendar();h.api.closeCalendar();assert.equal(tabs[1],1);
+});
+
+test('calendar scan fills the expense form and saves its receipt only on confirmation',async()=>{
+ const h=harness();h.node('calendarEditor').open=true;
+ h.env.window.FiexeaReceiptScanMath=require('../receipt-scan-math.js');
+ h.node('calCategory').options=[{textContent:'Alimentación',value:'Alimentación'}];
+ h.node('calAlreadyPaid').checked=true;
+ const receipt={name:'scan.jpg',type:'image/jpeg',data:'data:image/jpeg;base64,AA=='};
+ let context;h.env.window.FiexeaReceiptScanner={open(c){context=c}};
+ const before=h.data.get('fiexea_scheduled_expenses');
+ h.api.openCalendarReceiptScanner();context.apply({name:'Mercadona',amount:42.8,date:'2026-10-20',category:'Alimentación',warnings:[]},receipt);
+ assert.equal(h.node('calName').value,'Mercadona');assert.equal(h.node('calAmount').value,42.8);assert.equal(h.node('calDate').value,'2026-10-20');assert.equal(h.node('calCategory').value,'Alimentación');assert.equal(h.node('calAlreadyPaid').checked,false);
+ assert.match(h.node('calendarPlanReceiptNote').textContent,/escaneado adjunto/);assert.equal(h.env.moves.length,0);assert.equal(h.data.get('fiexea_scheduled_expenses'),before);
+ h.node('calendarEditor').open=false;assert.throws(()=>context.apply({},receipt),/formulario/);
+ h.node('calendarEditor').open=true;h.node('calRepeat').value='once';h.node('calAlreadyPaid').checked=true;
+ await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,1);assert.equal(h.env.moves[0].receipt.name,'scan.jpg');assert.equal(h.env.moves[0].amount,42.8);
+ assert.equal(JSON.parse(h.data.get('fiexea_scheduled_expenses')).find(p=>p.name==='Mercadona').receipt.name,'scan.jpg');
+});
+test('scanner entry is inside the calendar expense form and absent from Movements',()=>{
+ const app=fs.readFileSync('app.html','utf8'),calendar=fs.readFileSync('expense-calendar.js','utf8');
+ assert.doesNotMatch(app,/data-receipt-open/);assert.match(calendar,/<form id="calendarForm"><button id="calendarScanReceipt"/);
 });

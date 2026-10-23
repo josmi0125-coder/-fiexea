@@ -2,14 +2,14 @@
 (()=>{
 'use strict';
 const M=window.FiexeaReceiptScanMath,$=id=>document.getElementById(id);if(!M)return;
-let token=0,worker=null,loading=null,draft=null,busy=false,returnFocus=null;
+let token=0,worker=null,loading=null,draft=null,busy=false,returnFocus=null,calendarContext=null;
 const owner=()=>{let trial='';try{const record=JSON.parse(localStorage.getItem('fiexea_guest_trial_v1')||'null');trial=String(record?.started||'')}catch(_){}return String(typeof financialActiveUserId!=='undefined'&&financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'')+'|'+String(localStorage.getItem('fiexea_guest_active')||'')+'|'+trial};
 function allowed(){return typeof financialAppReady!=='undefined'&&financialAppReady&&document.documentElement.dataset.fiexeaAccess==='allowed'}
 function assertDraft(d){if(!d||draft!==d||owner()!==d.owner||!allowed()||!$('receiptScanner').open)throw new Error('El acceso o la cuenta han cambiado. Abre el escáner de nuevo.')}
 function status(s){$('receiptScanStatus').textContent=s}
 function stop(){token++;if(worker){worker.terminate().catch(()=>{});worker=null}busy=false;if($('receiptScanForm'))$('receiptScanFields').disabled=false}
 function close(){if($('receiptScanSave')?.disabled)return;stop();draft=null;$('receiptScanPreview').removeAttribute('src');$('receiptScanner').close();returnFocus?.focus?.({preventScroll:true})}
-function open(){if(!allowed())return;stop();draft=null;returnFocus=document.activeElement;$('receiptScanForm').reset();$('receiptScanForm').hidden=true;$('receiptScanPreview').hidden=true;$('receiptScanPreview').removeAttribute('src');$('receiptScanWarning').hidden=true;status('Haz una foto nítida del recibo completo, con buena luz.');$('receiptScanner').showModal()}
+function open(context=null){if(!allowed())return;stop();draft=null;calendarContext=context;returnFocus=document.activeElement;$('receiptScanForm').reset();$('receiptScanForm').hidden=true;$('receiptScanPreview').hidden=true;$('receiptScanPreview').removeAttribute('src');$('receiptScanWarning').hidden=true;status('Haz una foto nítida del recibo completo, con buena luz.');$('receiptScanner').showModal()}
 function loadEngine(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(!loading)loading=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';s.crossOrigin='anonymous';s.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('No se pudo cargar el lector.'));s.onerror=()=>{s.remove();loading=null;reject(new Error('No se pudo descargar el lector. Comprueba la conexión y vuelve a intentarlo.'))};document.head.appendChild(s)});return loading}
 async function prepare(file){
  if(!file||file.size>20*1024*1024||!/^image\//.test(file.type))throw new Error('Elige una foto de hasta 20 MB. Para un PDF, adjúntalo desde Calendario de gastos.');
@@ -17,7 +17,9 @@ async function prepare(file){
 }
 function categories(){return typeof categoryOptionsForType==='function'?categoryOptionsForType('expense'):[]}
 function fillReview(parsed){
- const d=draft;d.parsed=parsed;$('receiptScanName').value=parsed.name;$('receiptScanAmount').value=parsed.amount||'';$('receiptScanDate').value=parsed.date||'';
+ const d=draft;d.parsed=parsed;
+ if(calendarContext){const context=calendarContext;context.apply(parsed,d.receipt);close();calendarContext=null;return}
+$('receiptScanName').value=parsed.name;$('receiptScanAmount').value=parsed.amount||'';$('receiptScanDate').value=parsed.date||'';
  const select=$('receiptScanCategory');select.replaceChildren(new Option('Selecciona una categoría',''));for(const c of categories())select.add(new Option(c.name,String(c.id)));
  const suggestion=categories().find(c=>M.norm(c.name)===M.norm(parsed.category));if(suggestion)select.value=String(suggestion.id);
  for(const[id,value]of [['receiptScanName',parsed.name],['receiptScanAmount',parsed.amount],['receiptScanDate',parsed.date],['receiptScanCategory',suggestion]])$(id).classList.toggle('receipt-scan-uncertain',!value);

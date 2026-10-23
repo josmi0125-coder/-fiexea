@@ -10,3 +10,5 @@
 .receipt-scanner input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-right:8px}.receipt-scan-preview{display:block;max-width:100%;max-height:220px;object-fit:contain;margin:16px auto;border-radius:12px}
 .receipt-scan-warning{padding:12px;border:1px solid #d4a04d;border-radius:10px;background:#fff7e7;color:#735018;font-size:14px}.receipt-scanner .receipt-scan-uncertain{border:2px solid #c58b2e!important}.receipt-scan-status{font-size:14px;min-height:24px;white-space:pre-line}.receipt-scan-privacy{color:var(--muted,#596c63);font-size:12px!important}.receipt-scanner fieldset{border:0;padding:0;margin:0;min-width:0}
 .receipt-scanner [hidden]{display:none!important}
+
+.calendar-dialog .receipt-scan-uncertain{border:2px solid #c58b2e!important}

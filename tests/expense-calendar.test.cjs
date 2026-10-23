@@ -46,7 +46,7 @@ function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openEditor,deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -299,4 +299,25 @@ test('failed payment deletion restores both schedules and movements',()=>{
 test('direct deletion rejects a changed account',()=>{
  const h=harness();h.setup();h.env.financialActiveUserId='B';h.env.confirm=()=>{throw new Error('Should not confirm')};
  assert.equal(h.api.deleteCalendarExpense('plan','p'),false);assert.match(h.alerts[0],/cuenta ha cambiado/);
+});
+
+function openSavedExpense(h,m){
+ h.node('calendarForm').reset=()=>{};h.node('calendarEditor').showModal=()=>{h.node('calendarEditor').open=true};
+ h.env.categoryOptionsForType=()=>[{name:'Gym'},{name:'Seguros'}];
+ h.api.openEditor(m.scheduledExpenseId,m.id);
+}
+test('paid expenses without a schedule show Edit expense and open their saved fields',()=>{
+ const h=harness(),m={id:'gym',desc:'Iron gym',type:'expense',cat:'Gym',amount:290,date:'2026-10-01',scheduledDate:'2026-10-01',scheduledExpenseId:'missing',receipt:{name:'gym.pdf'}};h.env.moves=[m];
+ const html=h.api.rowMarkup({move:m,due:m.scheduledDate,amount:m.amount});assert.match(html,/data-calendar-action="edit"[^>]*data-move-id="gym"[^>]*>Editar gasto/);
+ openSavedExpense(h,m);assert.equal(h.node('calendarEditor').open,true);assert.equal(h.node('calName').value,'Iron gym');assert.equal(h.node('calAmount').value,290);assert.equal(h.node('calDate').value,'2026-10-01');assert.equal(h.node('calCategory').value,'Gym');assert.equal(h.node('calAlreadyPaid').checked,true);assert.match(h.node('calendarPlanReceiptNote').textContent,/gym.pdf/);
+});
+test('editing an orphan payment retains its receipt and changes no other payment with the old schedule ID',async()=>{
+ const h=harness(),m={id:'gym',desc:'Iron gym',type:'expense',cat:'Gym',amount:290,date:'2026-10-01',scheduledDate:'2026-10-01',scheduledExpenseId:'missing',taxReview:true,receipt:{name:'gym.pdf'}};
+ const other={...m,id:'past',date:'2026-09-01',scheduledDate:'2026-09-01',amount:200};h.env.moves=[m,other];openSavedExpense(h,m);
+ h.node('calName').value='Gym actualizado';h.node('calAmount').value='295';h.node('calDate').value='2026-10-02';await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,2);assert.equal(h.env.moves[0].id,'gym');assert.equal(h.env.moves[0].amount,295);assert.equal(h.env.moves[0].date,'2026-10-02');assert.equal(h.env.moves[0].receipt.name,'gym.pdf');assert.equal(h.env.moves[1],other);
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.ok(plans.some(p=>p.id===h.env.moves[0].scheduledExpenseId&&p.receipt.name==='gym.pdf'));assert.equal(M.calendarRows(plans,h.env.moves,2026).filter(r=>!r.move&&r.plan.id!=='p').length,0);
+});
+test('opening an orphan expense editor does not create or write a schedule',()=>{
+ const h=harness(),m={id:'gym',type:'expense',desc:'Gym',cat:'Gym',amount:290,date:'2026-10-01',scheduledDate:'2026-10-01',scheduledExpenseId:'missing'};h.env.moves=[m];const before=h.data.get('fiexea_scheduled_expenses');openSavedExpense(h,m);assert.equal(h.data.get('fiexea_scheduled_expenses'),before);assert.equal(h.env.moves[0],m);
 });

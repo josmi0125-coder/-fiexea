@@ -1,6 +1,11 @@
 /* Walkthrough copy: English, French, Italian and Portuguese. */
 (()=>{
 const rows=[
+["Inicio","Home","Accueil","Home","Início"],
+["Análisis financiero","Financial analysis","Analyse financière","Analisi finanziaria","Análise financeira"],
+["Más","More","Plus","Altro","Mais"],
+["Cuentas","Accounts","Comptes","Conti","Contas"],
+["Ajustes","Settings","Réglages","Impostazioni","Definições"],
 ["Guía","Guide","Guide","Guida","Guia"],
 ["Aquí puedes consultar tu patrimonio neto: el valor de tus activos menos tus deudas.","See your net worth: the value of your assets minus your debts.","Consultez votre patrimoine net : vos actifs moins vos dettes.","Consulta il patrimonio netto: il valore delle attività meno i debiti.","Consulte o património líquido: os ativos menos as dívidas."],
 ["Consulta tus ingresos, gastos y balance del mes. Toca una tarjeta para ver el detalle.","See your monthly income, expenses and balance. Tap a card for details.","Consultez les revenus, dépenses et solde du mois. Touchez une carte pour les détails.","Consulta entrate, spese e saldo del mese. Tocca una scheda per i dettagli.","Consulte receitas, despesas e saldo do mês. Toque num cartão para ver detalhes."],

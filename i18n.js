@@ -475,6 +475,13 @@
   const tr = (s, lang = current) => {
     const row = rows[s]; if (row) return lang === "pt" ? (ptRows[s] || s) : (row[langs[lang]] || s);
     if (lang === "es") return s;
+    const calendarPatterns=[
+      [/^Pagado en (\\d{4})$/,["Paid in $1","Payé en $1","Pagato nel $1","Pago em $1"]],
+      [/^Previsto en (\\d{4})$/,["Scheduled in $1","Prévu en $1","Previsto nel $1","Previsto em $1"]],
+      [/^Pendiente en (\\d{4})$/,["Pending in $1","En attente en $1","In sospeso nel $1","Pendente em $1"]],
+      [/^Gastos pagados de (\\d{4})$/,["Expenses paid in $1","Dépenses payées en $1","Spese pagate nel $1","Despesas pagas em $1"]]
+    ];
+    for(const [pattern,values] of calendarPatterns){if(pattern.test(s))return s.replace(pattern,values[langs[lang]]);}
     const patterns = [
       [/^Ingresos \/ (.+)$/, ["Income / $1", "Revenus / $1", "Entrate / $1"]],
       [/^Gastos \/ (.+)$/, ["Expenses / $1", "Dépenses / $1", "Uscite / $1"]],
@@ -936,4 +943,364 @@
   Object.assign(rows, {"Resumen de tus deudas": ["Your debt overview", "Résumé de vos dettes", "Riepilogo dei debiti"], "Capital pendiente total": ["Total outstanding principal", "Capital restant dû total", "Capitale residuo totale"], "Comparar deudas": ["Compare debts", "Comparer les dettes", "Confronta i debiti"], "Ingresos destinados a cuotas": ["Income used for repayments", "Revenus consacrés aux mensualités", "Entrate destinate alle rate"], "No hay deudas activas para comparar.": ["No active debts to compare.", "Aucune dette active à comparer.", "Nessun debito attivo da confrontare."], "Toca un préstamo para ver sus detalles. Las cuotas variables o revolving son aproximadas.": ["Tap a loan to view its details. Variable or revolving payments are estimates.", "Touchez un prêt pour voir ses détails. Les mensualités variables ou revolving sont estimatives.", "Tocca un prestito per vedere i dettagli. Le rate variabili o revolving sono stimate."]});
   Object.assign(ptRows, {"Resumen de tus deudas": "Resumo das suas dívidas", "Capital pendiente total": "Capital total em dívida", "Comparar deudas": "Comparar dívidas", "Ingresos destinados a cuotas": "Rendimentos destinados a prestações", "No hay deudas activas para comparar.": "Não há dívidas ativas para comparar.", "Toca un préstamo para ver sus detalles. Las cuotas variables o revolving son aproximadas.": "Toque num empréstimo para ver os detalhes. As prestações variáveis ou revolving são estimadas."});
   for (let day = 1; day <= 31; day++) { rows['Día ' + day] = ['Day ' + day, 'Jour ' + day, 'Giorno ' + day]; ptRows['Día ' + day] = 'Dia ' + day; }
+
+  // Expense calendar and its help guide.
+  Object.assign(rows, {
+  "Calendario de gastos": [
+    "Expense calendar",
+    "Calendrier des dépenses",
+    "Calendario delle spese"
+  ],
+  "📅 Calendario de gastos": [
+    "📅 Expense calendar",
+    "📅 Calendrier des dépenses",
+    "📅 Calendario delle spese"
+  ],
+  "Cómo usar el Calendario de gastos": [
+    "How to use the expense calendar",
+    "Utiliser le calendrier des dépenses",
+    "Come usare il calendario delle spese"
+  ],
+  "Organiza pagos, recibos y documentos para la renta.": [
+    "Organise payments, receipts and tax documents.",
+    "Organisez paiements, justificatifs et documents fiscaux.",
+    "Organizza pagamenti, ricevute e documenti fiscali."
+  ],
+  "Planifica seguros, impuestos y recibos con su fecha exacta. Consulta Próximos cobros, Todo el año o Para la renta.": [
+    "Schedule insurance, taxes and bills on their exact dates. View Upcoming payments, Full year or Tax documents.",
+    "Planifiez assurances, impôts et factures à leur date exacte. Consultez Prochains paiements, Année complète ou Documents fiscaux.",
+    "Pianifica assicurazioni, imposte e bollette con la data esatta. Consulta Prossimi pagamenti, Tutto l’anno o Documenti fiscali."
+  ],
+  "Abre Calendario de gastos desde Movimientos o Más → Planificación. Usa Volver para salir.": [
+    "Open Expense calendar from Transactions or More → Planning. Use Back to leave.",
+    "Ouvrez Calendrier des dépenses depuis Opérations ou Plus → Planification. Utilisez Retour pour quitter.",
+    "Apri Calendario delle spese da Movimenti o Altro → Pianificazione. Usa Indietro per uscire."
+  ],
+  "Pulsa Añadir gasto con fecha. Indica nombre, importe, fecha y recibo opcional. Marca Ya está pagado si corresponde.": [
+    "Select Add dated expense. Enter a name, amount, date and optional receipt. Mark Already paid if applicable.",
+    "Sélectionnez Ajouter une dépense datée. Indiquez nom, montant, date et justificatif facultatif. Cochez Déjà payé si nécessaire.",
+    "Premi Aggiungi spesa con data. Inserisci nome, importo, data e ricevuta facoltativa. Se necessario, seleziona Già pagato."
+  ],
+  "Para varios plazos, activa Pago fraccionado y completa nombre, importe, fecha, recibo y estado pagado de cada pago. Se agrupan automáticamente.": [
+    "For installments, enable Split payment and enter each payment’s name, amount, date, receipt and paid status. They are grouped automatically.",
+    "Pour plusieurs échéances, activez Paiement fractionné et renseignez nom, montant, date, justificatif et état payé de chaque paiement. Ils sont regroupés automatiquement.",
+    "Per più rate, attiva Pagamento rateale e inserisci nome, importo, data, ricevuta e stato pagato di ogni pagamento. Le rate sono raggruppate automaticamente."
+  ],
+  "Para unir gastos existentes, edita el gasto y elige una agrupación en Más opciones. Cada pago conserva su fecha y recibo.": [
+    "To group existing expenses, edit an expense and choose a group under More options. Each payment keeps its date and receipt.",
+    "Pour regrouper des dépenses existantes, modifiez une dépense et choisissez un groupe dans Plus d’options. Chaque paiement conserve sa date et son justificatif.",
+    "Per unire spese esistenti, modifica una spesa e scegli un gruppo in Altre opzioni. Ogni pagamento mantiene data e ricevuta."
+  ],
+  "En Para la renta, elige el año y filtra por vivienda, categoría o Solo marcados para revisar en la renta. Los totales y justificantes siguen esos filtros.": [
+    "In Tax documents, choose the year and filter by property, category or Only flagged for tax review. Totals and receipts follow these filters.",
+    "Dans Documents fiscaux, choisissez l’année et filtrez par logement, catégorie ou Seulement marqués pour vérification fiscale. Totaux et justificatifs suivent ces filtres.",
+    "In Documenti fiscali, scegli l’anno e filtra per immobile, categoria o Solo contrassegnati per verifica fiscale. Totali e ricevute seguono questi filtri."
+  ],
+  "Exporta CSV o comparte justificantes desde Para la renta. Despliega cada gasto para editar sus pagos y consultar sus recibos.": [
+    "Export CSV or share receipts from Tax documents. Expand an expense to edit its payments and view receipts.",
+    "Exportez un CSV ou partagez les justificatifs depuis Documents fiscaux. Dépliez une dépense pour modifier ses paiements et consulter ses justificatifs.",
+    "Esporta CSV o condividi ricevute da Documenti fiscali. Espandi ogni spesa per modificare i pagamenti e consultare le ricevute."
+  ],
+  "Un gasto pendiente no crea un movimiento. Al confirmar el pago puedes vincular un movimiento existente para evitar duplicados. Marcar un gasto para la renta no confirma que sea deducible.": [
+    "A pending expense does not create a transaction. When confirming payment, you can link an existing transaction to avoid duplicates. Flagging an expense for tax review does not establish deductibility.",
+    "Une dépense en attente ne crée pas d’opération. À la confirmation du paiement, vous pouvez lier une opération existante pour éviter les doublons. Marquer une dépense pour vérification fiscale ne confirme pas sa déductibilité.",
+    "Una spesa in sospeso non crea un movimento. Quando confermi il pagamento puoi collegare un movimento esistente per evitare duplicati. Contrassegnare una spesa per verifica fiscale non ne conferma la deducibilità."
+  ],
+  "Comprueba el año, los filtros y la casilla de revisión. Los pagos aparecen en el año de su fecha de pago. Si falta un recibo, abre Editar gasto o Editar pago y comprueba que se haya guardado.": [
+    "Check the year, filters and review checkbox. Payments appear in the year of their payment date. If a receipt is missing, open Edit expense or Edit payment and check it was saved.",
+    "Vérifiez l’année, les filtres et la case de vérification. Les paiements figurent dans l’année de leur date de paiement. Si un justificatif manque, ouvrez Modifier la dépense ou Modifier le paiement et vérifiez l’enregistrement.",
+    "Controlla anno, filtri e casella di verifica. I pagamenti appaiono nell’anno della data di pagamento. Se manca una ricevuta, apri Modifica spesa o Modifica pagamento e verifica che sia stata salvata."
+  ],
+  "Próximos cobros": [
+    "Upcoming payments",
+    "Prochains paiements",
+    "Prossimi pagamenti"
+  ],
+  "Todo el año": [
+    "Full year",
+    "Année complète",
+    "Tutto l’anno"
+  ],
+  "Para la renta": [
+    "Tax documents",
+    "Documents fiscaux",
+    "Documenti fiscali"
+  ],
+  "＋ Añadir gasto con fecha": [
+    "＋ Add dated expense",
+    "＋ Ajouter une dépense datée",
+    "＋ Aggiungi spesa con data"
+  ],
+  "Añadir gasto con fecha": [
+    "Add dated expense",
+    "Ajouter une dépense datée",
+    "Aggiungi spesa con data"
+  ],
+  "Tus seguros, impuestos y recibos, en la fecha en que toca pagarlos.": [
+    "Your insurance, taxes and bills, on the dates they are due.",
+    "Vos assurances, impôts et factures, à leur date d’échéance.",
+    "Assicurazioni, imposte e bollette, alla scadenza prevista."
+  ],
+  "Todas las viviendas": [
+    "All properties",
+    "Tous les logements",
+    "Tutti gli immobili"
+  ],
+  "Todas las categorías": [
+    "All categories",
+    "Toutes les catégories",
+    "Tutte le categorie"
+  ],
+  "Solo marcados para revisar en la renta": [
+    "Only flagged for tax review",
+    "Seulement marqués pour vérification fiscale",
+    "Solo contrassegnati per verifica fiscale"
+  ],
+  "Compartir justificantes": [
+    "Share receipts",
+    "Partager les justificatifs",
+    "Condividi ricevute"
+  ],
+  "Justificantes adjuntos": [
+    "Attached receipts",
+    "Justificatifs joints",
+    "Ricevute allegate"
+  ],
+  "No hay pagos del calendario con estos filtros.": [
+    "No calendar payments match these filters.",
+    "Aucun paiement ne correspond à ces filtres.",
+    "Nessun pagamento corrisponde a questi filtri."
+  ],
+  "¿Qué gasto es?": [
+    "What is the expense?",
+    "Quelle est la dépense ?",
+    "Qual è la spesa?"
+  ],
+  "Importe previsto": [
+    "Expected amount",
+    "Montant prévu",
+    "Importo previsto"
+  ],
+  "Fecha del pago": [
+    "Payment date",
+    "Date du paiement",
+    "Data del pagamento"
+  ],
+  "Ya está pagado en esta fecha": [
+    "Already paid on this date",
+    "Déjà payé à cette date",
+    "Già pagato in questa data"
+  ],
+  "Pago fraccionado": [
+    "Split payment",
+    "Paiement fractionné",
+    "Pagamento rateale"
+  ],
+  "Recibo o factura (opcional)": [
+    "Receipt or invoice (optional)",
+    "Justificatif ou facture (facultatif)",
+    "Ricevuta o fattura (facoltativa)"
+  ],
+  "Número de pagos": [
+    "Number of payments",
+    "Nombre de paiements",
+    "Numero di pagamenti"
+  ],
+  "Se repite": [
+    "Repeats",
+    "Répétition",
+    "Si ripete"
+  ],
+  "Solo una vez": [
+    "One time only",
+    "Une seule fois",
+    "Una sola volta"
+  ],
+  "Cada tres meses": [
+    "Every three months",
+    "Tous les trois mois",
+    "Ogni tre mesi"
+  ],
+  "Cada año": [
+    "Every year",
+    "Chaque année",
+    "Ogni anno"
+  ],
+  "Agrupación para la renta (opcional)": [
+    "Tax review group (optional)",
+    "Groupe fiscal (facultatif)",
+    "Gruppo fiscale (facoltativo)"
+  ],
+  "Sin agrupar": [
+    "Ungrouped",
+    "Sans groupe",
+    "Senza gruppo"
+  ],
+  "Vivienda asociada (opcional)": [
+    "Property (optional)",
+    "Logement associé (facultatif)",
+    "Immobile associato (facoltativo)"
+  ],
+  "Vivienda asociada": [
+    "Property",
+    "Logement associé",
+    "Immobile associato"
+  ],
+  "Último cobro (opcional)": [
+    "Last payment (optional)",
+    "Dernier paiement (facultatif)",
+    "Ultimo pagamento (facoltativo)"
+  ],
+  "Revisar para la renta": [
+    "Flag for tax review",
+    "Marquer pour vérification fiscale",
+    "Contrassegna per verifica fiscale"
+  ],
+  "Guardar gasto": [
+    "Save expense",
+    "Enregistrer la dépense",
+    "Salva spesa"
+  ],
+  "Confirmar pago": [
+    "Confirm payment",
+    "Confirmer le paiement",
+    "Conferma pagamento"
+  ],
+  "Editar gasto": [
+    "Edit expense",
+    "Modifier la dépense",
+    "Modifica spesa"
+  ],
+  "Recibo o factura": [
+    "Receipt or invoice",
+    "Justificatif ou facture",
+    "Ricevuta o fattura"
+  ],
+  "¿Ya está en Movimientos?": [
+    "Already in Transactions?",
+    "Déjà dans Opérations ?",
+    "Già in Movimenti?"
+  ],
+  "Importe pagado": [
+    "Paid amount",
+    "Montant payé",
+    "Importo pagato"
+  ],
+  "Cómo funciona": [
+    "How it works",
+    "Fonctionnement",
+    "Come funziona"
+  ],
+  "Pendiente · fecha pasada": [
+    "Pending · past date",
+    "En attente · date passée",
+    "In sospeso · data passata"
+  ],
+  "Sin gastos previstos": [
+    "No scheduled expenses",
+    "Aucune dépense prévue",
+    "Nessuna spesa prevista"
+  ],
+  "Resumen del año": [
+    "Year overview",
+    "Résumé de l’année",
+    "Riepilogo dell’anno"
+  ],
+  "Gastos por mes": [
+    "Expenses by month",
+    "Dépenses par mois",
+    "Spese per mese"
+  ],
+  "Se usa la fecha real de pago. Marcar un gasto para la renta no confirma que sea deducible.": [
+    "Uses the actual payment date. Flagging an expense for tax review does not establish deductibility.",
+    "La date réelle du paiement est utilisée. Marquer une dépense pour vérification fiscale ne confirme pas sa déductibilité.",
+    "Si usa la data effettiva del pagamento. Contrassegnare una spesa per verifica fiscale non ne conferma la deducibilità."
+  ],
+  "← Volver a Movimientos": [
+    "← Back to Transactions",
+    "← Retour aux opérations",
+    "← Torna a Movimenti"
+  ],
+  "← Volver a Más": [
+    "← Back to More",
+    "← Retour à Plus",
+    "← Torna ad Altro"
+  ],
+  "← Volver a Inicio": [
+    "← Back to Home",
+    "← Retour à l’accueil",
+    "← Torna alla Home"
+  ],
+  "Agrupar gasto": [
+    "Group expense",
+    "Regrouper la dépense",
+    "Raggruppa spesa"
+  ],
+  "📎 Recibo": [
+    "📎 Receipt",
+    "📎 Justificatif",
+    "📎 Ricevuta"
+  ]
+});
+  Object.assign(ptRows, {
+  "Calendario de gastos": "Calendário de despesas",
+  "📅 Calendario de gastos": "📅 Calendário de despesas",
+  "Cómo usar el Calendario de gastos": "Como usar o calendário de despesas",
+  "Organiza pagos, recibos y documentos para la renta.": "Organize pagamentos, recibos e documentos fiscais.",
+  "Planifica seguros, impuestos y recibos con su fecha exacta. Consulta Próximos cobros, Todo el año o Para la renta.": "Planeie seguros, impostos e faturas com a data exata. Consulte Próximos pagamentos, Todo o ano ou Documentos fiscais.",
+  "Abre Calendario de gastos desde Movimientos o Más → Planificación. Usa Volver para salir.": "Abra Calendário de despesas em Movimentos ou Mais → Planeamento. Use Voltar para sair.",
+  "Pulsa Añadir gasto con fecha. Indica nombre, importe, fecha y recibo opcional. Marca Ya está pagado si corresponde.": "Prima Adicionar despesa com data. Indique nome, valor, data e recibo opcional. Assinale Já está pago, se aplicável.",
+  "Para varios plazos, activa Pago fraccionado y completa nombre, importe, fecha, recibo y estado pagado de cada pago. Se agrupan automáticamente.": "Para prestações, ative Pagamento fracionado e indique nome, valor, data, recibo e estado pago de cada pagamento. São agrupados automaticamente.",
+  "Para unir gastos existentes, edita el gasto y elige una agrupación en Más opciones. Cada pago conserva su fecha y recibo.": "Para agrupar despesas existentes, edite uma despesa e escolha um grupo em Mais opções. Cada pagamento mantém a data e o recibo.",
+  "En Para la renta, elige el año y filtra por vivienda, categoría o Solo marcados para revisar en la renta. Los totales y justificantes siguen esos filtros.": "Em Documentos fiscais, escolha o ano e filtre por imóvel, categoria ou Apenas marcados para revisão fiscal. Os totais e recibos seguem estes filtros.",
+  "Exporta CSV o comparte justificantes desde Para la renta. Despliega cada gasto para editar sus pagos y consultar sus recibos.": "Exporte CSV ou partilhe comprovativos em Documentos fiscais. Expanda cada despesa para editar os pagamentos e consultar os recibos.",
+  "Un gasto pendiente no crea un movimiento. Al confirmar el pago puedes vincular un movimiento existente para evitar duplicados. Marcar un gasto para la renta no confirma que sea deducible.": "Uma despesa pendente não cria um movimento. Ao confirmar o pagamento pode associar um movimento existente para evitar duplicados. Marcar uma despesa para revisão fiscal não confirma a sua dedutibilidade.",
+  "Comprueba el año, los filtros y la casilla de revisión. Los pagos aparecen en el año de su fecha de pago. Si falta un recibo, abre Editar gasto o Editar pago y comprueba que se haya guardado.": "Verifique o ano, os filtros e a caixa de revisão. Os pagamentos aparecem no ano da data de pagamento. Se faltar um recibo, abra Editar despesa ou Editar pagamento e confirme que foi guardado.",
+  "Próximos cobros": "Próximos pagamentos",
+  "Todo el año": "Todo o ano",
+  "Para la renta": "Documentos fiscais",
+  "＋ Añadir gasto con fecha": "＋ Adicionar despesa com data",
+  "Añadir gasto con fecha": "Adicionar despesa com data",
+  "Tus seguros, impuestos y recibos, en la fecha en que toca pagarlos.": "Os seus seguros, impostos e faturas, na data de pagamento.",
+  "Todas las viviendas": "Todos os imóveis",
+  "Todas las categorías": "Todas as categorias",
+  "Solo marcados para revisar en la renta": "Apenas marcados para revisão fiscal",
+  "Compartir justificantes": "Partilhar comprovativos",
+  "Justificantes adjuntos": "Comprovativos anexados",
+  "No hay pagos del calendario con estos filtros.": "Não há pagamentos com estes filtros.",
+  "¿Qué gasto es?": "Qual é a despesa?",
+  "Importe previsto": "Valor previsto",
+  "Fecha del pago": "Data do pagamento",
+  "Ya está pagado en esta fecha": "Já está pago nesta data",
+  "Pago fraccionado": "Pagamento fracionado",
+  "Recibo o factura (opcional)": "Recibo ou fatura (opcional)",
+  "Número de pagos": "Número de pagamentos",
+  "Se repite": "Repete-se",
+  "Solo una vez": "Apenas uma vez",
+  "Cada tres meses": "De três em três meses",
+  "Cada año": "Todos os anos",
+  "Agrupación para la renta (opcional)": "Grupo fiscal (opcional)",
+  "Sin agrupar": "Sem grupo",
+  "Vivienda asociada (opcional)": "Imóvel associado (opcional)",
+  "Vivienda asociada": "Imóvel associado",
+  "Último cobro (opcional)": "Último pagamento (opcional)",
+  "Revisar para la renta": "Marcar para revisão fiscal",
+  "Guardar gasto": "Guardar despesa",
+  "Confirmar pago": "Confirmar pagamento",
+  "Editar gasto": "Editar despesa",
+  "Recibo o factura": "Recibo ou fatura",
+  "¿Ya está en Movimientos?": "Já está em Movimentos?",
+  "Importe pagado": "Valor pago",
+  "Cómo funciona": "Como funciona",
+  "Pendiente · fecha pasada": "Pendente · data passada",
+  "Sin gastos previstos": "Sem despesas previstas",
+  "Resumen del año": "Resumo do ano",
+  "Gastos por mes": "Despesas por mês",
+  "Se usa la fecha real de pago. Marcar un gasto para la renta no confirma que sea deducible.": "É usada a data efetiva de pagamento. Marcar uma despesa para revisão fiscal não confirma a sua dedutibilidade.",
+  "← Volver a Movimientos": "← Voltar a Movimentos",
+  "← Volver a Más": "← Voltar a Mais",
+  "← Volver a Inicio": "← Voltar ao início",
+  "Agrupar gasto": "Agrupar despesa",
+  "📎 Recibo": "📎 Recibo"
+});
 })();

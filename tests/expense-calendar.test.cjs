@@ -46,7 +46,7 @@ function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openEditor,deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openCalendar,closeCalendar,openEditor,deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -338,4 +338,15 @@ test('changing tax filters refreshes visible groups, totals and receipt counts w
  h.node('calendarProperty').value='Alberic';h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/No hay pagos/);
  h.node('calendarCategory').value='';h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/Iron gym/);
  h.node('calendarProperty').value='';h.node('calendarOnlyReview').checked=false;h.api.renderCalendar();assert.match(h.node('calendarContent').innerHTML,/Otro recibo/);assert.match(h.node('calendarSummary').innerHTML,/>410</);
+});
+
+test('calendar back returns to the screen that opened it',()=>{
+ for(const origin of [0,1,10]){
+  const h=harness(),tabs=[];h.env.document.querySelector=()=>({id:'t'+origin});h.env.tab=n=>tabs.push(n);
+  h.api.openCalendar();assert.equal(tabs[0],11);
+  assert.match(h.node('calendarBack').textContent,new RegExp(origin===0?'Inicio':origin===10?'Más':'Movimientos'));
+  h.api.closeCalendar();assert.equal(tabs[1],origin);
+ }
+ const h=harness(),tabs=[];h.env.document.querySelector=()=>({id:'t11'});h.env.tab=n=>tabs.push(n);
+ h.api.openCalendar();h.api.closeCalendar();assert.equal(tabs[1],1);
 });

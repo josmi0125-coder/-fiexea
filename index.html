@@ -47,20 +47,35 @@
 </style><style id="preview-contrast-fix">.replica-tagline{color:#4b6260}</style><style id="desktop-compact-layout">
 /* Desktop landing: use the screen width and keep the overview compact. */
 @media (min-width: 901px) {
- .landing-page .wrap {width:min(1320px,calc(100% - 80px))}
- .landing-page .hero {grid-template-columns:minmax(0,1.35fr) minmax(280px,.8fr);gap:clamp(32px,5vw,72px);padding:30px 0 32px}
- .landing-page .hero h1 {font-size:clamp(42px,4.5vw,67px);max-width:760px}
+ .landing-page .wrap {width:min(1440px,calc(100% - 48px))}
+ .landing-page .hero {grid-template-columns:minmax(0,1.25fr) minmax(350px,1fr);gap:32px;padding:20px 0 24px}
+ .landing-page .hero h1 {font-size:clamp(36px,3.5vw,50px);max-width:760px}
  .landing-page .hero .lead {max-width:660px}
  .landing-page .hero .eyebrow {margin-bottom:16px}
  .landing-page .hero .hero-note {margin-top:12px}
  .landing-page .hero-visual {padding:8px 0 12px}
- .landing-page .friendly-hero .friendly-phone {zoom:.76}
- .landing-page .friendly-hero .replica-summary .friendly-tile {min-height:76px;padding:9px;gap:4px}
- .landing-page .friendly-hero .replica-worth {padding:14px 12px}
- .landing-page .friendly-hero .friendly-display .replica-label {margin:11px 1px 7px}
- .landing-page .friendly-hero .replica-tagline {margin-bottom:10px}
- .landing-page .hero-visual.friendly-hero:before {inset:30px 15px 20px}
- .landing-page .section {padding:44px 0}
+ .landing-page .friendly-hero .friendly-phone,.landing-page .friendly-preview-device .friendly-phone {width:400px;zoom:.85;border-radius:30px;padding:10px 12px 8px}
+ .landing-page .friendly-phone .friendly-display {min-height:360px}
+ .landing-page .friendly-phone .friendly-status {padding-bottom:5px}
+ .landing-page .friendly-phone .replica-heading {margin:2px 0}
+ .landing-page .friendly-phone .replica-tagline {margin:3px 0 8px}
+ .landing-page .friendly-phone .replica-worth {padding:10px 12px;border-radius:14px}
+ .landing-page .friendly-phone .replica-worth>strong {font-size:25px;margin:3px 0 4px}
+ .landing-page .friendly-phone .replica-summary .friendly-tile {min-height:65px;padding:8px 10px;gap:3px;border-radius:12px}
+ .landing-page .friendly-phone .replica-summary .replica-emoji {font-size:18px}
+ .landing-page .friendly-phone .replica-summary {gap:6px}
+ .landing-page .friendly-phone .friendly-display .replica-label {margin:8px 1px 6px}
+ .landing-page .friendly-phone .replica-visual-summary {padding:9px 12px;margin-top:8px;border-radius:13px}
+ .landing-page .friendly-phone .replica-chart-layout {grid-template-columns:74px minmax(0,1fr);gap:16px}
+ .landing-page .friendly-phone .replica-summary-title {margin-bottom:7px}
+ .landing-page .friendly-phone .replica-chart-legend>div,.landing-page .friendly-phone .replica-chart-legend b {font-size:10px}
+ .landing-page .friendly-phone .replica-shortcuts>div {min-height:39px;padding:5px}
+ .landing-page .friendly-phone .friendly-nav {margin-top:9px;padding-top:7px;padding-bottom:6px}
+ .landing-page .hero .lead {font-size:17px;line-height:1.6;margin-bottom:20px}
+ .landing-page .hero h1 {margin-bottom:18px}
+ .landing-page .hero>div>p:has(.text-link) {margin-bottom:10px}
+ .landing-page .hero-visual.friendly-hero:before {inset:15px 35px;border-radius:30px}
+ .landing-page .section {padding:32px 0}
  .landing-page .section-heading {margin-bottom:24px}
  .landing-page .intro-strip {padding:18px 0}
  .landing-page .steps {gap:26px}
@@ -68,8 +83,7 @@
  .landing-page .step-number {margin-bottom:10px}
  .landing-page .feature {padding:22px}
  .landing-page .feature .round-icon {margin-bottom:14px}
- .landing-page .friendly-showcase {gap:40px;padding:0}
- .landing-page .friendly-preview-device .friendly-phone {zoom:.85}
+ .landing-page .friendly-showcase {grid-template-columns:minmax(0,1.25fr) minmax(350px,1fr);gap:32px;padding:0}
  .landing-page .download-layout,.landing-page .about-grid,.landing-page .faq-layout {gap:40px}
  .landing-page .landing-tour {margin-bottom:22px;padding:22px}
  .landing-page .tour-steps {margin:16px 0}

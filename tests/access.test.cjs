@@ -77,3 +77,12 @@ test('expired authenticated account opens plans once; active accounts do not',as
  await x.context.window.FiexeaAccess.refresh();assert.equal(x.context.premiumOpens,1);
  for(const state of ['paid','existing','trial']){const y=await run(state);assert.equal(y.context.premiumOpens,undefined)}
 });
+
+test('guest countdown uses days, hours and minutes and never displays 0 minutes before expiry',async()=>{
+ const started=Date.now(),storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started,lastSeen:started})],['fiexea_guest_active','1']]);
+ const x=await run('trial',{session:false,storage});
+ assert.match(x.element('fiexeaTrialRemaining').textContent,/7 días/);assert.doesNotMatch(x.element('fiexeaTrialRemaining').textContent,/167 h/);
+ x.advance(60001);x.intervals[0]();assert.match(x.element('fiexeaTrialRemaining').textContent,/6 días 23 h 59 min/);
+ x.advance(7*24*3600000-30000);x.intervals[0]();assert.match(x.element('fiexeaTrialRemaining').textContent,/menos de 1 min/);assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'allowed');
+ x.advance(7*24*3600000+1);x.intervals[0]();assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+});

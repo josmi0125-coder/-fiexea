@@ -51,6 +51,17 @@
     try { localStorage.removeItem(guestActiveKey); } catch (_) {}
     signedOut(); originalGate(true); fiexeaShowView(view);
   }
+  function formatRemainingTime(milliseconds) {
+    if (!(milliseconds > 0)) return '0 min';
+    if (milliseconds < 60000) return 'menos de 1 min';
+    const totalMinutes = Math.ceil(milliseconds / 60000);
+    const days = Math.floor(totalMinutes / 1440), hours = Math.floor(totalMinutes % 1440 / 60), minutes = totalMinutes % 60;
+    const parts = [];
+    if (days) parts.push(days + (days === 1 ? ' día' : ' días'));
+    if (hours) parts.push(hours + ' h');
+    if (minutes) parts.push(minutes + ' min');
+    return parts.join(' ');
+  }
   function resumeGuest() {
     if (fiexeaIsRecoveryUrl() || window.FiexeaInvitations?.pending || !guestActive()) return false;
     const record = guestRecord();
@@ -78,7 +89,7 @@
         return;
       }
       allowed = true; setState('allowed'); gate.hidden = true; originalGate(false); banner.hidden = false;
-      document.getElementById('fiexeaTrialRemaining').textContent = 'Prueba sin registro · Quedan ' + Math.floor(left / 3600000) + ' h ' + Math.floor(left % 3600000 / 60000) + ' min · Datos en este navegador';
+      document.getElementById('fiexeaTrialRemaining').textContent = 'Prueba sin registro · Tiempo restante: ' + formatRemainingTime(left) + ' · Datos en este navegador';
       document.getElementById('fiexeaTrialPlans').hidden = true;
     }
     guestAccount.hidden = false;
@@ -171,8 +182,7 @@
           banner.hidden = false;
           const tick = () => {
             const seconds = Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
-            const hours = Math.floor(seconds / 3600), minutes = Math.floor(seconds % 3600 / 60);
-            document.getElementById('fiexeaTrialRemaining').textContent = (invited ? 'Invitación activa · Quedan ' : 'Prueba activa · Quedan ') + hours + ' h ' + minutes + ' min';
+            document.getElementById('fiexeaTrialRemaining').textContent = (invited ? 'Invitación activa · Tiempo restante: ' : 'Prueba activa · Tiempo restante: ') + formatRemainingTime(Math.max(0, deadline - performance.now()));
             if (seconds === 0) { clearInterval(countdown); showGate(invited ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 7 días ha terminado', invited ? 'Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan para continuar.', !invited); }
           };
           tick(); countdown = setInterval(tick, 1000); lease = Math.min(lease, remaining + 10);

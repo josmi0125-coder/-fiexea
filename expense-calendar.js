@@ -324,7 +324,7 @@ function start(){
  if($('calendarMovementsOpen'))$('calendarMovementsOpen').onclick=openCalendar;
  $('calendarBack').onclick=closeCalendar;
  $('calendarAdd').onclick=()=>openEditor();
- $('calendarScanReceipt').onclick=openCalendarReceiptScanner;
+ $('calendarScanReceipt').onclick=()=>openCalendarReceiptScanner();
  $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(note&&input.files[0]){note.textContent='Imagen seleccionada: '+input.files[0].name+'. Leyendo recibo…';if(input.id==='calReceipt'&&/^image\//.test(input.files[0].type)&&!editId){const file=input.files[0];openCalendarReceiptScanner(file)}else note.textContent='Seleccionado: '+input.files[0].name+'. Se guardará al pulsar Guardar gasto.'}}});
  $('calSplit').onchange=updateInstallments;$('calSplitCount').onchange=updateInstallments;$('calGroup').onchange=()=>{$('calGroup').dataset.retainedGroup='';$('calGroup').dataset.retainedName=''};
  $('calendarForm').onsubmit=savePlan;$('calendarPayForm').onsubmit=confirmPayment;

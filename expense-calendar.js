@@ -150,7 +150,7 @@ let scannedReceipt=null,scanGeneration=0;
 function openCalendarReceiptScanner(file=null){
  if(!$('calendarEditor').open||editId)return;
  const generation=scanGeneration,owner=financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'';
- window.FiexeaReceiptScanner?.open({apply(parsed,receipt){
+ if(!window.FiexeaReceiptScanner){$('calendarPlanReceiptNote').textContent='No se ha cargado el lector. Recarga FIEXEA e inténtalo de nuevo.';return;}window.FiexeaReceiptScanner.open({apply(parsed,receipt){
   if(generation!==scanGeneration||!$('calendarEditor').open||owner!==(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||''))throw new Error('El formulario o la cuenta han cambiado. Abre el gasto de nuevo.');
   scannedReceipt=receipt;$('calReceipt').value='';
   if(parsed.name&&parsed.name.trim().length>3)$('calName').value=parsed.name;if(parsed.amount>0)$('calAmount').value=parsed.amount;if(parsed.date)$('calDate').value=parsed.date;
@@ -162,7 +162,7 @@ function openCalendarReceiptScanner(file=null){
   for(const[id,value]of [['calName',parsed.name],['calAmount',parsed.amount],['calDate',parsed.date]])$(id).classList.toggle('receipt-scan-uncertain',!value);
   $('calName').focus();
  }});
- if(file)window.FiexeaReceiptScanner?.scan(file);
+ if(file){if(!$('receiptScanner')?.open){$('calendarPlanReceiptNote').textContent='El escáner no se ha abierto. Puedes guardar el justificante manualmente.';return;}window.FiexeaReceiptScanner.scan(file)}
 }
 function openEditor(id='',moveId=''){
  scannedReceipt=null;scanGeneration++;

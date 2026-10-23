@@ -46,7 +46,7 @@ function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -224,3 +224,45 @@ test('creating installments saves each receipt and ignores the manual group sele
  await h.pay();assert.equal(h.env.moves.length,0);
  reader.result='data:application/pdf;base64,YQ==';reader.onload();await saving;assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,1);assert.equal(h.node('calendarPaySubmit').disabled,false);assert.equal(h.node('calendarPaySubmit').textContent,'Guardar pago');
  });
+
+
+function setupSplitPayment(h,paid=[true,true]){
+ h.api.setEditor('');h.node('calendarEditor').open=true;h.node('calSplit').checked=true;h.node('calAlreadyPaid').checked=paid[0];
+ for(const [id,value]of Object.entries({calName:'Residuos',calAmount:'51.65',calDate:'2026-08-03',calRepeat:'once',calCategory:'Suministros',calProperty:'Ático'}))h.node(id).value=value;
+ h.node('calSplitRows').querySelectorAll=()=>[{querySelector(selector){return {'[type=date]':{value:'2026-10-12'},'[type=number]':{value:'55.20'},'[type=file]':{files:[]},'[data-installment-name]':{value:'Segundo recibo'},'[data-installment-paid]':{checked:paid[1]}}[selector]}}];
+}
+test('both installments can be paid in one save with their exact dates and individual names',async()=>{
+ const h=harness();setupSplitPayment(h);await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,2);
+ assert.deepEqual(Array.from(h.env.moves,m=>m.date),['2026-08-03','2026-10-12']);
+ assert.deepEqual(Array.from(h.env.moves,m=>m.scheduledDate),['2026-08-03','2026-10-12']);
+ assert.deepEqual(Array.from(h.env.moves,m=>m.amount),[51.65,55.2]);
+ assert.equal(h.env.moves[1].desc,'Segundo recibo');
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));
+ assert.equal(M.calendarRows(plans,h.env.moves,2026).filter(r=>!r.move&&r.plan.id!=='p').length,0);
+ assert.equal(M.taxGroups(h.env.moves,plans).length,1);
+});
+test('each installment has independent paid status',async()=>{
+ const h=harness();setupSplitPayment(h,[false,true]);await h.api.savePlan({preventDefault(){}});
+ assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,1);assert.equal(h.env.moves[0].date,'2026-10-12');
+ const rows=M.calendarRows(JSON.parse(h.data.get('fiexea_scheduled_expenses')),h.env.moves,2026);
+ assert.ok(rows.some(r=>!r.move&&r.due==='2026-08-03'));assert.ok(rows.some(r=>r.move&&r.due==='2026-10-12'));
+});
+test('future paid installment rejects the whole save without changing existing dates or payments',async()=>{
+ const h=harness();setupSplitPayment(h);h.node('calDate').value='2027-08-03';const before=h.data.get('fiexea_scheduled_expenses');
+ await h.api.savePlan({preventDefault(){}});assert.match(h.alerts[0],/fecha de hoy o anterior/);assert.equal(h.env.moves.length,0);assert.equal(h.data.get('fiexea_scheduled_expenses'),before);
+});
+test('editing a paid one-off expense keeps its single payment and uses the chosen date',async()=>{
+ const h=harness();h.data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'IBI',repeat:'once',date:'2026-08-03',category:'Suministros'}]));
+ h.env.moves=[{id:'paid',type:'expense',scheduledExpenseId:'p',scheduledDate:'2026-08-03',date:'2026-08-03',amount:100,receipt:{name:'original.pdf'}}];
+ h.api.setEditor('p');h.node('calendarEditor').open=true;h.node('calAlreadyPaid').checked=true;
+ for(const [id,value]of Object.entries({calName:'IBI corregido',calAmount:'133.60',calDate:'2026-09-14',calRepeat:'once',calCategory:'Suministros',calProperty:'Ático'}))h.node(id).value=value;
+ await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);assert.equal(h.env.moves.length,1);assert.equal(h.env.moves[0].date,'2026-09-14');assert.equal(h.env.moves[0].receipt.name,'original.pdf');
+ const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.equal(plans[0].date,'2026-09-14');assert.equal(M.calendarRows(plans,h.env.moves,2026).filter(r=>!r.move).length,0);
+});
+
+
+test('confirm payment starts with the selected due date instead of today',()=>{
+ const h=harness();h.node('calendarPayForm').reset=()=>{};h.node('calendarPayment').showModal=()=>{};
+ h.api.openPayment('p','2026-08-03');assert.equal(h.node('calPayDate').value,'2026-08-03');
+});

@@ -11,7 +11,7 @@ async function run(state, { session = true, fail = false, remaining = 7200000, i
   }
   let monotonic = 0;
   const intervals=[];
-  const context = {localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},console, Promise, Date, Math, Number, URLSearchParams,location:{search:''}, setTimeout(){return 1;},clearTimeout(){},setInterval(fn){intervals.push(fn);return 1;},clearInterval(){},performance:{now:()=>monotonic},document:{createElement:()=>element('created'),getElementById:element,documentElement:{dataset:{}},addEventListener(){},visibilityState:'visible'},window:{addEventListener(){},FiexeaInvitations:invitations},FIEXEA_SUPABASE_URL:'https://example.invalid',fiexeaAuthGate:element('auth'),fiexeaShowGate(){},fiexeaShowView(){},fiexeaIsRecoveryUrl:()=>recovery,openPremiumModal(){},fetch:async()=>({ok:true,json:async()=>({billing_available:false})}),fiexeaSupabase:{auth:{getSession:async()=>({data:{session:session?{user:{id:'example-user'}}:null},error:null}),onAuthStateChange(){}},rpc:async()=>({data:{state,allowed:['existing','trial','paid','invitation'].includes(state),server_now:'2026-10-17T00:00:00Z',invitation_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString(),trial_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString()},error:fail?new Error('offline'):null})}};
+  const context = {localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},console, Promise, Date, Math, Number, URLSearchParams,location:{search:''}, setTimeout(){return 1;},clearTimeout(){},setInterval(fn){intervals.push(fn);return 1;},clearInterval(){},performance:{now:()=>monotonic},document:{createElement:()=>element('created'),getElementById:element,documentElement:{dataset:{}},addEventListener(){},visibilityState:'visible'},window:{addEventListener(){},FiexeaInvitations:invitations},FIEXEA_SUPABASE_URL:'https://example.invalid',fiexeaAuthGate:element('auth'),fiexeaShowGate(show){element('auth').hidden=!show},fiexeaShowView(view){context.authView=view},fiexeaIsRecoveryUrl:()=>recovery,openPremiumModal(){context.premiumOpens=(context.premiumOpens||0)+1},fetch:async()=>({ok:true,json:async()=>({billing_available:false})}),fiexeaSupabase:{auth:{getSession:async()=>({data:{session:session?{user:{id:'example-user'}}:null},error:null}),onAuthStateChange(){}},rpc:async()=>({data:{state,allowed:['existing','trial','paid','invitation'].includes(state),server_now:'2026-10-17T00:00:00Z',invitation_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString(),trial_ends_at:new Date(Date.parse('2026-10-17T00:00:00Z')+remaining).toISOString()},error:fail?new Error('offline'):null})}};
   vm.runInNewContext(source,context);
   await new Promise(resolve=>setImmediate(resolve));
   return {context,element,intervals,advance:value=>monotonic=value};
@@ -60,4 +60,20 @@ test('guest remains active after three days but blocks after seven',async()=>{
  assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'allowed');
  x.advance(3*24*3600000+1);x.intervals[0]();
  assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+});
+
+test('expired guest goes directly to signup with the application blocked',async()=>{
+ const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now()-8*24*3600000,lastSeen:Date.now()})],['fiexea_guest_active','1']]);
+ const x=await run('trial',{session:false,storage});
+ assert.equal(x.context.authView,'signup');
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+ assert.equal(x.element('auth').hidden,false);
+ assert.equal(x.element('fiexeaAccessGate').hidden,true);
+ assert.equal(x.element('fiexeaSignupExpired').hidden,false);
+ assert.equal(x.element('fiexeaSignupSubmit').textContent,'Crear cuenta y elegir plan');
+});
+test('expired authenticated account opens plans once; active accounts do not',async()=>{
+ const x=await run('expired');assert.equal(x.context.premiumOpens,1);
+ await x.context.window.FiexeaAccess.refresh();assert.equal(x.context.premiumOpens,1);
+ for(const state of ['paid','existing','trial']){const y=await run(state);assert.equal(y.context.premiumOpens,undefined)}
 });

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="access.css?v=2026.10.17-trial">
 <meta name="referrer" content="no-referrer">
 <script src="invitations.js?v=2026.10.17-invitations" defer></script>
-<script src="access.js?v=20261023-7days" defer></script>
+<script src="access.js?v=20261023-direct-signup" defer></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
 <script>
@@ -786,7 +786,7 @@ html[data-theme="dark"] #t1 #calendarMovementsOpen:hover{background:#214b41!impo
 @media(max-width:370px){.movement-category-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <link rel="stylesheet" href="guided-tours.css?v=20261023-4"><script src="guided-tours-i18n.js?v=20261023-4" defer></script><script src="guided-tours.js?v=20261023-4" defer></script>
-<link rel="stylesheet" href="welcome.css?v=20261023-guest">
+<link rel="stylesheet" href="welcome.css?v=20261023-expiry">
 </head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
@@ -826,7 +826,7 @@ html[data-theme="dark"] #t1 #calendarMovementsOpen:hover{background:#214b41!impo
       </form>
     </div>
 
-    <div id="fiexeaSignupView" hidden><p class="fiexea-auth-sub">Prueba FIEXEA 7 días sin registro desde la bienvenida. Crea una cuenta para contratar un plan y continuar. Registrarte no inicia otra prueba ni genera un cobro automático.</p><form id="fiexeaSignupForm"><label class="fiexea-auth-label" for="fiexeaSignupEmail">Correo electrónico</label><input class="fiexea-auth-input" id="fiexeaSignupEmail" type="email" autocomplete="email" required><label class="fiexea-auth-label" for="fiexeaSignupPassword">Contraseña</label><input class="fiexea-auth-input" id="fiexeaSignupPassword" type="password" autocomplete="new-password" minlength="8" required><label class="fiexea-auth-label" for="fiexeaSignupPassword2">Repite la contraseña</label><input class="fiexea-auth-input" id="fiexeaSignupPassword2" type="password" autocomplete="new-password" minlength="8" required><label class="fiexea-signup-terms"><input id="fiexeaSignupTerms" type="checkbox" required><span>He leído y acepto las <a href="informacion.html#terms" target="_blank" rel="noopener">condiciones</a> y la <a href="informacion.html#privacy" target="_blank" rel="noopener">política de privacidad</a>.</span></label><button id="fiexeaSignupSubmit" type="submit">Crear cuenta</button><p id="fiexeaSignupMessage" role="status" aria-live="polite"></p><button id="fiexeaSignupBack" class="fiexea-auth-link" type="button">Ya tengo cuenta · Iniciar sesión</button></form></div>
+    <div id="fiexeaSignupView" hidden><section id="fiexeaSignupExpired" class="fiexea-expired-notice" role="status" aria-live="polite" hidden><h2>Tu prueba gratuita de 7 días ha terminado</h2><p>Crea tu cuenta y elige un plan para continuar. Tus datos de prueba siguen guardados en este navegador.</p></section><p class="fiexea-auth-sub">Prueba FIEXEA 7 días sin registro desde la bienvenida. Crea una cuenta para contratar un plan y continuar. Registrarte no inicia otra prueba ni genera un cobro automático.</p><form id="fiexeaSignupForm"><label class="fiexea-auth-label" for="fiexeaSignupEmail">Correo electrónico</label><input class="fiexea-auth-input" id="fiexeaSignupEmail" type="email" autocomplete="email" required><label class="fiexea-auth-label" for="fiexeaSignupPassword">Contraseña</label><input class="fiexea-auth-input" id="fiexeaSignupPassword" type="password" autocomplete="new-password" minlength="8" required><label class="fiexea-auth-label" for="fiexeaSignupPassword2">Repite la contraseña</label><input class="fiexea-auth-input" id="fiexeaSignupPassword2" type="password" autocomplete="new-password" minlength="8" required><label class="fiexea-signup-terms"><input id="fiexeaSignupTerms" type="checkbox" required><span>He leído y acepto las <a href="informacion.html#terms" target="_blank" rel="noopener">condiciones</a> y la <a href="informacion.html#privacy" target="_blank" rel="noopener">política de privacidad</a>.</span></label><button id="fiexeaSignupSubmit" type="submit">Crear cuenta</button><p id="fiexeaSignupMessage" role="status" aria-live="polite"></p><button id="fiexeaSignupBack" class="fiexea-auth-link" type="button">Ya tengo cuenta · Iniciar sesión</button></form></div>
 <div id="fiexeaForgotView" hidden>
       <p class="fiexea-auth-sub">Te enviaremos un enlace para crear una contraseña nueva.</p>
       <form id="fiexeaForgotForm">

@@ -41,7 +41,7 @@
   }
   // Guest access is local to this browser; it never grants an authenticated session.
   const guestKey = 'fiexea_guest_trial_v1', guestActiveKey = 'fiexea_guest_active';
-  let guest = false;
+  let guest = false, guestExpiryShown = false, plansPromptedFor = null;
   function guestRecord() {
     try { return JSON.parse(localStorage.getItem(guestKey) || 'null'); } catch (_) { return null; }
   }
@@ -65,9 +65,15 @@
       record.lastSeen = Math.max(record.lastSeen, Date.now(), record.started + 7 * 24 * 3600000 - left);
       try { localStorage.setItem(guestKey, JSON.stringify(record)); } catch (_) {}
       if (!left) {
-        clearInterval(countdown); originalGate(false);
-        showGate('Tu prueba de 7 días ha terminado', 'Tus datos de prueba siguen guardados en este navegador. Crea una cuenta o inicia sesión para contratar un plan y continuar.');
-        retry.hidden = true;
+        clearInterval(countdown); allowed = false; setState('blocked');
+        gate.hidden = true; banner.hidden = true; originalGate(true);
+        const notice = document.getElementById('fiexeaSignupExpired');
+        if (notice) notice.hidden = false;
+        document.getElementById('fiexeaSignupSubmit').textContent = 'Crear cuenta y elegir plan';
+        if (!guestExpiryShown) {
+          guestExpiryShown = true;
+          fiexeaShowView('signup');
+        }
         return;
       }
       allowed = true; setState('allowed'); gate.hidden = true; originalGate(false); banner.hidden = false;
@@ -146,6 +152,10 @@
         }
         if (!data.allowed) {
           showGate(data.state === 'invitation_expired' ? 'Tu acceso por invitación ha terminado' : 'Tu prueba de 7 días ha terminado', data.state === 'invitation_expired' ? 'La invitación ha caducado o se ha desactivado. Tus datos siguen guardados. Contacta con soporte@fiexea.es para consultar tu acceso.' : 'Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.', data.state !== 'invitation_expired');
+          if (data.state === 'expired' && plansPromptedFor !== id) {
+            plansPromptedFor = id;
+            openPremiumModal();
+          }
           return;
         }
         allowed = true; setState('allowed'); gate.hidden = true; fiexeaAuthGate.hidden = true;
@@ -217,7 +227,7 @@
       const { data, error } = await fiexeaSupabase.auth.signUp({ email, password, options: { emailRedirectTo: window.FiexeaInvitations?.redirect() || fiexeaRedirectUrl() } });
       if (error) { result.textContent = fiexeaTranslateAuthError(error.message); return; }
       document.getElementById('fiexeaSignupForm').reset();
-      result.textContent = 'Revisa tu correo para confirmar el acceso. Si ya tenías cuenta, inicia sesión o recupera tu contraseña.';
+      result.textContent = 'Revisa tu correo para confirmar la cuenta. Después, inicia sesión para elegir tu plan. Crear la cuenta no realiza ningún cobro. Si ya tenías cuenta, inicia sesión o recupera tu contraseña.';
       if (data.session) await checkAccess(data.session);
     } catch (_) { result.textContent = 'No se ha podido crear la cuenta. Inténtalo de nuevo.'; }
     finally { submit.disabled = false; }

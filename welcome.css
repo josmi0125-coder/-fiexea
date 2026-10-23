@@ -24,3 +24,5 @@
 @media(max-height:740px){#fiexeaAuthGate .fiexea-auth-logo{width:56px;height:56px}.fiexea-welcome-eyebrow{margin:8px 0 16px}.fiexea-welcome-intro{margin:12px auto 18px}.fiexea-welcome-benefits{gap:8px;margin-bottom:18px}}
 
 .fiexea-guest-note{font-size:12px;line-height:1.5;text-align:center;color:#526d62;margin:10px 0}#fiexeaGuestError{color:#b42318;font-size:13px;text-align:center}#fiexeaAuthGate{overflow-y:auto}
+
+.fiexea-expired-notice{margin:18px 0;padding:16px;border:1px solid #eed59d;border-radius:14px;background:#fff7e6;color:#674914}.fiexea-expired-notice h2{margin:0 0 8px;font-size:19px;line-height:1.35}.fiexea-expired-notice p{margin:0;font-size:13px;line-height:1.6}

@@ -147,21 +147,22 @@ function updateInstallments(){
  row.querySelector('[type=number]').value=$('calAmount').value;container.appendChild(row)}
 }
 let scannedReceipt=null,scanGeneration=0;
-function openCalendarReceiptScanner(){
+function openCalendarReceiptScanner(file=null){
  if(!$('calendarEditor').open||editId)return;
  const generation=scanGeneration,owner=financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'';
  window.FiexeaReceiptScanner?.open({apply(parsed,receipt){
   if(generation!==scanGeneration||!$('calendarEditor').open||owner!==(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||''))throw new Error('El formulario o la cuenta han cambiado. Abre el gasto de nuevo.');
   scannedReceipt=receipt;$('calReceipt').value='';
-  $('calName').value=parsed.name||'';$('calAmount').value=parsed.amount||'';$('calDate').value=parsed.date||'';
+  if(parsed.name&&parsed.name.trim().length>3)$('calName').value=parsed.name;if(parsed.amount>0)$('calAmount').value=parsed.amount;if(parsed.date)$('calDate').value=parsed.date;
   const normalized=window.FiexeaReceiptScanMath?.norm;
   const category=normalized&&[...$('calCategory').options].find(option=>(normalized(option.value)===normalized(parsed.category)||normalized(option.textContent)===normalized(parsed.category)));
-  $('calCategory').value=category?.value||'';const more=$('calCategory').closest?.('details');if(more)more.open=true;
+  if(category)$('calCategory').value=category.value;const more=$('calCategory').closest?.('details');if(more)more.open=true;
   $('calendarPlanReceiptNote').textContent='📎 Recibo escaneado adjunto. Revisa comercio, importe, fecha y categoría antes de guardar. '+(parsed.warnings||[]).join(' ');
   $('calAlreadyPaid').checked=false;
   for(const[id,value]of [['calName',parsed.name],['calAmount',parsed.amount],['calDate',parsed.date]])$(id).classList.toggle('receipt-scan-uncertain',!value);
   $('calName').focus();
  }});
+ if(file)window.FiexeaReceiptScanner?.scan(file);
 }
 function openEditor(id='',moveId=''){
  scannedReceipt=null;scanGeneration++;
@@ -324,7 +325,7 @@ function start(){
  $('calendarBack').onclick=closeCalendar;
  $('calendarAdd').onclick=()=>openEditor();
  $('calendarScanReceipt').onclick=openCalendarReceiptScanner;
- $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(note&&input.files[0])note.textContent='Seleccionado: '+input.files[0].name+'. Se guardará al pulsar Guardar gasto.'}});
+ $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(note&&input.files[0]){note.textContent='Imagen seleccionada: '+input.files[0].name+'. Leyendo recibo…';if(input.id==='calReceipt'&&/^image\//.test(input.files[0].type)&&!editId){const file=input.files[0];openCalendarReceiptScanner(file)}else note.textContent='Seleccionado: '+input.files[0].name+'. Se guardará al pulsar Guardar gasto.'}}});
  $('calSplit').onchange=updateInstallments;$('calSplitCount').onchange=updateInstallments;$('calGroup').onchange=()=>{$('calGroup').dataset.retainedGroup='';$('calGroup').dataset.retainedName=''};
  $('calendarForm').onsubmit=savePlan;$('calendarPayForm').onsubmit=confirmPayment;
  $('calendarPrevYear').onclick=()=>{if(year>1900){year--;renderCalendar()}};

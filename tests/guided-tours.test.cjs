@@ -69,3 +69,25 @@ test('storage errors do not prevent use of the guides or translation',()=>{
  const h=harness();h.ctx.localStorage.getItem=()=>{throw Error('blocked')};h.ctx.localStorage.setItem=()=>{throw Error('blocked')};h.add('#openMoveEditor');
  vm.runInContext(translations,h.ctx);assert.equal(h.ctx.window.fiexeaTourTranslate('Siguiente'),'Siguiente');h.api.start('category');assert.ok(h.coach());h.api.stop();
 });
+
+test('guest trial can open welcome, start and complete a guide without an account',()=>{
+ const h=harness();h.ctx.financialActiveUserId=null;h.storage.set('fiexea_guest_active','1');
+ h.tick();const welcome=h.body.children.find(n=>n.tagName==='dialog'&&n.open);assert.ok(welcome);welcome.close();
+ const steps=h.api.catalog.asset.steps;for(const s of steps)h.add(s.target);
+ h.api.start('asset');assert.ok(h.coach());for(let i=1;i<steps.length;i++)h.click('Siguiente');h.click('Terminar guía');
+ assert.equal(JSON.parse(h.storage.get('fiexea_guides_v1_guest-trial')).asset,'completed');
+ assert.equal(h.storage.has('fiexea_guides_v1_A'),false);
+});
+test('guest guides stop when access expires and cannot reopen',()=>{
+ const h=harness();h.ctx.financialActiveUserId=null;h.storage.set('fiexea_guest_active','1');h.add('#openMoveEditor');
+ h.api.start('category');assert.ok(h.coach());h.ctx.document.documentElement.dataset.fiexeaAccess='blocked';h.tick();
+ assert.equal(h.coach(),undefined);h.api.start('category');assert.equal(h.coach(),undefined);h.api.open();
+ assert.equal(h.body.children.some(n=>n.tagName==='dialog'&&n.open),false);
+});
+test('leaving guest mode or switching to an account stops the guest guide',()=>{
+ for(const account of [null,'B']){
+  const h=harness();h.ctx.financialActiveUserId=null;h.storage.set('fiexea_guest_active','1');h.add('#openMoveEditor');h.api.start('category');
+  h.storage.delete('fiexea_guest_active');h.ctx.financialActiveUserId=account;h.tick();assert.equal(h.coach(),undefined);
+  assert.equal(h.storage.has('fiexea_guides_v1_B'),false);
+ }
+});

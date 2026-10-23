@@ -134,3 +134,7 @@ html[data-theme="dark"] #t5 .analysis-debt-progress{background:#33494b}
 #t2 .debt-comparison>p{margin:18px 0 0;line-height:1.5}
 html[data-theme="dark"] #t2 .debt-comparison-switch,html[data-theme="dark"] #t2 .debt-comparison-track{background:#253f40}
 @media(max-width:360px){#t2 .debt-comparison-head{flex-wrap:wrap}#t2 .debt-comparison-switch button{font-size:12px}}
+
+/* Empty messages must fill the chart grid and keep comfortable card insets. */
+#operationsAnalysisTrend > .analysis-empty{grid-column:1 / -1;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0;padding:20px 16px;align-self:center}
+#t2 .debt-list-container #debts > .empty{width:100%;min-width:0;box-sizing:border-box;margin:0;padding:20px;text-align:center;line-height:1.5;overflow-wrap:break-word}

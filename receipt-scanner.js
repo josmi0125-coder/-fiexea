@@ -11,6 +11,21 @@ function stop(){token++;if(worker){worker.terminate().catch(()=>{});worker=null}
 function close(){if($('receiptScanSave')?.disabled)return;stop();draft=null;$('receiptScanPreview').removeAttribute('src');$('receiptScanner').close();returnFocus?.focus?.({preventScroll:true})}
 function open(context=null){if(!allowed()){throw new Error('El escáner no está disponible con el estado de acceso actual. Recarga la aplicación.')}stop();draft=null;calendarContext=context;returnFocus=document.activeElement;$('receiptScanForm').reset();$('receiptScanForm').hidden=true;$('receiptScanExisting').closest('label').hidden=false;$('receiptScanNewFields').hidden=false;$('receiptScanSave').textContent='Guardar gasto';$('receiptScanPreview').hidden=true;$('receiptScanPreview').removeAttribute('src');$('receiptScanWarning').hidden=true;status('Haz una foto nítida del recibo completo, con buena luz.');$('receiptScanner').showModal()}
 function loadEngine(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(!loading)loading=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';s.crossOrigin='anonymous';s.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('No se pudo cargar el lector.'));s.onerror=()=>{s.remove();loading=null;reject(new Error('No se pudo descargar el lector. Comprueba la conexión y vuelve a intentarlo.'))};document.head.appendChild(s)});return loading}
+async function preparePdf(file){
+ const pdfjs=window.pdfjsLib;
+ if(!pdfjs)throw new Error('El lector PDF no está disponible. Comprueba tu conexión.');
+ const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+ try{
+  const page=await pdf.getPage(1);
+  const content=await page.getTextContent();
+  const extracted=content.items.map(item=>item.str||'').join(' ');
+  const viewport=page.getViewport({scale:1.6});
+  const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+  await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+  const data=canvas.toDataURL('image/jpeg',0.72);
+  return {ocr:data,text:extracted,receipt:{name:'justificante-'+Date.now()+'.jpg',type:'image/jpeg',data}};
+ }finally{await pdf.destroy()}
+}
 async function prepare(file){
  if(!file||file.size>20*1024*1024||!(/^image\//.test(file.type)||/\.(heic|heif|jpg|jpeg|png|webp)$/i.test(file.name)))throw new Error('Elige una foto de hasta 20 MB. Para un PDF, adjúntalo desde Calendario de gastos.');
  const url=URL.createObjectURL(file),img=new Image();try{img.src=url;try{await img.decode()}catch(decodeError){await new Promise((resolve,reject)=>{const fallback=new Image();fallback.onload=()=>{img.src=fallback.src;resolve()};fallback.onerror=()=>reject(decodeError);fallback.src=url})}if(!img.naturalWidth||!img.naturalHeight)throw new Error('Imagen vacía');const scale=Math.min(1,2200/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));const c=canvas.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,canvas.width,canvas.height);c.drawImage(img,0,0,canvas.width,canvas.height);const ocr=canvas.toDataURL('image/jpeg',.94);let data='';for(let pass=0;pass<6;pass++){data=canvas.toDataURL('image/jpeg',Math.max(.45,.85-pass*.08));if(Math.ceil((data.length-data.indexOf(',')-1)*.75)<=450*1024)break;const next=document.createElement('canvas');next.width=Math.round(canvas.width*.8);next.height=Math.round(canvas.height*.8);next.getContext('2d').drawImage(canvas,0,0,next.width,next.height);canvas.width=next.width;canvas.height=next.height;c.drawImage(next,0,0)}if(data.length>650000)throw new Error('La foto es demasiado grande. Recorta el fondo y vuelve a intentarlo.');return{ocr,receipt:{name:'recibo-'+Date.now()+'.jpg',type:'image/jpeg',data}}}catch(e){if(e.message?.includes('grande'))throw e;throw new Error('No se pudo abrir esta imagen. Si es HEIC, conviértela a JPG desde Fotos o Archivos y vuelve a intentarlo.')}finally{URL.revokeObjectURL(url)}
@@ -28,10 +43,10 @@ $('receiptScanName').value=parsed.name;$('receiptScanAmount').value=parsed.amoun
 async function scan(file){
  if(!allowed())throw new Error('Acceso al escáner no disponible');if($('receiptScanSave').disabled)return;stop();const current=token;const d={owner:owner(),receipt:null};draft=d;busy=true;$('receiptScanForm').hidden=true;$('receiptScanWarning').hidden=true;status('Preparando la foto…');
  try{
-  const image=await prepare(file);if(current!==token)return;assertDraft(d);d.receipt=image.receipt;$('receiptScanPreview').src=image.receipt.data;$('receiptScanPreview').hidden=false;
+  const image=/\.pdf$/i.test(file?.name||'')||file?.type==='application/pdf'?await preparePdf(file):await prepare(file);if(current!==token)return;assertDraft(d);d.receipt=image.receipt;$('receiptScanPreview').src=image.receipt.data;$('receiptScanPreview').hidden=false;
   status('Descargando el lector. La primera lectura puede tardar unos segundos…');const engine=await loadEngine();if(current!==token)return;assertDraft(d);
   const created=await engine.createWorker('spa',1,{workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0',logger:m=>{if(current===token&&m.status==='recognizing text')status('Leyendo recibo… '+Math.round((m.progress||0)*100)+' %')}});
-  if(current!==token){await created.terminate();return}worker=created;const result=await worker.recognize(image.ocr);if(current!==token)return;assertDraft(d);const parsed=M.parse(result.data.text);if(Number(result.data.confidence)<65)parsed.warnings.push('La imagen se lee con poca claridad. Comprueba todos los campos.');fillReview(parsed);status('Lectura terminada. Comprueba comercio, total, fecha y categoría.');
+  if(current!==token){await created.terminate();return}worker=created;const result=await worker.recognize(image.ocr);if(current!==token)return;assertDraft(d);const parsed=M.parse((image.text||'')+'\n'+result.data.text);if(Number(result.data.confidence)<65)parsed.warnings.push('La imagen se lee con poca claridad. Comprueba todos los campos.');fillReview(parsed);status('Lectura terminada. Comprueba comercio, total, fecha y categoría.');
  }catch(e){if(current!==token)return;if(d.receipt&&owner()===d.owner&&allowed()){fillReview({name:'',amount:null,date:'',category:'',warnings:['No se ha podido leer automáticamente. Completa los datos o prueba otra foto.']});status(e.message||'No se pudo leer la foto.')}else status(e.message||'No se pudo abrir la foto.')}
  finally{if(current===token){busy=false;if(worker){worker.terminate().catch(()=>{});worker=null}}}
 }

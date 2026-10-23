@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -6,7 +6,15 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'dist/mobile');
 await rm(output,{recursive:true,force:true});
 await mkdir(path.join(output,'vendor'),{recursive:true});
-for(const file of ['i18n.js','fiexea-logo.png','access.js','access.css','invitations.js','informacion.html','site.css','site.js']) await cp(path.join(root,file),path.join(output,file));
+// Include the shared web resources, including modules added after the native shell.
+for(const file of await readdir(root)){
+ if(['index.html','app.html'].includes(file)||! /\.(?:html|js|css|png|webp|ico|svg|webmanifest)$/.test(file))continue;
+ await cp(path.join(root,file),path.join(output,file));
+ if(file.endsWith('.html')){
+  const page=await readFile(path.join(output,file),'utf8');
+  await writeFile(path.join(output,file),page.replaceAll('href="app.html','href="index.html'));
+ }
+}
 await cp(path.join(root,'assets'),path.join(output,'assets'),{recursive:true});
 for(const [entry,name] of [['mobile/supabase-entry.js','supabase.js'],['mobile/runtime.js','native.js']])
  await build({entryPoints:[path.join(root,entry)],outfile:path.join(output,'vendor',name),bundle:true,format:'iife',target:['safari15','chrome100'],minify:true,legalComments:'eof'});
@@ -25,7 +33,15 @@ html=html.replace(/async function startCheckout\(plan\)\{[\s\S]*?\n\}/,'async fu
 html=html.replace(/async function openBillingPortal\(\)\{[\s\S]*?\n\}/,'async function openBillingPortal(){openPremiumModal()}');
 const modalStart=html.indexOf('<div id="premiumModal"');
 if(modalStart<0)throw new Error('Premium modal missing');
-html=html.slice(0,modalStart)+`<div id="premiumModal" class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="premiumTitle" hidden onclick="if(event.target===this)closePremiumModal()"><div class="premium-card"><button class="premium-close" type="button" onclick="closePremiumModal()" aria-label="Cerrar">×</button><h2 id="premiumTitle">FIEXEA para móvil</h2><p>Esta es una versión de prueba para Android y iPhone. Puedes utilizar las funciones de tu cuenta mientras tu acceso esté activo.</p><p>Las compras y la gestión de suscripciones no están disponibles en esta versión de prueba.</p></div></div></body></html>`;
+// Replace only the premium modal: preserve later scripts and calculator dialogs.
+const divs=html.slice(modalStart).matchAll(/<\/?div\b[^>]*>/g);
+let depth=0,modalEnd=-1;
+for(const match of divs){
+ depth+=match[0].startsWith('</')?-1:1;
+ if(depth===0){modalEnd=modalStart+match.index+match[0].length;break;}
+}
+if(modalEnd<0)throw new Error('Premium modal closing tag missing');
+html=html.slice(0,modalStart)+`<div id="premiumModal" class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="premiumTitle" hidden onclick="if(event.target===this)closePremiumModal()"><div class="premium-card"><button class="premium-close" type="button" onclick="closePremiumModal()" aria-label="Cerrar">×</button><h2 id="premiumTitle">FIEXEA para móvil</h2><p>Esta es una versión de prueba para Android y iPhone. Puedes utilizar las funciones de tu cuenta mientras tu acceso esté activo.</p><p>Las compras y la gestión de suscripciones no están disponibles en esta versión de prueba.</p></div></div>`+html.slice(modalEnd);
 html=html.replace('</head>','<style>html[data-native-platform] .app{padding-top:max(12px,env(safe-area-inset-top))}html[data-native-platform] .nav{padding-bottom:env(safe-area-inset-bottom)}</style></head>');
 await writeFile(path.join(output,'index.html'),html);
 let access=await readFile(path.join(output,'access.js'),'utf8');

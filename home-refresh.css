@@ -1,0 +1,92 @@
+/* FIEXEA Home Refresh — scoped to Inicio only */
+#t0 .hero{position:relative;overflow:hidden;border-radius:27px;padding:25px 25px 28px;background:linear-gradient(125deg,#0e9685,#07564f);box-shadow:0 12px 28px #086b6024}
+#t0 .hero:after{content:"▂▅▇";position:absolute;right:18px;bottom:2px;font-size:72px;letter-spacing:4px;color:#ffffff12;pointer-events:none}
+#t0 .hero .kicker{font-size:14px;letter-spacing:.015em;text-transform:none;color:#d8f7ef}
+#t0 .hero #net{font-size:clamp(33px,7vw,49px);font-weight:850;letter-spacing:-.04em;margin:9px 0}
+#t0 .hero #netSub{color:#d6f1ec;font-size:14px;line-height:1.7}
+#t0 .home-section-kicker{font-size:17px;letter-spacing:0;text-transform:none;color:var(--text,#152b35);margin:23px 3px 12px;font-weight:850}
+#t0 .home-month-grid{gap:12px}
+#t0 .home-metric{border-radius:22px;padding:17px 15px;min-height:135px;box-shadow:0 7px 24px #183e4310;border:1px solid #e5edef;text-align:left}
+#t0 .home-metric:nth-child(1){background:linear-gradient(130deg,#fff,#e9f8f0)}
+#t0 .home-metric:nth-child(2){background:linear-gradient(130deg,#fff,#fff0f0)}
+#t0 .home-metric:nth-child(3){background:linear-gradient(130deg,#fff,#f0edff)}
+#t0 .home-metric:nth-child(4){background:linear-gradient(130deg,#fff,#e9f9f1)}
+#t0 .home-metric-icon{font-size:26px}
+#t0 .home-metric-label{font-size:13px}
+#t0 .home-metric-value{font-size:clamp(19px,3vw,26px);letter-spacing:-.025em}
+#t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#t0 .home-shortcut{border-radius:19px;min-height:72px;padding:12px 7px;background:var(--card,#fff);box-shadow:0 5px 20px #183e4310;flex-wrap:wrap;gap:6px;font-size:12px}
+#t0 .home-shortcut span:first-child{font-size:25px}
+#t0 .home-overview-card{border-radius:20px}
+#t0 .home-chart-card{border-radius:24px;background:var(--card,#fff);border:1px solid var(--line,#e0e8e9);padding:19px;margin-top:15px;box-shadow:0 7px 25px #183e4310}
+#t0 .home-chart-title{font-weight:850;font-size:18px;margin-bottom:15px}
+#t0 .home-chart-layout{display:flex;align-items:center;gap:24px}
+#t0 .home-chart-donut{flex:none;width:150px;height:150px;border-radius:50%;background:conic-gradient(#10a976 0 50%,#ef565a 50% 100%);display:grid;place-items:center}
+#t0 .home-chart-center{width:108px;height:108px;border-radius:50%;background:var(--card,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px}
+#t0 .home-chart-center strong{font-size:17px;color:var(--text,#182c35)}
+#t0 .home-chart-center small{font-size:11px;color:var(--muted,#697982)}
+#t0 .home-chart-legend{flex:1;display:grid;gap:13px;min-width:0}
+#t0 .home-chart-row{display:flex;align-items:center;gap:9px;font-size:13px}
+#t0 .home-chart-row b{margin-left:auto;white-space:nowrap;font-size:13px}
+#t0 .home-chart-dot{width:10px;height:10px;border-radius:50%;flex:none}
+html[data-theme="dark"] #t0 .home-metric{background:var(--card,#182b30);border-color:var(--line,#345055)}
+html[data-theme="dark"] #t0 .home-section-kicker{color:var(--text,#e8f2f1)}
+@media(max-width:520px){#t0 .home-chart-layout{gap:12px}#t0 .home-chart-donut{width:120px;height:120px}#t0 .home-chart-center{width:87px;height:87px}#t0 .home-chart-center strong{font-size:13px}#t0 .home-chart-row{font-size:11px}#t0 .home-chart-row b{font-size:11px}#t0 .home-shortcut{font-size:11px}#t0 .hero{padding:22px 20px}}
+
+/* Mobile polish: keep the iPhone status bar clear and make shortcuts consistent */
+@media(max-width:740px){
+ body:has(#t0.active) .app{padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
+ #t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #t0 .home-shortcut{display:flex;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:7px;min-height:92px;padding:10px 5px;text-align:center;line-height:1.25}
+ #t0 .home-shortcut span:first-child{font-size:26px;line-height:1.1}
+ #t0 .home-shortcut span:last-child{font-size:12px}
+ #t0 .home-month-grid{gap:10px}
+ #t0 .home-metric{min-height:118px;padding:14px 12px}
+ #t0 .home-section-kicker{margin-top:19px}
+}
+/* The main hero already contains net worth and liabilities: avoid repeating those two cards. */
+#t0 .home-overview-grid>.home-overview-card:nth-child(1),
+#t0 .home-overview-grid>.home-overview-card:nth-child(2){display:none}
+#t0 .home-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#t0 .home-chart-card{margin-top:12px}
+#t0 .home-chart-title{margin-bottom:12px}
+#t0 .home-chart-center small{line-height:1.2}
+
+#t0 .home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#t0 .home-shortcut{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;min-height:66px!important;padding:8px!important;text-align:left!important;line-height:1.2}
+#t0 .home-shortcut span:first-child{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;font-size:22px!important}
+#t0 .home-shortcut span:last-child{font-size:12px!important;min-width:0}
+#t0 .home-shortcut:nth-child(1){background:linear-gradient(120deg,#fff,#e4f8f1);color:#087b6b}
+#t0 .home-shortcut:nth-child(2){background:linear-gradient(120deg,#fff,#e4f8e9);color:#167b43}
+#t0 .home-shortcut:nth-child(3){background:linear-gradient(120deg,#fff,#fff2d8);color:#946316}
+#t0 .home-shortcut:nth-child(4){background:linear-gradient(120deg,#fff,#efe8ff);color:#7148d2}
+#t0 .home-shortcut:nth-child(5){background:linear-gradient(120deg,#fff,#e6f1ff);color:#2467bc}
+#t0 .home-shortcut:nth-child(6){background:linear-gradient(120deg,#fff,#ffe7ec);color:#b84056}
+#t0 .home-shortcut:nth-child(1) span:first-child{background:#087b6b;color:white}
+#t0 .home-shortcut:nth-child(2) span:first-child{background:#d5f3e1}
+#t0 .home-shortcut:nth-child(3) span:first-child{background:#fff0c5}
+#t0 .home-shortcut:nth-child(4) span:first-child{background:#e9ddff}
+#t0 .home-shortcut:nth-child(5) span:first-child{background:#dbeafe}
+#t0 .home-shortcut:nth-child(6) span:first-child{background:#ffe0e6}
+#t0 .home-overview-grid>.home-overview-card:nth-child(1),#t0 .home-overview-grid>.home-overview-card:nth-child(2){display:none!important}
+#t0 .home-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#t0 .home-overview-card:nth-child(3){background:linear-gradient(120deg,#fff,#f0eaff)}
+#t0 .home-overview-card:nth-child(4){background:linear-gradient(120deg,#fff,#e4f8ec)}
+#t0 .home-click-card{border-radius:21px}
+#t0 .home-click-card:has(#scoreCircle){background:linear-gradient(120deg,#fff,#eaf7f5)}
+#t0 .home-click-card:has(.financial-analysis-icon){background:linear-gradient(120deg,#fff,#eaf2ff)}
+#t0 .home-click-card:has(#homeGoals){background:linear-gradient(120deg,#fff,#f3edff)}
+#t0 .home-click-card:has(#homeDebt){background:linear-gradient(120deg,#fff,#fff0e8)}
+html[data-theme="dark"] #t0 .home-shortcut,html[data-theme="dark"] #t0 .home-overview-card,html[data-theme="dark"] #t0 .home-click-card{background:var(--card,#1b3034)!important;color:var(--text,#eaf4f3)}
+@media(max-width:380px){#t0 .home-shortcut{gap:4px!important;padding:6px!important}#t0 .home-shortcut span:first-child{flex-basis:28px;width:28px;height:28px;font-size:18px!important}#t0 .home-shortcut span:last-child{font-size:10px!important}}
+
+/* iPhone home refinements */
+#t0 .home-shortcut:first-child span:first-child{color:#fff!important}
+@media(max-width:740px){
+  /* Apply the iPhone safe area once, with a compact content gap. */
+  body .app{padding-top:calc(env(safe-area-inset-top,0px) + 12px)!important}
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
+}
+
+/* Ensure the expense shortcut plus is white across iOS/Safari */
+#t0 .home-shortcut:first-child span:first-child{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:900!important}

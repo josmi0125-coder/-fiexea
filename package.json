@@ -1,10 +1,12 @@
 {
   "name": "fiexea-mobile",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "description": "FIEXEA Android and iOS development builds",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "mobile:build": "node scripts/build-mobile.mjs",

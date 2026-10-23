@@ -1,6 +1,14 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+test('native bundle preserves calendar, receipts, calculator and page guides from the shared web app',()=>{
+ const html=fs.readFileSync('dist/mobile/index.html','utf8');
+ for(const id of ['compoundDialog','fiexea-home-chart-sync'])assert.ok(html.includes('id="'+id+'"'),`Missing ${id}`);
+ for(const file of ['receipt-storage.js','expense-calendar-math.js','expense-calendar.js','guided-tours.js','guided-tours.css','guided-tours-i18n.js','compound.js','compound.css']){
+  assert.ok(html.includes(file),`Missing reference to ${file}`);
+  assert.deepEqual(fs.readFileSync('dist/mobile/'+file),fs.readFileSync(file),`Stale native resource ${file}`);
+ }
+});
 test('native callbacks accept only the app auth route and preserve PKCE verifier flow',async()=>{
  const{parseAuthCallback}=await import('../mobile/utils.js');
  assert.equal(parseAuthCallback('com.fiexea.mobile.dev://auth/callback?code=example','com.fiexea.mobile.dev'),'index.html?code=example');

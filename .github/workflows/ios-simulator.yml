@@ -10,9 +10,10 @@ on:
       - 'scripts/**'
       - 'package*.json'
       - 'capacitor.config.json'
-      - 'app.html'
-      - 'access.js'
-      - 'i18n.js'
+      - '*.html'
+      - '*.js'
+      - '*.css'
+      - 'assets/**'
 permissions:
   contents: read
 concurrency:

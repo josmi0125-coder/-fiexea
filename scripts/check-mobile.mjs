@@ -14,6 +14,11 @@ for(const match of html.matchAll(/<script[^>]+src="([^"]+)"/g)){
  const file=match[1].split('?')[0];assert.ok(!/^https?:/.test(file),'Remote JavaScript found');
  assert.ok(fs.existsSync(path.join('dist/mobile',file)),`Missing ${file}`);
 }
+for(const match of html.matchAll(/<link[^>]+href="([^"]+\.css(?:\?[^"]*)?)"/g)){
+ const file=match[1].split('?')[0];
+ assert.ok(!/^https?:/.test(file),'Remote stylesheet found');
+ assert.ok(fs.existsSync(path.join('dist/mobile',file)),`Missing stylesheet ${file}`);
+}
 for(const file of ['android/app/src/main/AndroidManifest.xml','ios/App/App/Info.plist'])
  assert.ok(fs.readFileSync(file,'utf8').includes(config.appId),`Missing callback declaration: ${file}`);
 assert.ok(fs.readFileSync('ios/App/App.xcodeproj/project.pbxproj','utf8').includes('PrivacyInfo.xcprivacy in Resources'));

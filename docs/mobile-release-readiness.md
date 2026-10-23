@@ -1,3 +1,15 @@
+# Actualización móvil del 23 de octubre de 2026
+
+Se integra la web publicada hasta el commit `328e1a8cd297a12a8177808c17ceebb26da0b291` en la rama móvil: calendario de gastos, recibos privados, pagos fraccionados, categorías separadas, inversiones, calculadoras y botones «Guía». Versiones nativas: **1.1, compilación 2**, en Android e iOS; paquete de desarrollo 0.2.0.
+
+Se corrige el empaquetador para incluir todos los recursos web locales y conservar los scripts situados después del modal Premium. La sincronización copia el mismo paquete a Android e iOS. Los workflows también se ejecutan al cambiar CSS, JavaScript, páginas y assets. Las pruebas web CommonJS y los módulos nativos ESM conservan su formato correspondiente.
+
+Validación local: paquete generado, `cap sync` para ambas plataformas y comprobaciones móviles correctas. La suite completa incorpora una regresión para comprobar que calendario, recibos, calculadora y guías no desaparecen del paquete nativo. Se ejecutarán las compilaciones y pruebas de emulador en GitHub Actions; los enlaces de octubre anteriores corresponden a versiones históricas.
+
+**No es una publicación en tiendas.** Se mantiene el identificador de desarrollo y siguen pendientes las compras nativas, firma de distribución, cuenta/Team y fichas de tienda. No se ha creado un AAB/IPA de publicación. La compilación iOS es para simulador.
+
+---
+
 # FIEXEA para Android y iPhone
 
 Estado a 18 de octubre de 2026: **primer APK Android de desarrollo compilado correctamente**, con los proyectos Android/iOS generados y sincronizados. Aún sin AAB de publicación ni IPA y sin publicar en tiendas.

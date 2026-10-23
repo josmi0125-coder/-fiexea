@@ -52,10 +52,10 @@ function refreshFilters(){
 }
 function rowMarkup(row){
  const m=row.move,p=row.plan||(m?read().find(x=>String(x.id)===String(m.scheduledExpenseId)):null),id=m?.scheduledExpenseId||p.id,receipt=m?.receipt||planReceipt(p,m,row.due);
- return '<article class="calendar-item"><div class="calendar-row"><div><strong>'+e(m?.desc||p?.name||'Gasto')+'</strong><small>'+e(date(m?.date||row.due))+'</small><small>'+e(m?.cat||p?.category||'Otros')+((m?.property||p?.property)?' · '+e(m?.property||p?.property):'')+'</small></div><strong class="money">'+e(amount(row.amount))+'</strong></div><span class="calendar-badge '+(m?'paid':'')+'">'+(m?'Pagado':row.due<today()?'Pendiente · fecha pasada':'Pendiente')+'</span><div class="calendar-actions">'+(!m?'<button class="calendar-pay" type="button" data-calendar-action="pay" data-id="'+e(id)+'" data-date="'+e(row.due)+'">Confirmar pago</button>':'<button type="button" data-calendar-action="payment" data-id="'+e(m.id)+'">Editar pago</button>')+(p?'<button type="button" data-calendar-action="edit" data-id="'+e(p.id)+'">Editar gasto</button>':'')+(p&&m&&!p.taxGroupId&&!m.taxGroupId?'<button type="button" data-calendar-action="group" data-id="'+e(p.id)+'">Agrupar gasto</button>':'')+(receipt?'<button type="button" data-calendar-action="receipt" data-id="'+e(m?.id||p.id)+'" data-date="'+e(row.due)+'">📎 Recibo</button>':'')+'</div></article>';
+ return '<article class="calendar-item"><div class="calendar-row"><div><strong>'+e(m?.desc||p?.name||'Gasto')+'</strong><small>'+e(date(m?.date||row.due))+'</small><small>'+e(m?.cat||p?.category||'Otros')+((m?.property||p?.property)?' · '+e(m?.property||p?.property):'')+'</small></div><strong class="money">'+e(amount(row.amount))+'</strong></div><span class="calendar-badge '+(m?'paid':'')+'">'+(m?'Pagado':row.due<today()?'Pendiente · fecha pasada':'Pendiente')+'</span><div class="calendar-actions">'+(!m?'<button class="calendar-pay" type="button" data-calendar-action="pay" data-id="'+e(id)+'" data-date="'+e(row.due)+'">Confirmar pago</button>':'<button type="button" data-calendar-action="payment" data-id="'+e(m.id)+'">Editar pago</button>')+(p?'<button type="button" data-calendar-action="edit" data-id="'+e(p.id)+'">Editar gasto</button>':'')+(p&&m&&!p.taxGroupId&&!m.taxGroupId?'<button type="button" data-calendar-action="group" data-id="'+e(p.id)+'">Agrupar gasto</button>':'')+(receipt?'<button type="button" data-calendar-action="receipt" data-id="'+e(m?.id||p.id)+'" data-date="'+e(row.due)+'">📎 Recibo</button>':'')+'<button class="calendar-delete" type="button" data-calendar-action="delete" data-id="'+e(m?.id||p.id)+'" data-kind="'+(m?'payment':'plan')+'">Eliminar</button></div></article>';
 }
 function taxGroupsMarkup(list,plans){
- return M.taxGroups(list,plans).map(g=>'<details class="calendar-card"><summary><strong>'+e(g.name)+'</strong> · '+e(amount(g.total))+'<small class="calendar-help"> · '+g.entries.length+(g.entries.length===1?' pago · ':' pagos · ')+g.entries.filter(m=>m.receipt).length+(g.entries.filter(m=>m.receipt).length===1?' justificante':' justificantes')+'</small></summary>'+g.entries.map(taxMarkup).join('')+'</details>').join('');
+ return M.taxGroups(list,plans).map(g=>'<div class="calendar-tax-group"><details class="calendar-card"><summary><strong>'+e(g.name)+'</strong> · '+e(amount(g.total))+'<small class="calendar-help"> · '+g.entries.length+(g.entries.length===1?' pago · ':' pagos · ')+g.entries.filter(m=>m.receipt).length+(g.entries.filter(m=>m.receipt).length===1?' justificante':' justificantes')+'</small></summary>'+g.entries.map(taxMarkup).join('')+'</details><button class="calendar-delete calendar-delete-group" type="button" data-calendar-action="delete-group" data-id="'+e(g.entries[0].id)+'" aria-label="'+e('Eliminar '+g.name+(g.entries.length>1?' y sus '+g.entries.length+' pagos':''))+'" title="Eliminar gasto">🗑</button></div>').join('');
 }
 function taxMarkup(m){return rowMarkup({move:m,due:m.scheduledDate,amount:m.amount})+(m.taxReview?'<small class="calendar-help">Marcado para revisar en la renta</small>':'')}
 function renderCalendar(){
@@ -252,6 +252,38 @@ async function shareReceipts(){
  if(files.length===1){download(files[0],files[0].name);return}
  alert('Tu navegador no permite compartir varios archivos. Abre cada botón «Recibo» para descargarlos.');
 }
+function deleteCalendarExpense(kind,id){
+ if(!financialAppReady){alert('Espera a que se cargue tu cuenta.');return false}
+ const owner=financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')||'';
+ if(sessionOwner!==null&&sessionOwner!==owner){alert('La cuenta ha cambiado. Vuelve a abrir el calendario.');return false}
+ const plans=read();let nextPlans=plans,nextMoves=moves,message='';
+ if(kind==='plan'){
+  const p=plans.find(p=>String(p.id)===String(id));if(!p)return false;
+  nextPlans=plans.filter(plan=>plan!==p);
+  message='¿Eliminar «'+p.name+'» y sus cobros pendientes? Los pagos ya registrados se conservarán en Movimientos y Renta.';
+ }else{
+  const group=kind==='group'?M.taxGroups(filteredTax(),plans).find(g=>g.entries.some(m=>String(m.id)===String(id))):null;
+  const selected=group?group.entries:kind==='payment'?moves.filter(m=>String(m.id)===String(id)&&m.scheduledExpenseId):[];
+  if(!selected.length)return false;
+  const ids=new Set(selected.map(m=>String(m.id))),planIds=new Set(selected.map(m=>String(m.scheduledExpenseId)));
+  nextMoves=moves.filter(m=>!ids.has(String(m.id)));
+  nextPlans=plans.filter(p=>!planIds.has(String(p.id))||p.repeat!=='once'||nextMoves.some(m=>String(m.scheduledExpenseId)===String(p.id)));
+  message=group&&selected.length>1?'¿Eliminar «'+group.name+'» y los '+selected.length+' pagos mostrados en este grupo?':'¿Eliminar el gasto «'+(selected[0].desc||'Gasto')+'»?';
+  message+=' Se quitará'+(selected.length>1?'n de Movimientos y Renta.':' de Movimientos y Renta.');
+  if(plans.some(p=>planIds.has(String(p.id))&&p.repeat!=='once'))message+=' Los cobros que se repiten seguirán previstos en el calendario.';
+ }
+ if(!confirm(message))return false;
+ const previousPlans=localStorage.getItem(KEY),previousMoves=localStorage.getItem('fiexea_moves'),before=moves;
+ try{
+  if(nextMoves!==moves){localStorage.setItem('fiexea_moves',JSON.stringify(nextMoves));moves=nextMoves}
+  write(nextPlans);if(nextMoves!==before)save();
+ }catch(error){
+  moves=before;
+  try{if(previousPlans===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,previousPlans);if(previousMoves===null)localStorage.removeItem('fiexea_moves');else localStorage.setItem('fiexea_moves',previousMoves)}catch(_){}
+  alert('No se pudo eliminar el gasto: '+saveError(error));return false;
+ }
+ render();renderCalendar();showSaveToast('Gasto eliminado.');return true;
+}
 function start(){
  document.querySelector('main').insertAdjacentHTML('beforeend',page);
  $('t0').insertAdjacentHTML('beforeend','<section class="calendar-card calendar-home"><div class="calendar-row"><h3>📅 Próximos cobros</h3><button type="button" id="calendarHomeOpen">Ver todos →</button></div><div id="calendarHomeList" data-calendar-home-list></div></section>');
@@ -274,6 +306,7 @@ function start(){
  $('calendarContent').onclick=async event=>{
   const b=event.target.closest('[data-calendar-action]');if(!b)return;
   const id=b.dataset.id,action=b.dataset.calendarAction;
+  if(action==='delete'||action==='delete-group'){event.preventDefault();event.stopPropagation();deleteCalendarExpense(action==='delete-group'?'group':b.dataset.kind,id);return}
   if(action==='group'){openEditor(id);const options=$('calGroup').closest('details');if(options)options.open=true;$('calGroup').scrollIntoView({block:'center'});$('calGroup').focus()}
   if(action==='edit')openEditor(id);if(action==='pay')openPayment(id,b.dataset.date);if(action==='payment')openPayment('','',id);
   if(action==='receipt'){const m=moves.find(x=>String(x.id)===String(id)),p=read().find(x=>String(x.id)===String(m?.scheduledExpenseId||id)),receipt=m?.receipt||planReceipt(p,m,b.dataset.date);try{b.disabled=true;const blob=await receiptBlob(receipt);download(blob,receipt.name)}catch(error){alert(error.message)}finally{b.disabled=false}}
@@ -286,6 +319,7 @@ const page='<section id="t11" class="tab calendar-page"><div class="section"><h2
 const dialogs='<dialog id="calendarEditor" class="calendar-dialog" aria-labelledby="calendarEditorTitle"><header><h2 id="calendarEditorTitle">Añadir gasto con fecha</h2><button type="button" data-calendar-close aria-label="Cerrar">×</button></header><form id="calendarForm"><label>¿Qué gasto es?<input id="calName" maxlength="140" required placeholder="Ej.: Seguro del coche" autofocus></label><label>Importe previsto<input id="calAmount" type="number" inputmode="decimal" min="0.01" max="999999999" step="0.01" required placeholder="299,00"></label><label>Fecha del pago<input id="calDate" type="date" min="1900-01-01" max="2199-12-31" required></label><label id="calAlreadyPaidLabel"><input id="calAlreadyPaid" type="checkbox">Ya está pagado en esta fecha</label><label id="calSplitLabel"><input id="calSplit" type="checkbox">Pago fraccionado</label><label><span id="calReceiptLabelText">Recibo o factura (opcional)</span><input id="calReceipt" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"><small id="calendarPlanReceiptNote" class="calendar-help"></small></label><div id="calSplitFields" hidden><p class="calendar-help">El nombre, el importe, la fecha, el recibo y la casilla «Ya está pagado» de arriba corresponden al pago 1. Completa cada pago y marca los que ya has pagado; se guardan todos a la vez. Se agrupan automáticamente para la renta; cada uno conserva su fecha y justificante.</p><label>Número de pagos<select id="calSplitCount"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></select></label><div id="calSplitRows"></div></div><label>Se repite<select id="calRepeat"><option value="once">Solo una vez</option><option value="monthly">Cada mes</option><option value="quarterly">Cada tres meses</option><option value="yearly">Cada año</option></select></label><details><summary>Más opciones</summary><label id="calGroupLabel">Agrupación para la renta (opcional)<select id="calGroup"></select><small class="calendar-help">Los pagos se sumarán en un desplegable por vivienda y año. No se duplican ni cambian sus fechas o recibos.</small></label><p><label>Categoría<select id="calCategory"></select></label></p><p><label>Vivienda asociada (opcional)<input id="calProperty" maxlength="140" placeholder="Ej.: Piso de Alberic"></label></p><p><label>Último cobro (opcional)<input id="calEnd" type="date" min="1900-01-01" max="2199-12-31"></label></p><p><label><input id="calTax" type="checkbox">Revisar para la renta</label></p></details><p class="calendar-help">Puedes elegir cualquier mes o año anterior. Marca «Ya está pagado» para guardarlo directamente como pago.</p><div class="calendar-actions"><button id="calendarDelete" type="button" hidden>Eliminar gasto</button><button type="button" data-calendar-close>Cancelar</button><span id="calendarFormStatus" class="calendar-help calendar-saving-status" role="status"></span><button id="calendarPlanSubmit" type="submit" class="calendar-pay">Guardar gasto</button></div></form></dialog><dialog id="calendarPayment" class="calendar-dialog" aria-labelledby="calendarPayTitle"><header><h2 id="calendarPayTitle">Confirmar pago</h2><button type="button" data-calendar-close aria-label="Cerrar">×</button></header><p id="calendarPayConcept"></p><form id="calendarPayForm"><label id="calendarExistingLabel">¿Ya está en Movimientos?<select id="calPayExisting"></select></label><label>Concepto<input id="calPayName" maxlength="140" required></label><label>Importe pagado<input id="calPayAmount" type="number" inputmode="decimal" min="0.01" step="0.01" required></label><label>Fecha del pago<input id="calPayDate" type="date" min="1900-01-01" max="2199-12-31" required></label><label>Cuenta<select id="calPayAccount"></select></label><label>Vivienda asociada<input id="calPayProperty" maxlength="140" placeholder="Opcional"></label><label><input id="calPayTax" type="checkbox">Revisar para la renta</label><label>Recibo o factura<input id="calPayReceipt" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"><small id="calendarReceiptNote" class="calendar-help"></small></label><div class="calendar-actions"><button type="button" data-calendar-close>Cancelar</button><span id="calendarPayFormStatus" class="calendar-help calendar-saving-status" role="status"></span><button id="calendarPaySubmit" type="submit" class="calendar-pay">Guardar pago</button></div></form></dialog>';
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+
 
 
 

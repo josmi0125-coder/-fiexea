@@ -73,3 +73,11 @@ html[data-theme="dark"] :is(.calendar-page,.calendar-dialog,.calendar-home){
 .calendar-dialog [data-installment]{margin:0;padding:16px;display:grid;gap:12px}
 .calendar-dialog [data-installment] h3{margin:0;font-size:16px}
 .calendar-page .calendar-actions button{min-height:44px;touch-action:manipulation}
+
+
+/* Direct expense removal, including collapsed tax cards. */
+.calendar-page .calendar-actions .calendar-delete,.calendar-page .calendar-delete-group{background:var(--calendar-rose);border:1px solid var(--line);color:var(--calendar-rose-ink)}
+.calendar-tax-group{position:relative;margin:12px 0;min-width:0}
+.calendar-page .calendar-tax-group>details.calendar-card{margin:0}
+.calendar-tax-group>details>summary{padding-right:48px;min-height:24px;cursor:pointer;overflow-wrap:anywhere}
+.calendar-delete-group{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;font:inherit;font-size:19px;cursor:pointer;touch-action:manipulation}

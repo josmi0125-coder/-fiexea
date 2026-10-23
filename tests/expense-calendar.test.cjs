@@ -46,7 +46,7 @@ function harness(options={}){
  const nodes={},data=new Map(),alerts=[];
  const node=id=>nodes[id]||(nodes[id]={value:'',checked:false,files:[],disabled:false,dataset:{},querySelectorAll(){return []},close(){}});
  const env={window:{FiexeaCalendarMath:M},localStorage:{getItem:k=>data.get(k)??null,setItem(k,v){data.set(k,String(v))}},document:{getElementById:id=>id==='t11'?null:node(id)},financialAppReady:true,financialActiveUserId:'A',moves:[],accounts:[],queueFinancialSync(){},save(){data.set('fiexea_moves',JSON.stringify(env.moves))},render(){},showSaveToast(){},alert:m=>alerts.push(m),localMoveDate:()=> '2026-10-20',esc:String,eur:String,uid:()=> 'new-'+env.moves.length};
- const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
+ const source=fs.readFileSync(require.resolve('../expense-calendar.js'),'utf8').replace(/if\(document\.readyState==='loading'\)[^\n]+/,"window.__calendarTest={deleteCalendarExpense,taxGroupsMarkup,openPayment,renderCalendar,setView(value){view=value},planReceipt,rowMarkup,confirmPayment,savePlan,categoryChoices,selectedCategory,setEditor(id){editId=id},setPayment(p){payment=p;sessionOwner=p.owner}};");
  if(options.receiptStorage){env.window.FiexeaReceiptStorage=options.receiptStorage;env.fiexeaSupabase={};}
  vm.runInNewContext(source,env);
  data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'p',name:'Seguro',amount:100,date:'2026-10-01',repeat:'yearly',category:'Seguros'}]));
@@ -265,4 +265,38 @@ test('editing a paid one-off expense keeps its single payment and uses the chose
 test('confirm payment starts with the selected due date instead of today',()=>{
  const h=harness();h.node('calendarPayForm').reset=()=>{};h.node('calendarPayment').showModal=()=>{};
  h.api.openPayment('p','2026-08-03');assert.equal(h.node('calPayDate').value,'2026-08-03');
+});
+
+test('deleting a paid installment directly removes only it and its one-off schedule',()=>{
+ const h=harness();setupSplitPayment(h);
+ h.data.set('fiexea_scheduled_expenses',JSON.stringify([{id:'a',name:'IBI 1/2',repeat:'once',date:'2026-08-03',taxGroupId:'ibi'},{id:'b',name:'IBI 2/2',repeat:'once',date:'2026-10-01',taxGroupId:'ibi'}]));
+ h.env.moves=[{id:'ma',type:'expense',desc:'IBI 1/2',scheduledExpenseId:'a',scheduledDate:'2026-08-03',date:'2026-08-03',amount:100},{id:'mb',type:'expense',desc:'IBI 2/2',scheduledExpenseId:'b',scheduledDate:'2026-10-01',date:'2026-10-01',amount:110}];
+ h.env.confirm=()=>true;assert.equal(h.api.deleteCalendarExpense('payment','ma'),true);
+ assert.deepEqual(Array.from(h.env.moves,m=>m.id),['mb']);const plans=JSON.parse(h.data.get('fiexea_scheduled_expenses'));assert.deepEqual(plans.map(p=>p.id),['b']);
+ assert.equal(M.calendarRows(plans,h.env.moves,2026).filter(r=>!r.move).length,0);
+});
+test('deleting a collapsed tax group removes its shown payments and leaves other groups intact',async()=>{
+ const h=harness();setupSplitPayment(h);h.node('calTax').checked=true;await h.api.savePlan({preventDefault(){}});assert.deepEqual(h.alerts,[]);
+ h.env.moves.push({id:'other',type:'expense',scheduledExpenseId:'p',date:'2026-10-01',scheduledDate:'2026-10-01',amount:100,taxReview:true});
+ h.node('calendarOnlyReview').checked=true;let question='';h.env.confirm=m=>{question=m;return true};
+ assert.equal(h.api.deleteCalendarExpense('group',h.env.moves[0].id),true);assert.match(question,/2 pagos/);assert.deepEqual(Array.from(h.env.moves,m=>m.id),['other']);
+ assert.equal(JSON.parse(h.data.get('fiexea_scheduled_expenses')).length,1);
+});
+test('cancelling direct deletion changes neither expenses nor movements',()=>{
+ const h=harness();h.env.confirm=()=>false;const before=h.data.get('fiexea_scheduled_expenses');
+ assert.equal(h.api.deleteCalendarExpense('plan','p'),false);assert.equal(h.data.get('fiexea_scheduled_expenses'),before);assert.equal(h.env.moves.length,0);
+});
+test('deleting a pending schedule retains its paid history',()=>{
+ const h=harness();h.env.confirm=()=>true;h.env.moves=[{id:'paid',scheduledExpenseId:'p',type:'expense',date:'2026-10-01',scheduledDate:'2026-10-01',amount:100}];
+ assert.equal(h.api.deleteCalendarExpense('plan','p'),true);assert.equal(h.env.moves.length,1);assert.equal(JSON.parse(h.data.get('fiexea_scheduled_expenses')).length,0);
+});
+test('failed payment deletion restores both schedules and movements',()=>{
+ const h=harness();h.env.confirm=()=>true;h.env.localStorage.removeItem=k=>h.data.delete(k);
+ h.env.moves=[{id:'paid',scheduledExpenseId:'p',type:'expense',date:'2026-10-01',scheduledDate:'2026-10-01',amount:100}];h.data.set('fiexea_moves',JSON.stringify(h.env.moves));
+ const plans=h.data.get('fiexea_scheduled_expenses'),payments=h.data.get('fiexea_moves');h.env.save=()=>{throw new Error('Failed saving')};
+ assert.equal(h.api.deleteCalendarExpense('payment','paid'),false);assert.equal(h.data.get('fiexea_scheduled_expenses'),plans);assert.equal(h.data.get('fiexea_moves'),payments);assert.equal(h.env.moves.length,1);
+});
+test('direct deletion rejects a changed account',()=>{
+ const h=harness();h.setup();h.env.financialActiveUserId='B';h.env.confirm=()=>{throw new Error('Should not confirm')};
+ assert.equal(h.api.deleteCalendarExpense('plan','p'),false);assert.match(h.alerts[0],/cuenta ha cambiado/);
 });

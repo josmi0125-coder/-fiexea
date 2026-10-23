@@ -13,6 +13,42 @@ const movementSteps=[
  step('#moveQuickSave','Pulsa Guardar cuando quieras registrar el movimiento. Terminar guía solo cierra la ayuda; no guarda el formulario.')
 ];
 const catalog={
+ home:{title:'Inicio',tab:0,steps:[
+  step('#t0 .hero','Aquí puedes consultar tu patrimonio neto: el valor de tus activos menos tus deudas.'),
+  step('#t0 .home-month-grid','Consulta tus ingresos, gastos y balance del mes. Toca una tarjeta para ver el detalle.'),
+  step('#t0 .home-shortcuts','Usa los accesos rápidos para registrar datos o abrir una sección.')
+ ]},
+ analysis:{title:'Análisis financiero',tab:5,steps:[
+  step('#operationsAnalysisPeriod','Elige el periodo que quieres consultar.'),
+  step('#t5 .analysis-summary-grid','Consulta los ingresos, gastos y balance calculados con tus movimientos.'),
+  step('#financialAnalysisToggle','Abre Análisis anual para revisar el resumen de un año.')
+ ]},
+ more:{title:'Más',tab:10,steps:[
+  step('#navMoreMenu [data-more-action="profile"]','Abre tu perfil para consultar los datos de tu cuenta.'),
+  step('#navMoreMenu [data-more-action="settings"]','En Ajustes puedes cambiar idioma, moneda, inicio del mes y apariencia.'),
+  step('#navMoreMenu [data-more-action="help"]','En Ayuda encontrarás todas las guías paso a paso.')
+ ]},
+ accounts:{title:'Cuentas',tab:7,steps:[
+  step('#t7 .account-add-button','Pulsa Añadir cuenta para registrar una cuenta manualmente.'),
+  step('#accName','Escribe un nombre para reconocer la cuenta.'),
+  step('#accBalance','Introduce el saldo inicial y revisa los demás datos.'),
+  step('#manualAccountForm .account-manual-actions button','Pulsa Guardar cuenta para registrarla. Terminar guía no guarda por ti.')
+ ]},
+ settings:{title:'Ajustes',tab:6,steps:[
+  step('#languageSettingsSelect','Elige el idioma de la aplicación.'),
+  step('#appCurrencySelect','Elige la moneda para mostrar tus importes. No convierte los saldos.'),
+  step('#cycleStartDaySelect','Elige el día en que empieza tu mes financiero.'),
+  step('#appearanceSelect','Elige la apariencia que prefieras.')
+ ]},
+ investment:{title:'Añadir una inversión',tab:4,steps:[
+  step('#investmentAddToggle','Pulsa Añadir inversión para abrir el formulario.'),
+  step('#iName','Escribe un nombre para reconocer la inversión.'),
+  step('#iVal','Introduce su valor actual. Los valores se actualizan manualmente.'),
+  step('#iType','Selecciona el tipo de inversión.'),
+  step('#iInvested','Puedes indicar el dinero aportado neto para calcular la ganancia o pérdida.'),
+  step('#investmentSaveButton','Revisa los datos y pulsa Guardar inversión. Terminar guía no guarda por ti.')
+ ]},
+
  category:{title:'Crear una categoría y su primer movimiento',tab:1,steps:movementSteps},
  expense:{title:'Añadir un gasto',tab:1,steps:[movementSteps[0],step('#categoryManagerExpenseTab','Selecciona Gastos para registrar una salida de dinero.'),...movementSteps.slice(2)]},
  income:{title:'Añadir un ingreso',tab:1,steps:[movementSteps[0],step('#categoryManagerIncomeTab','Selecciona Ingresos para registrar una entrada de dinero.'),...movementSteps.slice(2)]},
@@ -162,7 +198,7 @@ function tick(){
  }
  if(target!==highlight)showStep(active.index,false);else position();
 }
-function showChooser(welcome=false){
+function showChooser(welcome=false,ids=null){
  if(!ready()||active)return;
  if(chooser?.open)return;
  previousFocus=document.activeElement;const chooserOwner=owner();lastOwner=chooserOwner;
@@ -171,7 +207,7 @@ function showChooser(welcome=false){
  const p=document.createElement('p');p.textContent=tr(welcome?'Aprende creando una categoría y su primer movimiento. Tú eliges cuándo guardar y puedes saltar la guía.':'Elige qué quieres aprender. Los globos señalan los controles de la aplicación mientras la utilizas.');chooser.appendChild(p);
  const actions=document.createElement('div');actions.className='tour-actions';
  if(welcome)actions.appendChild(button('Empezar guía',()=>{chooser.close();start('category')},true));
- else{const list=document.createElement('div');list.className='tour-list';for(const [id,tour] of Object.entries(catalog))list.appendChild(button(tour.title,()=>{chooser.close();start(id)}));chooser.appendChild(list)}
+ else{const list=document.createElement('div');list.className='tour-list';for(const [id,tour] of Object.entries(catalog).filter(([id])=>!ids||ids.includes(id)))list.appendChild(button(tour.title,()=>{chooser.close();start(id)}));chooser.appendChild(list)}
  actions.appendChild(button(welcome?'Saltar guía':'Cerrar',()=>chooser.close()));chooser.appendChild(actions);
  chooser.addEventListener('close',()=>{if(owner()===chooserOwner)remember({intro:'seen'});chooser.remove();if(visible(previousFocus))previousFocus.focus({preventScroll:true})},{once:true});
  chooser.addEventListener('cancel',()=>{if(owner()===chooserOwner)remember({intro:'seen'})});document.body.appendChild(chooser);chooser.showModal();
@@ -184,7 +220,40 @@ function checkWelcome(){
  if(document.activeElement?.matches('input,select,textarea')||document.querySelector('#moveEditor:not([hidden]),#budgetCategoryForm:not([hidden]),#assetEditor:not([hidden]),#goalEditorCard:not([hidden]),#investmentEditor:not([hidden]),#debtEditorDetails[open]'))return;
  showChooser(true);
 }
+
+const sectionGuides=[
+ ['#t0 .home-section-kicker',['home']],
+ ['#t1 > .section h2',['category','expense','income','budget']],
+ ['#t2 > .section h2',['debt']],
+ ['#t3 .goals-overview-heading h2',['goal']],
+ ['#t4 .wealth-overview-heading h2',['asset','investment']],
+ ['#t5 .analysis-page-heading h2',['analysis']],
+ ['#t7 > .section h2',['accounts']],
+ ['#t6 > .section h2',['settings']],
+ ['#t10 > .section h2',['more']],
+ ['#t11 h2',['calendar']]
+];
+function openSectionGuide(ids){
+ if(active)stop('skipped',false);
+ if(ids.length===1)start(ids[0]);else showChooser(false,ids);
+}
+function installSectionGuides(){
+ for(const [selector,ids] of sectionGuides){
+  const heading=document.querySelector(selector);
+  if(!heading||heading.parentElement.classList.contains('tour-section-heading'))continue;
+  const row=document.createElement('div');row.className='tour-section-heading';
+  heading.before(row);row.appendChild(heading);
+  const help=document.createElement('button');help.type='button';help.className='tour-section-help';
+  help.dataset.guideIds=ids.join(',');help.setAttribute('aria-label',tr('Guías paso a paso'));
+  help.title=tr('Guías paso a paso');
+  help.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg>';
+  help.addEventListener('click',()=>openSectionGuide(ids));row.appendChild(help);
+ }
+}
+
 function init(){
+ installSectionGuides();
+ new MutationObserver(installSectionGuides).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
  const helpButton=document.getElementById('guidedToursOpen');
  const updateHelpLabel=()=>{if(helpButton)helpButton.textContent='🧭 '+tr('Guías paso a paso')};updateHelpLabel();
  helpButton?.addEventListener('click',()=>showChooser());
@@ -207,7 +276,7 @@ function init(){
   },80);
  });
  window.addEventListener('resize',position);window.addEventListener('scroll',position,true);window.visualViewport?.addEventListener('resize',position);window.visualViewport?.addEventListener('scroll',position);
- document.addEventListener('fiexea:language',()=>{updateHelpLabel();if(active)showStep(active.index,false)});
+ document.addEventListener('fiexea:language',()=>{updateHelpLabel();document.querySelectorAll('.tour-section-help').forEach(b=>{b.title=tr('Guías paso a paso');b.setAttribute('aria-label',b.title)});if(active)showStep(active.index,false)});
  setInterval(checkWelcome,2000);
 }
 window.FiexeaTours={open:()=>showChooser(),start,stop,catalog};

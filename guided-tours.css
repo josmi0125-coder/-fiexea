@@ -28,9 +28,12 @@
 @media(max-width:480px){.tour-coach{padding:12px}.tour-coach h3{margin:5px 0}.tour-coach p{margin:6px 0 10px}}
 
 /* One help entry per page heading; never added to user-created categories. */
-.tour-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.tour-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;flex-wrap:wrap}
 .tour-section-heading>h2,.tour-section-heading>.home-section-kicker{min-width:0;flex:1}
-.tour-section-heading>.tour-section-help{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;margin:0;border:0;border-radius:50%;background:transparent;color:var(--accent,#0e9685);cursor:pointer;box-shadow:none}
-.tour-section-help:hover{background:var(--soft,#edf7f3)}
+.tour-section-heading>.tour-section-help{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;gap:6px;width:auto;height:44px;min-height:44px;padding:0 12px;margin:0;border:1px solid #b9e6d8;border-radius:999px;background:#e5f5ed;color:#126451;font:inherit;font-size:13px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:none}
+.tour-section-heading>.tour-section-help:hover{background:#d5eee1;border-color:#8dcdb7}
+html[data-theme="dark"] .tour-section-heading>.tour-section-help{background:#183e32;color:#b6ead6;border-color:#346451}
+html[data-theme="dark"] .tour-section-heading>.tour-section-help:hover{background:#224e3e}
 .tour-section-help:focus-visible{outline:3px solid #18ad8c;outline-offset:2px}
-.tour-section-help svg{display:block;pointer-events:none}
+.tour-section-help svg{display:block;flex-shrink:0;pointer-events:none}
+.tour-section-help-label{pointer-events:none}

@@ -247,6 +247,7 @@ function installSectionGuides(){
   help.dataset.guideIds=ids.join(',');help.setAttribute('aria-label',tr('Guías paso a paso'));
   help.title=tr('Guías paso a paso');
   help.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg>';
+  const label=document.createElement('span');label.className='tour-section-help-label';label.textContent=tr('Guía');help.appendChild(label);
   help.addEventListener('click',()=>openSectionGuide(ids));row.appendChild(help);
  }
 }
@@ -276,7 +277,7 @@ function init(){
   },80);
  });
  window.addEventListener('resize',position);window.addEventListener('scroll',position,true);window.visualViewport?.addEventListener('resize',position);window.visualViewport?.addEventListener('scroll',position);
- document.addEventListener('fiexea:language',()=>{updateHelpLabel();document.querySelectorAll('.tour-section-help').forEach(b=>{b.title=tr('Guías paso a paso');b.setAttribute('aria-label',b.title)});if(active)showStep(active.index,false)});
+ document.addEventListener('fiexea:language',()=>{updateHelpLabel();document.querySelectorAll('.tour-section-help').forEach(b=>{b.title=tr('Guías paso a paso');b.setAttribute('aria-label',b.title);const label=b.querySelector('.tour-section-help-label');if(label)label.textContent=tr('Guía')});if(active)showStep(active.index,false)});
  setInterval(checkWelcome,2000);
 }
 window.FiexeaTours={open:()=>showChooser(),start,stop,catalog};

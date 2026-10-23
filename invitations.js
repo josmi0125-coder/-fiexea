@@ -29,6 +29,7 @@
     list.innerHTML = rows.length ? rows.map(row => `<article class="admin-item"><strong>${escape(row.label || row.email)}</strong><p>${escape(row.email)} · <b>${escape(row.status)}</b></p><p class="admin-muted">Creada: ${escape(date(row.created_at))}<br>Activada: ${escape(date(row.redeemed_at))}<br>${row.redeemed_at ? 'Fin del acceso: '+escape(date(row.access_until)) : 'Activar antes de: '+escape(date(row.redeem_by))+'<br>Vigencia: '+escape(row.duration_days ? row.duration_days+' días desde la activación' : 'Hasta '+date(row.fixed_end))}</p>${!row.revoked_at ? `<div class="admin-actions"><button type="button" data-extend="${escape(row.id)}">Ampliar plazo</button><button type="button" data-revoke="${escape(row.id)}">Desactivar acceso</button></div>` : ''}</article>`).join('') : '<p class="admin-muted">Todavía no has creado invitaciones.</p>';
   }
   function reset() {
+    window.FiexeaTrials?.reset();
     admin = false; identity = null; verifiedUser = null;
     document.getElementById('fiexeaAdminMenu')?.remove();
     if (dialog.open) dialog.close();
@@ -50,6 +51,7 @@
       group.querySelector('button').addEventListener('click', async () => { if(!admin)return; dialog.showModal(); try { await load(); } catch(e) { showMessage(e.message); } });
       document.getElementById('navMoreMenu')?.prepend(group);
     }
+    window.FiexeaTrials?.setAdmin(admin, uid);
   }
   async function redeem(session) {
     if (!token || !session?.user?.id) return;

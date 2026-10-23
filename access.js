@@ -55,6 +55,7 @@
     if (fiexeaIsRecoveryUrl() || window.FiexeaInvitations?.pending || !guestActive()) return false;
     const record = guestRecord();
     if (!record || !Number.isFinite(record.started) || !Number.isFinite(record.lastSeen)) return false;
+    window.FiexeaTrials?.trackGuest(record)?.catch(error => console.warn('Registro de prueba pendiente', error));
     guest = true;
     document.getElementById('fiexeaAccessLogout').textContent = 'Crear cuenta / Iniciar sesión';
     const remaining = Math.max(0, record.started + 7 * 24 * 3600000 - Math.max(Date.now(), record.lastSeen));
@@ -92,9 +93,10 @@
       if (error) throw error;
       if (session) { await checkAccess(session); return; }
       if (!guestRecord()) localStorage.setItem(guestKey, JSON.stringify({started: Date.now(), lastSeen: Date.now()}));
+      await window.FiexeaTrials?.trackGuest(guestRecord(), true);
       localStorage.setItem(guestActiveKey, '1');
       resumeGuest();
-    } catch (_) { errorBox.textContent = 'No se pudo iniciar la prueba. Permite el almacenamiento del navegador y vuelve a intentarlo.'; }
+    } catch (_) { errorBox.textContent = 'No se pudo iniciar la prueba. Comprueba tu conexión y permite el almacenamiento del navegador antes de volver a intentarlo.'; }
     finally { button.disabled = false; }
   }
   document.getElementById('fiexeaWelcomeTrial')?.addEventListener('click', startGuest);
@@ -127,6 +129,7 @@
           catch (error) { showGate('No se pudo activar la invitación', error.message); return; }
         }
         await window.FiexeaInvitations?.prepare(session);
+        try { await window.FiexeaTrials?.claim(session); } catch (error) { console.warn('Vinculación de prueba pendiente', error); }
         const { data, error } = await fiexeaSupabase.rpc('fiexea_access_status');
         if (error) throw error;
         const { data: latest } = await fiexeaSupabase.auth.getSession();

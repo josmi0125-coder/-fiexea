@@ -238,7 +238,7 @@ function openPayment(id,due,moveId=''){
 }
 function readReceipt(file){return new Promise((resolve,reject)=>{
  if(!file){resolve(null);return}
- if(file.size>500*1024||!['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(file.type)){reject(new Error('Selecciona una imagen o PDF de hasta 500 KB.'));return}
+ if(file.size>20*1024*1024||!['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(file.type)&&!/\.(pdf|jpg|jpeg|png|webp|heic|heif)$/i.test(file.name)){reject(new Error('Selecciona una imagen o PDF de hasta 20 MB.'));return}
  const r=new FileReader();r.onerror=()=>reject(new Error('No se pudo leer el justificante.'));r.onload=()=>{const receipt={name:filename(file.name),type:file.type,data:r.result};if(ReceiptStore&&(financialActiveUserId||localStorage.getItem('fiexea_financial_owner_id')))ReceiptStore.storeInline(receipt).then(resolve,reject);else resolve(receipt)};r.readAsDataURL(file);
 })}
 async function confirmPayment(event){
@@ -325,7 +325,7 @@ function start(){
  $('calendarBack').onclick=closeCalendar;
  $('calendarAdd').onclick=()=>openEditor();
  $('calendarScanReceipt').onclick=()=>openCalendarReceiptScanner();
- $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(note&&input.files[0]){note.textContent='Imagen seleccionada: '+input.files[0].name+'. Leyendo recibo…';if(input.id==='calReceipt'&&/^image\//.test(input.files[0].type)&&!editId){const file=input.files[0];openCalendarReceiptScanner(file)}else note.textContent='Seleccionado: '+input.files[0].name+'. Se guardará al pulsar Guardar gasto.'}}});
+ $('calendarEditor').addEventListener('change',event=>{const input=event.target;if(input.matches('input[type=file]')){const note=input.closest('label')?.querySelector('small');if(input.files[0]){const file=input.files[0],isImage=/^image\//.test(file.type)||/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name);if(note)note.textContent='Archivo seleccionado: '+file.name+' ('+Math.ceil(file.size/1024)+' KB).';if(file.size>20*1024*1024){if(note)note.textContent='El archivo supera los 20 MB. Elige uno más pequeño.';input.value='';return}if(input.id==='calReceipt'&&isImage&&!editId){if(note)note.textContent='📷 Imagen recibida. Abriendo lector para extraer los datos…';try{openCalendarReceiptScanner(file)}catch(error){if(note)note.textContent='No se pudo iniciar el escáner: '+error.message+'. Puedes adjuntar la imagen y guardar manualmente.'}}else if(note)note.textContent='📎 '+file.name+' seleccionado. Se adjuntará al guardar el gasto.'}}});
  $('calSplit').onchange=updateInstallments;$('calSplitCount').onchange=updateInstallments;$('calGroup').onchange=()=>{$('calGroup').dataset.retainedGroup='';$('calGroup').dataset.retainedName=''};
  $('calendarForm').onsubmit=savePlan;$('calendarPayForm').onsubmit=confirmPayment;
  $('calendarPrevYear').onclick=()=>{if(year>1900){year--;renderCalendar()}};

@@ -25,3 +25,32 @@ test('tab initialization preserves auth fragments until the SDK has consumed the
   let replaced=false;vm.runInNewContext(statement,{n:0,location:{hash},window:{FIEXEA_START_FORGOT:hash==='#forgot'},fiexeaIsRecoveryUrl:()=>hash.includes('recovery'),history:{replaceState(){replaced=true}}});assert.equal(replaced,false);
  }
 });
+
+test('signed-out visitors choose signup or login from the welcome screen',async()=>{
+ const x=await setup({hash:'',session:null,event:'INITIAL_SESSION'});
+ assert.equal(x.el('fiexeaWelcomeView').hidden,false);
+ assert.equal(x.el('fiexeaLoginView').hidden,true);
+ x.el('fiexeaWelcomeSignup').events.click();
+ assert.equal(x.el('fiexeaSignupView').hidden,false);
+ assert.equal(x.el('fiexeaWelcomeView').hidden,true);
+ x.el('fiexeaWelcomeBack').events.click();
+ assert.equal(x.el('fiexeaWelcomeView').hidden,false);
+ x.el('fiexeaWelcomeLogin').events.click();
+ assert.equal(x.el('fiexeaLoginView').hidden,false);
+});
+test('active sessions bypass welcome and signup links still open registration',async()=>{
+ const signedIn=await setup({hash:'',event:'INITIAL_SESSION'});
+ assert.equal(signedIn.el('fiexeaAuthGate').hidden,true);
+ const signup=await setup({hash:'#signup',session:null,event:'INITIAL_SESSION'});
+ assert.equal(signup.el('fiexeaSignupView').hidden,false);
+ assert.equal(signup.el('fiexeaWelcomeView').hidden,true);
+});
+test('initial auth callbacks do not interrupt a selected form; signout returns to welcome',async()=>{
+ const x=await setup({hash:'',session:null,event:null});
+ x.el('fiexeaWelcomeLogin').events.click();
+ x.listeners.forEach(fn=>fn('INITIAL_SESSION',null));
+ assert.equal(x.el('fiexeaLoginView').hidden,false);
+ x.listeners.forEach(fn=>fn('SIGNED_OUT',null));
+ assert.equal(x.el('fiexeaWelcomeView').hidden,false);
+ assert.equal(x.el('fiexeaLoginView').hidden,true);
+});

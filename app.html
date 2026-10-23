@@ -769,7 +769,14 @@ html[data-theme="dark"] #t2 .debt-card[data-debt-color="1"],html[data-theme="dar
 html[data-theme="dark"] #t2 .debt-card[data-debt-color="2"],html[data-theme="dark"] #t2 .debt-comparison-row[data-debt-color="2"]{background:linear-gradient(135deg,var(--card),#30253f);border-color:#43354f}
 #t2 .debt-card[data-debt-color="3"],#t2 .debt-comparison-row[data-debt-color="3"]{background:linear-gradient(135deg,#fff,#fff2d9);border-color:#eee4cf}
 html[data-theme="dark"] #t2 .debt-card[data-debt-color="3"],html[data-theme="dark"] #t2 .debt-comparison-row[data-debt-color="3"]{background:linear-gradient(135deg,var(--card),#3b321e);border-color:#50452c}
-</style><style id="fiexea-calculator-icon-style">.fiexea-calculator-icon{display:inline-block;width:1.3em;height:1.6em;vertical-align:middle;flex:none}.nav-more-menu button .menu-icon>.fiexea-calculator-icon{display:block!important;width:30px;height:38px}.investment-calculator .fiexea-calculator-icon{width:24px;height:30px;margin-right:7px;vertical-align:middle}</style><link rel="stylesheet" href="expense-calendar.css?v=20261023-delete"></head>
+</style><style id="fiexea-calculator-icon-style">.fiexea-calculator-icon{display:inline-block;width:1.3em;height:1.6em;vertical-align:middle;flex:none}.nav-more-menu button .menu-icon>.fiexea-calculator-icon{display:block!important;width:30px;height:38px}.investment-calculator .fiexea-calculator-icon{width:24px;height:30px;margin-right:7px;vertical-align:middle}</style><link rel="stylesheet" href="expense-calendar.css?v=20261023-delete"><style id="calendar-movements-shortcut-style">
+#t1 #calendarMovementsOpen{display:inline-flex;align-items:center;gap:6px;min-height:44px;max-width:100%;margin:0 0 4px;padding:10px 14px;border:1px solid #bde2da;border-radius:14px;background:#eaf6f2!important;color:#0f766e!important;box-shadow:none;font-size:14px;font-weight:700;line-height:1.3;text-align:left}
+#t1 #calendarMovementsOpen:hover{background:#dcefe8!important}
+#t1 #calendarMovementsOpen:focus-visible{outline:3px solid #0f766e;outline-offset:3px}
+html[data-theme="dark"] #t1 #calendarMovementsOpen{background:#183b34!important;color:#a5e7d2!important;border-color:#326257}
+html[data-theme="dark"] #t1 #calendarMovementsOpen:hover{background:#214b41!important}
+</style>
+</head>
 <body><div id="fiexeaAuthGate">
   <div class="fiexea-auth-card">
     <img class="fiexea-auth-logo" src="fiexea-logo.png" alt="FIEXEA" onerror="this.style.display='none'">
@@ -868,7 +875,7 @@ html[data-theme="dark"] #t2 .debt-card[data-debt-color="3"],html[data-theme="dar
     </section>
 
     <section id="t1" class="tab">
-      <div class="section"><h2>📊 Movimientos</h2><p class="muted">Registra ingresos y gastos, administra categorías y consulta tus movimientos.</p><button id="calendarMovementsOpen" class="btn secondary small" type="button" aria-controls="t11"><span aria-hidden="true">📅</span> Calendario de gastos</button></div>
+      <div class="section"><h2>📊 Movimientos</h2><button id="calendarMovementsOpen" class="btn secondary small" type="button" aria-controls="t11"><span aria-hidden="true">📅</span> Calendario de gastos</button><p class="muted">Registra ingresos y gastos, administra categorías y consulta tus movimientos.</p></div>
       <div class="moves-summary" aria-label="Resumen de movimientos del mes seleccionado">
         <div class="moves-summary-card income"><span>💰 Ingresos</span><strong id="movesMonthIncome">0 €</strong></div>
         <div class="moves-summary-card expense"><span>💸 Gastos</span><strong id="movesMonthExpense">0 €</strong></div>

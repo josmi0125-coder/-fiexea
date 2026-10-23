@@ -1,38 +1,7 @@
-# FIEXEA: prueba única y suscripción
+# Prueba sin registro de 7 días
 
-El registro gratuito permanece disponible aunque Stripe siga en modo de prueba. El acceso dura 72 horas desde la creación de la cuenta; `billing_available: false` impide iniciar cobros reales. El acceso de las cuentas existentes y del administrador se conserva.
+La prueba de invitado dura 168 horas desde que se pulsa «Probar gratis 7 días» y se guarda en el navegador. Conserva el mismo inicio al recargar. Los datos de invitado solo se guardan en ese navegador.
 
-## Control de acceso
+Al terminar se bloquea el acceso y se ofrece crear cuenta o iniciar sesión para contratar Premium. Crear cuenta no concede otra prueba: el trigger de alta asigna una fecha de caducidad igual a la de creación, validada por el servidor. La activación de pago sigue dependiendo de una suscripción real confirmada. No se modifican permisos de administradores, invitaciones ni cuentas preexistentes.
 
-- La prueba empieza en `auth.users.created_at` y dura 72 horas según el reloj del servidor.
-- Un registro privado de la huella del correo conserva la primera prueba, incluso si se elimina y vuelve a crear la cuenta.
-- El navegador no puede escribir en los registros privados de acceso.
-- Las políticas restrictivas exigen propiedad y acceso vigente para leer/escribir los datos financieros y leer/subir/actualizar el avatar.
-- Una suscripción solo concede acceso cuando Stripe la confirma con `status=active`, `livemode=true` y periodo vigente. Un retorno de Checkout o un pago de prueba no concede acceso.
-- Checkout no contiene otro periodo de prueba. La creación de la cuenta no implica cargo ni alta automática de una suscripción.
-
-## Pendiente para abrir el servicio
-
-Configurar en Supabase, desde su gestor de secretos, las credenciales y precios reales:
-
-- `STRIPE_SECRET_KEY`: clave de servidor de Stripe del entorno real.
-- `STRIPE_WEBHOOK_SIGNING_SECRET`: secreto del endpoint real `stripe-webhook`.
-- `FIEXEA_STRIPE_MONTHLY_PRICE_ID`: precio real recurrente de 499 céntimos EUR al mes.
-- `FIEXEA_STRIPE_ANNUAL_PRICE_ID`: precio real recurrente de 4500 céntimos EUR al año.
-
-No guardar claves secretas en el repositorio ni enviarlas por chat. El webhook real debe recibir `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` e `invoice.payment_failed`.
-
-Después de configurar estos valores, volver a desplegar las dos funciones para recargar su configuración. Confirmar la disponibilidad de los precios y verificar un pago y su webhook en el entorno real antes del lanzamiento comercial. Completar también los datos de titular y contacto ya pendientes en la app.
-
-## Verificación ejecutada
-
-Se verificaron dentro de transacciones revertidas: conservación del acceso existente, prueba activa, caducidad, rechazo de una suscripción de prueba, aceptación de un estado de pago real simulado, cancelación, bloqueo RLS, límite exacto de 72 horas y conservación de la caducidad al volver a registrar el mismo correo. No se efectuaron cobros ni se dejaron cuentas de prueba.
-
-`node --test tests/access.test.cjs` verifica el bloqueo, errores de red, cuentas admitidas y caducidad del contador. El pago real y el correo de confirmación de una nueva cuenta quedan pendientes de la activación del servicio.
-
-
-## Dominio y gestión de suscripciones
-
-Checkout admite `https://fiexea.es`, `https://www.fiexea.es` y el origen anterior de GitHub. Los retornos de pago y del portal apuntan a `https://fiexea.es/app.html`. El POST con `{ "action": "portal" }` crea una sesión de gestión solo para el cliente Stripe asociado al usuario autenticado. Configura en Stripe Customer Portal las opciones de cancelación antes del lanzamiento.
-
-En Supabase Auth, confirma que Site URL y las Redirect URLs permiten `https://fiexea.es/`, `https://fiexea.es/app.html` y las rutas de invitación utilizadas por la app. Completa el titular, NIF y domicilio de la información legal antes de la apertura comercial.
+`no-registration-trial.sql` contiene la definición aplicada del trigger. No se confía en user_metadata para autorizar acceso. Las pruebas locales cubren los límites de siete días; las pruebas SQL, ejecutadas con rollback, comprueban que el alta no habilita acceso ni se puede ampliar con metadatos del usuario.

@@ -39,8 +39,8 @@ test("access checks cannot hide password recovery behind a trial or paid screen"
  assert.equal(y.context.document.documentElement.dataset.fiexeaAccess,'allowed');
  assert.equal(JSON.parse(storage.get('fiexea_guest_trial_v1')).started,started);
  });
- test('expired guest cannot restart the three day trial',async()=>{
- const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now()-73*3600000,lastSeen:Date.now()})],['fiexea_guest_active','1']]);
+ test('expired guest cannot restart the seven day trial',async()=>{
+ const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now()-169*3600000,lastSeen:Date.now()})],['fiexea_guest_active','1']]);
  const x=await run('trial',{session:false,storage});
  assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
  await x.element('fiexeaWelcomeTrial').click();
@@ -48,8 +48,16 @@ test("access checks cannot hide password recovery behind a trial or paid screen"
  });
  test('guest expiry and recovery preserve the auth boundary',async()=>{
  const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now(),lastSeen:Date.now()})],['fiexea_guest_active','1']]);
- const x=await run('trial',{session:false,storage}); x.advance(73*3600000);x.intervals[0]();
+ const x=await run('trial',{session:false,storage}); x.advance(169*3600000);x.intervals[0]();
  assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
  const y=await run('trial',{session:false,storage,recovery:true});
  assert.notEqual(y.context.document.documentElement.dataset.fiexeaAccess,'allowed');
  });
+
+test('guest remains active after three days but blocks after seven',async()=>{
+ const storage=new Map([['fiexea_guest_trial_v1',JSON.stringify({started:Date.now()-4*24*3600000,lastSeen:Date.now()})],['fiexea_guest_active','1']]);
+ const x=await run('trial',{session:false,storage});
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'allowed');
+ x.advance(3*24*3600000+1);x.intervals[0]();
+ assert.equal(x.context.document.documentElement.dataset.fiexeaAccess,'blocked');
+});

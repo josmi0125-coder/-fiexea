@@ -14,3 +14,15 @@
 #guidedToursOpen{margin-top:12px;background:var(--soft,#edf7f3);color:var(--text,#172c30);border:1px solid var(--line,#d5e4dd);border-radius:12px;min-height:44px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer}
 .help-guided-tours{padding:0 20px 12px;flex-shrink:0}
 @media(prefers-reduced-motion:reduce){.tour-highlight{scroll-behavior:auto}}
+
+/* Keep guide controls independent of global app button sizing. */
+.tour-actions{gap:12px}
+.tour-actions>button,.tour-list>button{box-sizing:border-box;position:static!important;transform:none!important;margin:0!important;width:auto;max-width:100%;white-space:normal}
+.tour-actions>button{flex:1 1 100px;min-width:0}
+.tour-chooser>.tour-actions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+.tour-chooser>.tour-actions>button{width:100%}
+.tour-coach.tour-editing{padding:10px 12px}
+.tour-coach.tour-editing>small,.tour-coach.tour-editing>h3,.tour-coach.tour-editing>p{display:none}
+.tour-coach.tour-editing .tour-actions{gap:8px}
+.tour-coach.tour-editing button{min-height:40px;padding:8px;font-size:13px}
+@media(max-width:480px){.tour-coach{padding:12px}.tour-coach h3{margin:5px 0}.tour-coach p{margin:6px 0 10px}}

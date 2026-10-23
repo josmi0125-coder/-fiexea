@@ -69,16 +69,47 @@ function stop(status='skipped',restoreFocus=true){
  if(active&&owner()===active.owner)remember({intro:'seen',[active.id]:status});
  active=null;clearHighlight();coach?.remove();coach=null;clearInterval(timer);timer=null;
  document.body.classList.remove('tour-running');
+ document.querySelectorAll('.tour-scroll-space').forEach(el=>el.remove());
  if(restoreFocus&&visible(previousFocus))previousFocus.focus({preventScroll:true});
 }
+let positioning=false;
 function position(){
  if(!coach)return;
+
+ if(positioning)return;
+ const focused=document.activeElement;
+ const editing=!!focused?.matches('input,select,textarea')&&!coach.contains(focused);
+ coach.classList.toggle('tour-editing',editing);
  const vp=window.visualViewport,w=vp?.width||innerWidth,h=vp?.height||innerHeight,x=vp?.offsetLeft||0,y=vp?.offsetTop||0;
  coach.style.width=Math.max(180,Math.min(350,w-24))+'px';
- coach.style.maxHeight=Math.max(130,Math.min(h-24,h<450?h*.46:300))+'px';
- const rect=highlight?.getBoundingClientRect(),height=coach.getBoundingClientRect().height;
- const below=rect&&h+y-rect.bottom>=height+22;
- const top=below?rect.bottom+12:rect&&rect.top-y>=height+22?rect.top-height-12:y+h-height-12;
+ coach.style.maxHeight=Math.max(60,Math.min(h-24,editing?90:300))+'px';
+ const target=editing?focused:highlight;
+ let rect=target?.getBoundingClientRect();
+ const height=coach.getBoundingClientRect().height;
+ let top=y+h-height-12;
+ if(rect){
+  if(rect.bottom+height+24<=y+h)top=rect.bottom+12;
+  else if(rect.top-height-12>=y+12)top=rect.top-height-12;
+  else{
+   // Reserve enough scroll room to move the active control above the coach.
+   let scroller=target.parentElement;
+   while(scroller&&scroller!==document.body){
+    if(scroller.scrollHeight>scroller.clientHeight&&/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))break;
+    scroller=scroller.parentElement;
+   }
+   const host=scroller||document.body;
+   let space=host.querySelector(':scope > .tour-scroll-space');
+   if(!space){space=document.createElement('div');space.className='tour-scroll-space';space.setAttribute('aria-hidden','true');host.appendChild(space)}
+   space.style.height=(height+32)+'px';
+   const shift=rect.bottom-(top-12);
+   if(shift>0){
+    positioning=true;
+    if(scroller&&scroller!==document.body)scroller.scrollTop+=shift;
+    else window.scrollBy(0,shift);
+    positioning=false;
+   }
+  }
+ }
  coach.style.left=Math.max(x+12,Math.min(rect?.left||x+12,x+w-coach.offsetWidth-12))+'px';
  coach.style.top=Math.max(y+8,Math.min(top,y+h-height-8))+'px';
 }
@@ -138,9 +169,10 @@ function showChooser(welcome=false){
  chooser=document.createElement('dialog');chooser.className='tour-chooser';chooser.setAttribute('aria-labelledby','tourChooserTitle');
  const h=document.createElement('h2');h.id='tourChooserTitle';h.textContent=tr(welcome?'¿Quieres que te enseñemos cómo empezar?':'Guías paso a paso');chooser.appendChild(h);
  const p=document.createElement('p');p.textContent=tr(welcome?'Aprende creando una categoría y su primer movimiento. Tú eliges cuándo guardar y puedes saltar la guía.':'Elige qué quieres aprender. Los globos señalan los controles de la aplicación mientras la utilizas.');chooser.appendChild(p);
- if(welcome)chooser.appendChild(button('Empezar guía',()=>{chooser.close();start('category')},true));
+ const actions=document.createElement('div');actions.className='tour-actions';
+ if(welcome)actions.appendChild(button('Empezar guía',()=>{chooser.close();start('category')},true));
  else{const list=document.createElement('div');list.className='tour-list';for(const [id,tour] of Object.entries(catalog))list.appendChild(button(tour.title,()=>{chooser.close();start(id)}));chooser.appendChild(list)}
- chooser.appendChild(button(welcome?'Saltar guía':'Cerrar',()=>chooser.close()));
+ actions.appendChild(button(welcome?'Saltar guía':'Cerrar',()=>chooser.close()));chooser.appendChild(actions);
  chooser.addEventListener('close',()=>{if(owner()===chooserOwner)remember({intro:'seen'});chooser.remove();if(visible(previousFocus))previousFocus.focus({preventScroll:true})},{once:true});
  chooser.addEventListener('cancel',()=>{if(owner()===chooserOwner)remember({intro:'seen'})});document.body.appendChild(chooser);chooser.showModal();
 }
@@ -157,6 +189,23 @@ function init(){
  const updateHelpLabel=()=>{if(helpButton)helpButton.textContent='🧭 '+tr('Guías paso a paso')};updateHelpLabel();
  helpButton?.addEventListener('click',()=>showChooser());
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&active){e.preventDefault();stop()}});
+ document.addEventListener('focusin',e=>{
+  if(!active||coach?.contains(e.target))return;
+  const steps=catalog[active.id].steps;
+  const index=steps.findIndex(s=>{const el=find(s.target);return el&&(el===e.target||el.contains(e.target))});
+  if(index>active.index)showStep(index,false);
+  position();
+ });
+ document.addEventListener('focusout',()=>requestAnimationFrame(position));
+ document.addEventListener('click',e=>{
+  if(!active||coach?.contains(e.target)||!highlight?.contains(e.target)||e.target.matches('input,select,textarea'))return;
+  const current=active;
+  setTimeout(()=>{
+   if(active!==current)return;
+   const next=active.index+1;
+   if(next<catalog[active.id].steps.length&&find(catalog[active.id].steps[next].target))showStep(next,false);
+  },80);
+ });
  window.addEventListener('resize',position);window.addEventListener('scroll',position,true);window.visualViewport?.addEventListener('resize',position);window.visualViewport?.addEventListener('scroll',position);
  document.addEventListener('fiexea:language',()=>{updateHelpLabel();if(active)showStep(active.index,false)});
  setInterval(checkWelcome,2000);

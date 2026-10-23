@@ -92,7 +92,13 @@ const catalog={
 };
 let active=null,highlight=null,coach=null,chooser=null,lastOwner='',previousFocus=null,timer=null;
 const memory=new Map();
-function owner(){return typeof financialActiveUserId!=='undefined'?financialActiveUserId||'':''}
+function owner(){
+ const account=typeof financialActiveUserId!=='undefined'?financialActiveUserId||'':'';
+ if(account)return account;
+ // Guest access is granted by access.js; guide preferences stay separate from accounts.
+ try{if(localStorage.getItem('fiexea_guest_active')==='1')return 'guest-trial'}catch(_){}
+ return '';
+}
 function ready(){return !!owner()&&typeof financialAppReady!=='undefined'&&financialAppReady&&document.documentElement.dataset.fiexeaAccess==='allowed'}
 function storageKey(id=owner()){return 'fiexea_guides_v1_'+encodeURIComponent(id)}
 function preference(id=owner()){try{return JSON.parse(localStorage.getItem(storageKey(id))||'null')||memory.get(id)||{}}catch(_){return memory.get(id)||{}}}

@@ -35,10 +35,13 @@ test('native receipt readers and workers are packaged locally, including Spanish
  assert.ok(!html.includes('cdnjs.cloudflare.com'));
  const scanner=fs.readFileSync('dist/mobile/receipt-scanner.js','utf8');
  assert.ok(!scanner.includes('https://cdn.jsdelivr.net'));
- for(const file of ['pdf.js','pdf.worker.mjs','tesseract.min.js','worker.min.js','tessdata/spa.traineddata.gz','tesseract-core/tesseract-core-lstm.wasm.js','tesseract-core/tesseract-core-simd-lstm.wasm.js'])assert.ok(fs.statSync('dist/mobile/vendor/'+file).size>0,`Missing reader asset ${file}`);
+ for(const file of ['pdf.js','pdf.worker.mjs','tesseract.min.js','worker.min.js','tessdata/spa.traineddata','tesseract-core/tesseract-core-lstm.wasm.js','tesseract-core/tesseract-core-simd-lstm.wasm.js'])assert.ok(fs.statSync('dist/mobile/vendor/'+file).size>0,`Missing reader asset ${file}`);
  for(const dir of ['cmaps','standard_fonts','wasm'])assert.ok(fs.readdirSync('dist/mobile/vendor/pdf/'+dir).length);
  assert.ok(scanner.includes("langPath:new URL('vendor/tessdata'"));
+ assert.ok(scanner.includes("gzip:false,workerBlobURL:false,cacheMethod:'none'"));
+ assert.notEqual(fs.readFileSync("dist/mobile/vendor/tessdata/spa.traineddata")[0],0x1f);
  assert.ok(scanner.includes('isEvalSupported:false'));
- assert.ok(scanner.includes("workerBlobURL:false,cacheMethod:'none'"));
+
  assert.ok(scanner.includes('await pdfTask.destroy()'));assert.ok(!scanner.includes('await pdf.destroy()'));
 });
+

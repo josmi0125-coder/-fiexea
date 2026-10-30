@@ -100,7 +100,7 @@ try {
   await check('Packaged Spanish OCR reads a receipt without CDN access', `(async()=>{
     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='vendor/tesseract.min.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
     const canvas=document.createElement('canvas');canvas.width=900;canvas.height=200;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,900,200);ctx.fillStyle='black';ctx.font='60px sans-serif';ctx.fillText('TOTAL 42,80',40,120);
-    const worker=await Tesseract.createWorker('spa',1,{logger:m=>console.log('OCR',m.status,m.progress),errorHandler:e=>console.error('OCR error',e),workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href});
+    const worker=await Tesseract.createWorker('spa',1,{logger:m=>console.log('OCR',m.status,m.progress),errorHandler:e=>console.error('OCR error',e),gzip:false,workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href});
     try{const result=await worker.recognize(canvas);return result.data.text.includes('42')}finally{await worker.terminate()}
   })()`);
   assert.equal(errors.length, 0, 'No uncaught JavaScript exceptions during smoke test');

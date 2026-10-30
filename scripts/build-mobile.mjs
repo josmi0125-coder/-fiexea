@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -27,7 +28,8 @@ for(const file of ['tesseract.min.js','worker.min.js'])await cp(path.join(root,'
 await mkdir(path.join(vendor,'tesseract-core'),{recursive:true});
 for(const file of await readdir(path.join(root,'node_modules/tesseract.js-core')))if(/\.wasm(?:\.js)?$/.test(file))await cp(path.join(root,'node_modules/tesseract.js-core',file),path.join(vendor,'tesseract-core',file));
 await mkdir(path.join(vendor,'tessdata'),{recursive:true});
-await cp(path.join(root,'node_modules/@tesseract.js-data/spa/4.0.0/spa.traineddata.gz'),path.join(vendor,'tessdata/spa.traineddata.gz'));
+// Android asset packaging does not preserve the .gz request path; ship raw traineddata.
+await writeFile(path.join(vendor,'tessdata/spa.traineddata'),gunzipSync(await readFile(path.join(root,'node_modules/@tesseract.js-data/spa/4.0.0_best_int/spa.traineddata.gz'))));
 await mkdir(path.join(vendor,'licenses'),{recursive:true});
 for(const [pkg,file] of [['pdfjs-dist','LICENSE'],['tesseract.js','LICENSE.md'],['tesseract.js-core','LICENSE'],['@tesseract.js-data/spa','LICENSE']]){
  try{await cp(path.join(root,'node_modules',pkg,file),path.join(vendor,'licenses',pkg.replaceAll('/','-')+'.txt'));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -69,7 +71,7 @@ console.log('FIEXEA mobile bundle built from app.html with local dependencies an
 
 let scanner=await readFile(path.join(output,'receipt-scanner.js'),'utf8');
 scanner=scanner.replace('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','vendor/tesseract.min.js')
- .replace("workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0'", "workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href")
+ .replace("workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0'", "gzip:false,workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href")
  .replace('const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;', "const pdfTask=pdfjs.getDocument({isEvalSupported:false,cMapUrl:new URL('vendor/pdf/cmaps/',document.baseURI).href,cMapPacked:true,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href,wasmUrl:new URL('vendor/pdf/wasm/',document.baseURI).href,data:new Uint8Array(await file.arrayBuffer())});const pdf=await pdfTask.promise;")
  .replace('await pdf.destroy()', 'await pdfTask.destroy()')
  .replace('Necesitas conexión para descargar el lector la primera vez.','El lector está incluido en esta aplicación.');

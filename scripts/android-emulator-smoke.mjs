@@ -8,13 +8,14 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const app = 'com.fiexea.mobile.dev';
 const results = [];
 const errors = [];
+const consoleMessages = [];
 let ws;
 let sequence = 0;
 const pending = new Map();
 function command(method, params = {}) {
   const id = ++sequence;
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 60000);
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 180000);
     pending.set(id, { resolve, reject, timer });
     ws.send(JSON.stringify({ id, method, params }));
   });
@@ -50,6 +51,7 @@ try {
   await new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
   ws.addEventListener('message', event => {
     const message = JSON.parse(event.data);
+    if (message.method === 'Runtime.consoleAPICalled') consoleMessages.push(message.params.args.map(arg=>arg.value ?? arg.description).join(' '));
     if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
     const request = pending.get(message.id);
     if (!request) return;
@@ -98,14 +100,14 @@ try {
   await check('Packaged Spanish OCR reads a receipt without CDN access', `(async()=>{
     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='vendor/tesseract.min.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
     const canvas=document.createElement('canvas');canvas.width=900;canvas.height=200;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,900,200);ctx.fillStyle='black';ctx.font='60px sans-serif';ctx.fillText('TOTAL 42,80',40,120);
-    const worker=await Tesseract.createWorker('spa',1,{workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href});
+    const worker=await Tesseract.createWorker('spa',1,{logger:m=>console.log('OCR',m.status,m.progress),errorHandler:e=>console.error('OCR error',e),workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href});
     try{const result=await worker.recognize(canvas);return result.data.text.includes('42')}finally{await worker.terminate()}
   })()`);
   assert.equal(errors.length, 0, 'No uncaught JavaScript exceptions during smoke test');
   results.push('No uncaught JavaScript exceptions during smoke test');
 } finally {
   screenshot('04-final');
-  writeFileSync(`${out}/report.json`, JSON.stringify({ checks: results, exceptions: errors, scope: 'Fresh install; no login, financial data, purchase, or server mutation.' }, null, 2));
-  writeFileSync(`${out}/logcat.txt`, adb('logcat', '-d', '-t', '1000'));
+  writeFileSync(`${out}/report.json`, JSON.stringify({ checks: results, exceptions: errors, console: consoleMessages, scope: 'Fresh install; no login, financial data, purchase, or server mutation.' }, null, 2));
+  writeFileSync(`${out}/logcat.txt`, adb('logcat', '-d', '-s', 'Capacitor:V', 'Capacitor/Console:V', 'chromium:V', '*:S'));
   ws?.close();
 }

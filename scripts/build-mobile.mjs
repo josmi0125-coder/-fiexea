@@ -69,7 +69,7 @@ console.log('FIEXEA mobile bundle built from app.html with local dependencies an
 
 let scanner=await readFile(path.join(output,'receipt-scanner.js'),'utf8');
 scanner=scanner.replace('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','vendor/tesseract.min.js')
- .replace("workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0'", "workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href")
+ .replace("workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0'", "workerBlobURL:false,cacheMethod:'none',workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href")
  .replace('const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;', "const pdfTask=pdfjs.getDocument({isEvalSupported:false,cMapUrl:new URL('vendor/pdf/cmaps/',document.baseURI).href,cMapPacked:true,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href,wasmUrl:new URL('vendor/pdf/wasm/',document.baseURI).href,data:new Uint8Array(await file.arrayBuffer())});const pdf=await pdfTask.promise;")
  .replace('await pdf.destroy()', 'await pdfTask.destroy()')
  .replace('Necesitas conexión para descargar el lector la primera vez.','El lector está incluido en esta aplicación.');

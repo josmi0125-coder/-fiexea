@@ -92,8 +92,8 @@ try {
     let pdf='%PDF-1.4\\n';const offsets=[0];
     objects.forEach((object,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\\n'+object+'\\nendobj\\n'});
     const xref=pdf.length;pdf+='xref\\n0 6\\n0000000000 65535 f \\n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \\n').join('')+'trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n'+xref+'\\n%%EOF';
-    const doc=await pdfjsLib.getDocument({data:new TextEncoder().encode(pdf),isEvalSupported:false,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href}).promise;
-    try{const page=await doc.getPage(1),text=await page.getTextContent(),canvas=document.createElement('canvas'),viewport=page.getViewport({scale:1});canvas.width=viewport.width;canvas.height=viewport.height;await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;return text.items.some(item=>item.str.includes('42.80'))}finally{await doc.destroy()}
+    const pdfTask=pdfjsLib.getDocument({data:new TextEncoder().encode(pdf),isEvalSupported:false,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href});const doc=await pdfTask.promise;
+    try{const page=await doc.getPage(1),text=await page.getTextContent(),canvas=document.createElement('canvas'),viewport=page.getViewport({scale:1});canvas.width=viewport.width;canvas.height=viewport.height;await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;return text.items.some(item=>item.str.includes('42.80'))}finally{await pdfTask.destroy()}
   })()`);
   await check('Packaged Spanish OCR reads a receipt without CDN access', `(async()=>{
     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='vendor/tesseract.min.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});

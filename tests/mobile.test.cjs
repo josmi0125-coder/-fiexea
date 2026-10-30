@@ -39,4 +39,5 @@ test('native receipt readers and workers are packaged locally, including Spanish
  for(const dir of ['cmaps','standard_fonts','wasm'])assert.ok(fs.readdirSync('dist/mobile/vendor/pdf/'+dir).length);
  assert.ok(scanner.includes("langPath:new URL('vendor/tessdata'"));
  assert.ok(scanner.includes('isEvalSupported:false'));
+ assert.ok(scanner.includes('await pdfTask.destroy()'));assert.ok(!scanner.includes('await pdf.destroy()'));
 });

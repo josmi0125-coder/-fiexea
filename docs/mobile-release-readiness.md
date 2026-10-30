@@ -7,7 +7,10 @@ Estado: preparación de desarrollo; publicación pública bloqueada. El titular 
 - PDF.js, Tesseract, workers, fuentes y datos OCR en español se incluyen en el paquete nativo. El lector PDF ya no carga código desde el CDN. La web mantiene sus recursos actuales.
 - Corregido el entorno de cinco pruebas del escáner para incluir el contexto del calendario, sin alterar la lógica financiera para hacerlas pasar.
 - Validación local: `mobile:sync`, 145 pruebas Node, `mobile:check` y revisión de diferencias correctos. Auditoría npm de dependencias de producción: cero vulnerabilidades notificadas.
-- La prueba Android comprueba ahora la bienvenida antes de abrir el acceso y añade lectura/renderizado PDF y OCR con los CDN bloqueados. Estos nuevos controles requieren confirmación en GitHub Actions; no se presentan como ejecutados localmente.
+- GitHub Actions confirma las 145 pruebas y el paquete en ambas plataformas sobre el commit `edcf9eee9ff7c3b93dece935a2d7430bf07b01d6`.
+- [Android: compilación, instalación y pruebas correctas](https://github.com/josmi0125-coder/-fiexea/actions/runs/41092459342). Se verifican bienvenida, acceso, logo, recuperación, rotación, segundo plano, lectura/renderizado PDF y OCR en español con los CDN bloqueados. Se corrigió el cierre del PDF mediante la tarea de carga y el 404 de los datos OCR: se distribuyen como `spa.traineddata`, sin extensión `.gz`, y con `gzip:false`.
+- [APK de desarrollo y checksum](https://github.com/josmi0125-coder/-fiexea/actions/runs/41092459342/artifacts/12995250396), disponible hasta el 13 de noviembre de 2026. Firma debug e identificador provisional; no es una entrega para Google Play.
+- [iPhone: compilación, instalación y arranque en simulador](https://github.com/josmi0125-coder/-fiexea/actions/runs/41092458947), con [captura, informe y app de simulador](https://github.com/josmi0125-coder/-fiexea/actions/runs/41092458947/artifacts/12994414045). No valida todavía OCR/PDF en iOS, operaciones autenticadas ni compras; tampoco es un IPA para dispositivos o TestFlight.
 - `mobile:release-check` continúa fallando intencionadamente: todavía faltan identidad definitiva, facturación nativa, datos legales y validación física. No se ha generado ni firmado un AAB/IPA de distribución.
 
 ## Orden de ejecución pendiente

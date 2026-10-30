@@ -18,8 +18,24 @@ for(const file of await readdir(root)){
 await cp(path.join(root,'assets'),path.join(output,'assets'),{recursive:true});
 for(const [entry,name] of [['mobile/supabase-entry.js','supabase.js'],['mobile/runtime.js','native.js']])
  await build({entryPoints:[path.join(root,entry)],outfile:path.join(output,'vendor',name),bundle:true,format:'iife',target:['safari15','chrome100'],minify:true,legalComments:'eof'});
+// Ship receipt readers and their workers with the native app, rather than loading CDN code.
+const vendor=path.join(output,'vendor');
+await build({entryPoints:[path.join(root,'node_modules/pdfjs-dist/legacy/build/pdf.mjs')],outfile:path.join(vendor,'pdf.js'),bundle:true,format:'iife',globalName:'pdfjsLib',target:['safari15','chrome100'],minify:true,legalComments:'eof'});
+await build({entryPoints:[path.join(root,'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')],outfile:path.join(vendor,'pdf.worker.mjs'),bundle:true,format:'esm',target:['safari15','chrome100'],minify:true,legalComments:'eof'});
+for(const dir of ['cmaps','standard_fonts','wasm'])await cp(path.join(root,'node_modules/pdfjs-dist',dir),path.join(vendor,'pdf',dir),{recursive:true});
+for(const file of ['tesseract.min.js','worker.min.js'])await cp(path.join(root,'node_modules/tesseract.js/dist',file),path.join(vendor,file));
+await mkdir(path.join(vendor,'tesseract-core'),{recursive:true});
+for(const file of await readdir(path.join(root,'node_modules/tesseract.js-core')))if(/\.wasm(?:\.js)?$/.test(file))await cp(path.join(root,'node_modules/tesseract.js-core',file),path.join(vendor,'tesseract-core',file));
+await mkdir(path.join(vendor,'tessdata'),{recursive:true});
+await cp(path.join(root,'node_modules/@tesseract.js-data/spa/4.0.0/spa.traineddata.gz'),path.join(vendor,'tessdata/spa.traineddata.gz'));
+await mkdir(path.join(vendor,'licenses'),{recursive:true});
+for(const [pkg,file] of [['pdfjs-dist','LICENSE'],['tesseract.js','LICENSE.md'],['tesseract.js-core','LICENSE'],['@tesseract.js-data/spa','LICENSE']]){
+ try{await cp(path.join(root,'node_modules',pkg,file),path.join(vendor,'licenses',pkg.replaceAll('/','-')+'.txt'));}catch(error){if(error.code!=='ENOENT')throw error;}
+}
 let html=await readFile(path.join(root,'app.html'),'utf8');
 function replaceOnce(old,value){if(html.split(old).length!==2)throw new Error(`Mobile source changed: ${old.slice(0,80)}`);html=html.replace(old,value);}
+replaceOnce('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>','<script src="vendor/pdf.js"></script>');
+replaceOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js','vendor/pdf.worker.mjs');
 replaceOnce('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>','<script src="vendor/supabase.js"></script><script src="vendor/native.js"></script>');
 replaceOnce("function fiexeaRedirectUrl(){return new URL('./',window.location.href).href}","function fiexeaRedirectUrl(){return window.FiexeaNative?.redirect||new URL('./',window.location.href).href}");
 replaceOnce('window.supabase.createClient(FIEXEA_SUPABASE_URL,FIEXEA_SUPABASE_PUBLISHABLE_KEY)','window.supabase.createClient(FIEXEA_SUPABASE_URL,FIEXEA_SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:\'pkce\'}})');
@@ -50,3 +66,10 @@ access=access.replace('plans.hidden = !canPay','plans.hidden = true').replace('d
 access=access.replaceAll('Tus datos siguen guardados. Elige un plan mensual o anual para continuar usando FIEXEA.','Tu acceso no está activo. Tus datos siguen guardados.').replaceAll('Tus datos siguen guardados. Elige un plan para continuar.','Tu acceso no está activo. Tus datos siguen guardados.');
 await writeFile(path.join(output,'access.js'),access);
 console.log('FIEXEA mobile bundle built from app.html with local dependencies and native file sharing. Web source unchanged.');
+
+let scanner=await readFile(path.join(output,'receipt-scanner.js'),'utf8');
+scanner=scanner.replace('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','vendor/tesseract.min.js')
+ .replace("workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0'", "workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href")
+ .replace('pdfjs.getDocument({data:', "pdfjs.getDocument({isEvalSupported:false,cMapUrl:new URL('vendor/pdf/cmaps/',document.baseURI).href,cMapPacked:true,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href,wasmUrl:new URL('vendor/pdf/wasm/',document.baseURI).href,data:")
+ .replace('Necesitas conexión para descargar el lector la primera vez.','El lector está incluido en esta aplicación.');
+await writeFile(path.join(output,'receipt-scanner.js'),scanner);

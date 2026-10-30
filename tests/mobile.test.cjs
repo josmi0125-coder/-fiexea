@@ -28,3 +28,15 @@ test('mobile build contains a local entry and native share integration',()=>{
  const source=fs.readFileSync('dist/mobile/index.html','utf8');assert.ok(source.includes('window.FiexeaNative.shareBlob'));assert.ok(source.includes("flowType:'pkce'"));assert.ok(source.includes('Las compras y la gestión de suscripciones no están disponibles en esta versión de prueba.'));assert.ok(!source.includes('https://cdn.jsdelivr.net/npm/@supabase'));
  const access=fs.readFileSync('dist/mobile/access.js','utf8');assert.ok(access.includes('plans.hidden = true'));assert.ok(access.includes("getElementById('fiexeaTrialPlans').hidden = true"));
 });
+
+test('native receipt readers and workers are packaged locally, including Spanish OCR data',()=>{
+ const html=fs.readFileSync('dist/mobile/index.html','utf8');
+ assert.ok(html.includes('src="vendor/pdf.js"'));assert.ok(html.includes('vendor/pdf.worker.mjs'));
+ assert.ok(!html.includes('cdnjs.cloudflare.com'));
+ const scanner=fs.readFileSync('dist/mobile/receipt-scanner.js','utf8');
+ assert.ok(!scanner.includes('https://cdn.jsdelivr.net'));
+ for(const file of ['pdf.js','pdf.worker.mjs','tesseract.min.js','worker.min.js','tessdata/spa.traineddata.gz','tesseract-core/tesseract-core-lstm.wasm.js','tesseract-core/tesseract-core-simd-lstm.wasm.js'])assert.ok(fs.statSync('dist/mobile/vendor/'+file).size>0,`Missing reader asset ${file}`);
+ for(const dir of ['cmaps','standard_fonts','wasm'])assert.ok(fs.readdirSync('dist/mobile/vendor/pdf/'+dir).length);
+ assert.ok(scanner.includes("langPath:new URL('vendor/tessdata'"));
+ assert.ok(scanner.includes('isEvalSupported:false'));
+});

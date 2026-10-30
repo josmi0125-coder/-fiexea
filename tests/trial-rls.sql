@@ -9,6 +9,8 @@ begin
  (expired_uid,'fiexea-review-'||expired_uid||'@example.invalid',now()-interval '4 days',now());
  insert into public.fiexea_financial_data(user_id,data) values
  (active_uid,'{"fiexea_moves":"[]"}'),(expired_uid,'{"fiexea_moves":"[]"}');
+ -- Simulate a legacy entitlement for RLS coverage; new registration itself has no trial.
+ update private.fiexea_account_access set trial_ends_at=trial_started_at+interval '72 hours' where user_id=active_uid;
  perform set_config('request.jwt.claim.sub',active_uid::text,true);
  set local role authenticated;
  select public.fiexea_access_status() into result;

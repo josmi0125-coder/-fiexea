@@ -14,7 +14,7 @@ const pending = new Map();
 function command(method, params = {}) {
   const id = ++sequence;
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 15000);
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 60000);
     pending.set(id, { resolve, reject, timer });
     ws.send(JSON.stringify({ id, method, params }));
   });
@@ -62,7 +62,9 @@ try {
     await pause(1000);
   }
   await check('Android native bridge initialized', 'document.documentElement.dataset.nativePlatform === "android" && !!window.FiexeaNative');
-  await check('Login form visible without a session', '!document.getElementById("fiexeaLoginView").hidden && document.getElementById("fiexeaEmail").getClientRects().length > 0');
+  await check('Welcome offers seven days without registration', '!document.getElementById("fiexeaWelcomeView").hidden && document.getElementById("fiexeaWelcomeTrial").getClientRects().length > 0');
+  await evaluate('document.getElementById("fiexeaWelcomeLogin").click()');
+  await check('Login form visible without a session' , '!document.getElementById("fiexeaLoginView").hidden && document.getElementById("fiexeaEmail").getClientRects().length > 0');
   await check('Logo loaded from package', 'document.querySelector(".fiexea-auth-logo").naturalWidth > 0');
   screenshot('01-login');
   await evaluate('document.getElementById("fiexeaForgotBtn").click()');
@@ -81,6 +83,24 @@ try {
   adb('shell', 'am', 'start', '-W', '-n', `${app}/.MainActivity`);
   await pause(1000);
   await check('Login survives background and resume', '!document.getElementById("fiexeaLoginView").hidden && !!window.FiexeaNative');
+  await command('Network.enable');
+  await command('Network.setBlockedURLs', { urls: ['*cdn.jsdelivr.net*', '*cdnjs.cloudflare.com*', '*tessdata.projectnaptha.com*'] });
+  await check('Packaged PDF reader extracts and renders a receipt without CDN access', `(async()=>{
+    const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 100] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+    const stream='BT /F1 20 Tf 10 50 Td (TOTAL 42.80) Tj ET';
+    objects.push('<< /Length '+stream.length+' >>\\nstream\\n'+stream+'\\nendstream');
+    let pdf='%PDF-1.4\\n';const offsets=[0];
+    objects.forEach((object,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\\n'+object+'\\nendobj\\n'});
+    const xref=pdf.length;pdf+='xref\\n0 6\\n0000000000 65535 f \\n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \\n').join('')+'trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n'+xref+'\\n%%EOF';
+    const doc=await pdfjsLib.getDocument({data:new TextEncoder().encode(pdf),isEvalSupported:false,standardFontDataUrl:new URL('vendor/pdf/standard_fonts/',document.baseURI).href}).promise;
+    try{const page=await doc.getPage(1),text=await page.getTextContent(),canvas=document.createElement('canvas'),viewport=page.getViewport({scale:1});canvas.width=viewport.width;canvas.height=viewport.height;await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;return text.items.some(item=>item.str.includes('42.80'))}finally{await doc.destroy()}
+  })()`);
+  await check('Packaged Spanish OCR reads a receipt without CDN access', `(async()=>{
+    await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='vendor/tesseract.min.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
+    const canvas=document.createElement('canvas');canvas.width=900;canvas.height=200;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,900,200);ctx.fillStyle='black';ctx.font='60px sans-serif';ctx.fillText('TOTAL 42,80',40,120);
+    const worker=await Tesseract.createWorker('spa',1,{workerPath:new URL('vendor/worker.min.js',document.baseURI).href,corePath:new URL('vendor/tesseract-core',document.baseURI).href,langPath:new URL('vendor/tessdata',document.baseURI).href});
+    try{const result=await worker.recognize(canvas);return result.data.text.includes('42')}finally{await worker.terminate()}
+  })()`);
   assert.equal(errors.length, 0, 'No uncaught JavaScript exceptions during smoke test');
   results.push('No uncaught JavaScript exceptions during smoke test');
 } finally {

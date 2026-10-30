@@ -1,3 +1,29 @@
+# Actualización móvil del 30 de octubre de 2026
+
+Estado: preparación de desarrollo; publicación pública bloqueada. El titular confirma que todavía no dispone de cuenta Google Play Console ni membresía Apple Developer activa.
+
+- Integrada la rama `main` hasta `3003cae`, conservando la prueba de siete días sin registro, las guías, el escaneo de recibos/PDF y las correcciones de la web. Resueltos los cinco conflictos de integración.
+- Android/iOS: versión 1.1, compilación 3.
+- PDF.js, Tesseract, workers, fuentes y datos OCR en español se incluyen en el paquete nativo. El lector PDF ya no carga código desde el CDN. La web mantiene sus recursos actuales.
+- Corregido el entorno de cinco pruebas del escáner para incluir el contexto del calendario, sin alterar la lógica financiera para hacerlas pasar.
+- Validación local: `mobile:sync`, 145 pruebas Node, `mobile:check` y revisión de diferencias correctos. Auditoría npm de dependencias de producción: cero vulnerabilidades notificadas.
+- La prueba Android comprueba ahora la bienvenida antes de abrir el acceso y añade lectura/renderizado PDF y OCR con los CDN bloqueados. Estos nuevos controles requieren confirmación en GitHub Actions; no se presentan como ejecutados localmente.
+- `mobile:release-check` continúa fallando intencionadamente: todavía faltan identidad definitiva, facturación nativa, datos legales y validación física. No se ha generado ni firmado un AAB/IPA de distribución.
+
+## Orden de ejecución pendiente
+
+1. **Titular:** crear/verificar Google Play Console y activar Apple Developer; confirmar titular legal e identificadores definitivos. No enviar claves privadas, contraseñas ni certificados por chat.
+2. **Integración técnica:** aplicar los identificadores en Capacitor, Android, iOS y callbacks; configurar las URLs de autenticación correspondientes y comprobar registro/recuperación con cuentas de ensayo.
+3. **Suscripciones:** registrar productos de cada tienda e implementar Google Play Billing y StoreKit con verificación en backend, restauración y actualización del acceso. Stripe web no cubre este requisito. No activar compras reales hasta validar los entornos de prueba.
+4. **Android:** configurar la firma del titular, generar AAB de distribución, cargarlo en pruebas internas y completar las pruebas exigibles a esa cuenta antes de producción.
+5. **iPhone:** configurar Team y firma de distribución, crear la ficha en App Store Connect y subir una compilación para dispositivos a TestFlight.
+6. **Pruebas en ambos sistemas:** registro/confirmación, recuperación con app abierta y cerrada, sesión, fin de prueba, cambios de cuenta, movimientos, calendario, recibos de imagen/PDF, exportación, copias/restauración y eliminación de cuenta. Verificar compra, renovación, cancelación y restauración con las tiendas de prueba. Probar safe areas, teclado, accesibilidad y segundo plano en dispositivos físicos.
+7. **Fichas y revisión:** privacidad, datos recogidos, capturas reales, clasificación, soporte, eliminación de cuenta y credenciales de revisión; entregar a revisión únicamente tras cerrar los bloqueos.
+
+La evidencia de octubre anterior se conserva debajo como histórico y no acredita el resultado de esta compilación 3.
+
+---
+
 # Actualización móvil del 23 de octubre de 2026
 
 Se integra la web publicada hasta el commit `328e1a8cd297a12a8177808c17ceebb26da0b291` en la rama móvil: calendario de gastos, recibos privados, pagos fraccionados, categorías separadas, inversiones, calculadoras y botones «Guía». Versiones nativas: **1.1, compilación 2**, en Android e iOS; paquete de desarrollo 0.2.0.

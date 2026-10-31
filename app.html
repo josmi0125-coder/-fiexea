@@ -592,9 +592,8 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 /* Fixed navigation reserves its measured height, including the device safe area. */
 .app{padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
 html{scroll-padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
-.nav{transition:transform .22s ease;will-change:transform}
-body.nav-scroll-hidden .nav{transform:translate3d(0,calc(100% + env(safe-area-inset-bottom,0px)),0)}
-body.nav-scroll-hidden .nav,body.nav-scroll-hidden .nav *{pointer-events:none!important}
+/* Fixed means no scroll translation or compositor animation, including on Safari. */
+.nav,body.nav-scroll-hidden .nav{bottom:0;transform:none;translate:none;transition:none;will-change:auto}
 /* A translated fixed bar can remain above the iOS keyboard: remove it entirely. */
 body.nav-keyboard-hidden .nav,body.nav-form-hidden .nav{display:none!important}
 /* Keep Safari from zooming the page when these finance form fields receive focus. */
@@ -2664,8 +2663,8 @@ async function resetAll(){
 }
 let bottomNavigationInitialized=false;
 function setBottomNavigationVisible(){
-  const hidden=document.body.classList.contains('nav-keyboard-hidden')||document.body.classList.contains('nav-form-hidden');
-  if(document.body.classList.contains('nav-scroll-hidden')!==hidden)document.body.classList.toggle('nav-scroll-hidden',hidden);
+  // Retire the old scroll state; keyboard/forms use an atomic display:none.
+  document.body.classList.remove('nav-scroll-hidden');
 }
 function initializeFixedBottomNavigation(){
   if(bottomNavigationInitialized)return;
@@ -2676,7 +2675,7 @@ function initializeFixedBottomNavigation(){
   // Keep a keyboard-free height: Safari can leave the field focused after Done.
   let keyboardViewportHeight=Math.max(window.innerHeight,(window.visualViewport?.height||0)*(window.visualViewport?.scale||1));
   let keyboardViewportWidth=window.innerWidth;
-  let keyboardWasEditing=false;
+  let keyboardSyncTimer;
   const syncKeyboardNavigation=()=>{
     const viewport=window.visualViewport;
     // Safari may zoom a focused field; compare heights in the same scale.
@@ -2689,14 +2688,23 @@ function initializeFixedBottomNavigation(){
     keyboardViewportHeight=Math.max(keyboardViewportHeight,window.innerHeight,height);
     const editing=!!isEditingField();
     const wasHidden=document.body.classList.contains('nav-keyboard-hidden');
-    const hidden=(editing||keyboardWasEditing||wasHidden)&&keyboardViewportHeight-height>150;
-    keyboardWasEditing=editing;
+    // Never let an old hidden state latch after blur or a viewport change.
+    const hidden=editing&&keyboardViewportHeight-height>150;
+    if(!editing)keyboardViewportHeight=Math.max(window.innerHeight,height);
     document.body.classList.toggle('nav-keyboard-hidden',hidden);
     if(hidden)setBottomNavigationVisible(false);
     else if(wasHidden)reveal();
   };
   document.addEventListener('focusin',syncKeyboardNavigation);
-  document.addEventListener('focusout',()=>setTimeout(syncKeyboardNavigation,0));
+  document.addEventListener('focusout',()=>{
+    clearTimeout(keyboardSyncTimer);
+    keyboardSyncTimer=setTimeout(syncKeyboardNavigation,350);
+  });
+  window.addEventListener('orientationchange',()=>{
+    keyboardViewportHeight=0;
+    clearTimeout(keyboardSyncTimer);
+    keyboardSyncTimer=setTimeout(syncKeyboardNavigation,350);
+  },{passive:true});
   window.addEventListener('resize',syncKeyboardNavigation,{passive:true});
   window.addEventListener('pageshow',syncKeyboardNavigation,{passive:true});
   if(window.visualViewport){

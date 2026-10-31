@@ -589,17 +589,19 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 #t5>.analysis-detail-grid{gap:12px}
 #t5 .financial-analysis-panel{gap:var(--fiexea-section-gap)}
 #t5 .financial-analysis-panel>.section{margin:0}
-/* Keep the existing automatic hide/reveal behavior and safe-area clearance. */
+/* Fixed navigation reserves its measured height, including the device safe area. */
+.app{padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
+html{scroll-padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
 .nav{transition:transform .22s ease;will-change:transform}
 body.nav-scroll-hidden .nav{transform:translate3d(0,calc(100% + env(safe-area-inset-bottom,0px)),0)}
 body.nav-scroll-hidden .nav,body.nav-scroll-hidden .nav *{pointer-events:none!important}
 /* A translated fixed bar can remain above the iOS keyboard: remove it entirely. */
-body.nav-keyboard-hidden .nav{display:none!important}
+body.nav-keyboard-hidden .nav,body.nav-form-hidden .nav{display:none!important}
 /* Keep Safari from zooming the page when these finance form fields receive focus. */
 .account-manual-form input,.account-manual-form select,.moves-secondary-input,.moves-secondary-select{font-size:16px}
 @media(max-width:360px){.navin{padding:0 4px;gap:0}.nav-label{font-size:9.8px;letter-spacing:-.35px}}
 @media(max-width:520px){.app{padding-top:max(18px,calc(env(safe-area-inset-top,0px) + 16px))}}
-html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
 @media(prefers-reduced-motion:reduce){.nav{transition:none}}
 </style>
 
@@ -2660,30 +2662,16 @@ async function resetAll(){
   financialActiveUserId=null;financialLastSyncedSnapshot='';clearFinancialSyncPending();financialAppReady=true;setFinancialSyncStatus('local');
   showPersistenceNotice(remoteResult.authenticated?'Datos locales y copia remota eliminados.':'Datos locales eliminados. No había una sesión para borrar una copia remota.');
 }
-let bottomNavigationAutoHideInitialized=false;
-let bottomNavigationLastY=0;
-let bottomNavigationDownDistance=0;
-let bottomNavigationUpDistance=0;
-let bottomNavigationTouchStartY=null;
-let bottomNavigationTouchActive=false;
-let bottomNavigationState='visible';
-function setBottomNavigationVisible(visible){
-  const nav=document.querySelector('.nav');
-  if(!nav)return;
-  if(document.body.classList.contains('nav-keyboard-hidden'))visible=false;
-  const nextState=visible?'visible':'hidden';
-  if(bottomNavigationState===nextState&&document.body.classList.contains('nav-scroll-hidden')===!visible){if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}return}
-  bottomNavigationState=nextState;
-  document.body.classList.toggle('nav-scroll-hidden',!visible);
-  if(visible){bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;bottomNavigationDownDistance=0;bottomNavigationUpDistance=0}
+let bottomNavigationInitialized=false;
+function setBottomNavigationVisible(){
+  const hidden=document.body.classList.contains('nav-keyboard-hidden')||document.body.classList.contains('nav-form-hidden');
+  if(document.body.classList.contains('nav-scroll-hidden')!==hidden)document.body.classList.toggle('nav-scroll-hidden',hidden);
 }
-function initializeBottomNavigationAutoHide(){
-  if(bottomNavigationAutoHideInitialized)return;
+function initializeFixedBottomNavigation(){
+  if(bottomNavigationInitialized)return;
   const nav=document.querySelector('.nav');if(!nav)return;
-  bottomNavigationAutoHideInitialized=true;
-  bottomNavigationState=document.body.classList.contains('nav-scroll-hidden')?'hidden':'visible';
-  bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;
-  const reveal=()=>setBottomNavigationVisible(true);
+  bottomNavigationInitialized=true;
+  const reveal=()=>setBottomNavigationVisible();
   const isEditingField=()=>document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
   // Keep a keyboard-free height: Safari can leave the field focused after Done.
   let keyboardViewportHeight=Math.max(window.innerHeight,(window.visualViewport?.height||0)*(window.visualViewport?.scale||1));
@@ -2716,68 +2704,20 @@ function initializeBottomNavigationAutoHide(){
     window.visualViewport.addEventListener('scroll',syncKeyboardNavigation,{passive:true});
   }
   syncKeyboardNavigation();
-  const applyVerticalIntent=(delta,currentY)=>{
-    if(delta>0){bottomNavigationDownDistance+=delta;bottomNavigationUpDistance=0;if(currentY>56&&bottomNavigationDownDistance>=24)setBottomNavigationVisible(false)}
-    else if(delta<0){bottomNavigationUpDistance-=delta;bottomNavigationDownDistance=0;if(bottomNavigationUpDistance>=12)reveal()}
+  const syncFormNavigation=()=>{
+    const hidden=Array.from(document.querySelectorAll('#moveEditor,#budgetCategoryForm,#debtEditorDetails[open],#goalEditorCard,#assetEditor,#investmentEditor,#manualAccountForm,[aria-modal="true"],[role="dialog"],[role="alertdialog"]')).some(element=>!element.closest('[hidden]')&&element.getClientRects().length>0&&getComputedStyle(element).visibility!=='hidden');
+    if(document.body.classList.contains('nav-form-hidden')!==hidden)document.body.classList.toggle('nav-form-hidden',hidden);
+    reveal();
   };
-  let lastViewportWidth=window.innerWidth||document.documentElement.clientWidth;
-  let lastViewportHeight=window.innerHeight;
-  let lastVisualViewportWidth=window.visualViewport?.width||lastViewportWidth;
-  let lastVisualViewportHeight=window.visualViewport?.height||lastViewportHeight;
-  const handleWindowResize=()=>{
-    const width=window.innerWidth||document.documentElement.clientWidth,height=window.innerHeight;
-    const widthChanged=Math.abs(width-lastViewportWidth)>1,heightDelta=height-lastViewportHeight;
-    const changed=widthChanged||Math.abs(heightDelta)>1;
-    lastViewportWidth=width;lastViewportHeight=height;
-    if(changed&&(!isEditingField()||widthChanged||heightDelta>1))reveal();
-  };
-  const handleVisualViewportResize=()=>{
-    const viewport=window.visualViewport;if(!viewport)return;
-    const width=viewport.width,height=viewport.height;
-    const widthChanged=Math.abs(width-lastVisualViewportWidth)>1,heightDelta=height-lastVisualViewportHeight;
-    const changed=widthChanged||Math.abs(heightDelta)>1;
-    lastVisualViewportWidth=width;lastVisualViewportHeight=height;
-    if(changed&&(!isEditingField()||widthChanged||heightDelta>1))reveal();
-  };
-  const onScroll=()=>{
-    const currentY=window.scrollY||document.documentElement.scrollTop||0;
-    const delta=currentY-bottomNavigationLastY;
-    bottomNavigationLastY=currentY;
-    if(bottomNavigationTouchActive)return;
-    const scrollRoot=document.scrollingElement||document.documentElement;
-    const pageCanScroll=scrollRoot.scrollHeight>window.innerHeight+48;
-    if(!pageCanScroll||currentY<=16||document.body.style.overflow==='hidden'||isEditingField()){reveal();return}
-    applyVerticalIntent(delta,currentY);
-  };
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',handleWindowResize,{passive:true});
-  window.addEventListener('orientationchange',reveal,{passive:true});
-  window.addEventListener('pageshow',reveal,{passive:true});
-  window.addEventListener('focus',reveal,{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)reveal()});
-  if(window.visualViewport)window.visualViewport.addEventListener('resize',handleVisualViewportResize,{passive:true});
-  document.addEventListener('touchstart',event=>{
-    const target=event.target?.nodeType===1?event.target:event.target?.parentElement;
-    if(event.touches.length!==1||target?.closest('.nav,button,a,input,select,textarea,[contenteditable="true"]')){bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;return}
-    bottomNavigationTouchStartY=event.touches[0].clientY;bottomNavigationTouchActive=true;
-    bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0;
-    bottomNavigationDownDistance=0;bottomNavigationUpDistance=0;
-  },{passive:true});
-  document.addEventListener('touchmove',event=>{
-    if(bottomNavigationTouchStartY===null||event.touches.length!==1){bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;return}
-    const currentTouchY=event.touches[0].clientY,delta=bottomNavigationTouchStartY-currentTouchY;
-    bottomNavigationTouchStartY=currentTouchY;
-    const currentY=window.scrollY||document.documentElement.scrollTop||0;
-    bottomNavigationLastY=currentY;
-    const scrollRoot=document.scrollingElement||document.documentElement;
-    if(scrollRoot.scrollHeight<=window.innerHeight+48||currentY<=16||document.body.style.overflow==='hidden'||isEditingField()){reveal();return}
-    applyVerticalIntent(delta,currentY);
-  },{passive:true});
-  const clearTouchTracking=()=>{bottomNavigationTouchStartY=null;bottomNavigationTouchActive=false;bottomNavigationLastY=window.scrollY||document.documentElement.scrollTop||0};
-  document.addEventListener('touchend',clearTouchTracking,{passive:true});
-  document.addEventListener('touchcancel',clearTouchTracking,{passive:true});
-  document.addEventListener('focusin',event=>{if(event.target?.matches('input,textarea,select,[contenteditable="true"]'))reveal()});
-  nav.addEventListener('focusin',reveal);
+  let scheduled=false;
+  const scheduleFormSync=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;syncFormNavigation()})};
+  new MutationObserver(scheduleFormSync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','open','style','class']});
+  const syncNavigationHeight=()=>{const height=nav.getBoundingClientRect().height;if(height>0)document.documentElement.style.setProperty('--bottom-navigation-height',height+'px')};
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(syncNavigationHeight).observe(nav);
+  window.addEventListener('resize',syncNavigationHeight,{passive:true});
+  window.addEventListener('pageshow',scheduleFormSync,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){syncKeyboardNavigation();scheduleFormSync()}});
+  syncFormNavigation();syncNavigationHeight();
 }
 const swipeMainTabOrder=[0,1,5,2,4,10];
 let swipeNavigationInitialized=false;
@@ -2821,7 +2761,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       tab(btn.dataset.tab);
     },false);
   });
-  initializeBottomNavigationAutoHide();
+  initializeFixedBottomNavigation();
   initializeSwipeNavigation();
   showTabFromHash();
 });

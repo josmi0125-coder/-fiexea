@@ -592,8 +592,10 @@ html[data-theme="dark"] .category-manager-icon{background:var(--bg);border-color
 /* Fixed navigation reserves its measured height, including the device safe area. */
 .app{padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
 html{scroll-padding-bottom:calc(var(--bottom-navigation-height,calc(72px + env(safe-area-inset-bottom,0px))) + 16px)}
-/* Fixed means no scroll translation or compositor animation, including on Safari. */
-.nav,body.nav-scroll-hidden .nav{bottom:0;transform:none;translate:none;transition:none;will-change:auto}
+/* Prevent iOS rubber-band scrolling from displacing fixed navigation. */
+html,body{overscroll-behavior-y:none}
+/* Give Safari a stable composited layer for fixed navigation while scrolling. */
+.nav,body.nav-scroll-hidden .nav{position:fixed;top:auto;bottom:0;left:0;right:0;transform:translateZ(0);translate:none;transition:none;will-change:auto;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 /* A translated fixed bar can remain above the iOS keyboard: remove it entirely. */
 body.nav-keyboard-hidden .nav,body.nav-form-hidden .nav{display:none!important}
 /* Keep Safari from zooming the page when these finance form fields receive focus. */

@@ -1,0 +1,8 @@
+{
+  "appId": "com.fiexea.mobile.dev",
+  "appName": "FIEXEA",
+  "webDir": "dist/mobile",
+  "backgroundColor": "#f4f7f8",
+  "server": { "androidScheme": "https", "cleartext": false },
+  "ios": { "contentInset": "automatic" }
+}

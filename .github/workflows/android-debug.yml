@@ -1,0 +1,88 @@
+name: Android development APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/mobile-android-ios-20261017]
+    paths:
+      - '.github/workflows/android-debug.yml'
+      - 'android/**'
+      - 'mobile/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package*.json'
+      - 'capacitor.config.json'
+      - '*.html'
+      - '*.js'
+      - '*.css'
+      - 'assets/**'
+permissions:
+  contents: read
+concurrency:
+  group: android-development-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Bundle and sync native assets
+        run: npm run mobile:sync
+      - name: Test web and native integration
+        run: npm test
+      - name: Check development package
+        run: npm run mobile:check
+      - name: Install Android SDK packages
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+      - name: Build development APK
+        working-directory: android
+        run: bash gradlew --no-daemon assembleDebug
+      - name: Install emulator image
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"'
+      - name: Boot Android emulator
+        run: |
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/fiexea-avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
+          sudo chmod a+rw /dev/kvm
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name fiexea-ci --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
+          "$ANDROID_HOME/emulator/emulator" -avd fiexea-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader > /tmp/fiexea-emulator.log 2>&1 &
+          timeout 180 adb wait-for-device
+          timeout 240 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb install android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Exercise installed Android application
+        run: node scripts/android-emulator-smoke.mjs
+      - name: Retain emulator screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FIEXEA-Android-emulator-results
+          path: |
+            test-results/android/
+            /tmp/fiexea-emulator.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Record APK checksum
+        run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/SHA256SUMS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FIEXEA-Android-development
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

@@ -1,11 +1,14 @@
 # Actualización móvil del 2 de noviembre de 2026
 
-Estado: actualización preparada y validada localmente; subida a GitHub bloqueada por revisión automática de autorización. No se ha publicado una nueva compilación.
+Estado: cambios subidos a GitHub con autorización del titular. Android build 4 compilado y probado en emulador; iPhone sigue en cola de GitHub para un runner macos-15, sin equipo asignado.
 
-- Integrada la web hasta `355b3d6`, más la corrección del entorno de pruebas `8144f27`: movimientos por mes, pagos de deuda con importe/fecha/categoría, todas las categorías, pendientes del mes desde un día antes y correcciones de barra inferior en iOS.
+- Integrada la web hasta `355b3d6`, más la corrección del entorno de pruebas publicada en `81926b8`: movimientos por mes, pagos de deuda con importe/fecha/categoría, todas las categorías, pendientes del mes desde un día antes y correcciones de barra inferior en iOS.
 - Android/iOS: versión 1.1, compilación 4.
 - `npm run mobile:sync`, las 157 pruebas Node y `npm run mobile:check` pasan. La web, con el contexto del escáner corregido, pasa sus 151 pruebas.
-- Los recursos compartidos se han copiado a ambos proyectos nativos. No se ha ejecutado una nueva compilación Gradle/Xcode ni emuladores: los workflows remotos necesitan la subida bloqueada.
+- Los recursos compartidos se han copiado a ambos proyectos nativos. La compilación remota Android sobre `2d45c2a78207b0eb602c5d7b1945c39b427876bf` pasa las 157 pruebas, package check, Gradle, instalación y prueba en emulador, incluyendo lector PDF/OCR. [Ejecución Android correcta](https://github.com/josmi0125-coder/-fiexea/actions/runs/41492460891).
+- [APK Android de prueba y checksum](https://github.com/josmi0125-coder/-fiexea/actions/runs/41492460891/artifacts/13164987820), conservado hasta el 16 de noviembre de 2026; firma debug, no AAB de distribución.
+- [Compilación iPhone en cola](https://github.com/josmi0125-coder/-fiexea/actions/runs/41492460858). No hay todavía resultado de compilación, instalación o arranque de build 4 en iOS; no confundir con las comprobaciones locales ni con la evidencia de build 3.
+- Auditoría de dependencias de producción: cero vulnerabilidades notificadas. Los cambios no se han fusionado a main como publicación nativa; el PR #1 sigue en borrador.
 - Supabase aparece `ACTIVE_HEALTHY`. El endpoint público de disponibilidad de Checkout devuelve `billing_available: true`, `mode: live`, `prices_valid: true`. Esto no verifica un cobro ni el webhook de activación.
 - En los registros de las últimas 24 horas consultados, las peticiones de API y Edge Functions tienen estado 200 (67 y 8 entradas respectivamente). La ausencia de errores en esta muestra no acredita flujos sin tráfico.
 - Se comprobaron las políticas de propiedad de datos financieros y los buckets privados de recibos/avatares. Las políticas de prueba son restrictivas y se combinan con las de propietario. No se cambiaron permisos ni datos de producción.

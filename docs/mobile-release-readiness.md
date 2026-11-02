@@ -1,3 +1,19 @@
+# Actualización móvil del 2 de noviembre de 2026
+
+Estado: actualización preparada y validada localmente; subida a GitHub bloqueada por revisión automática de autorización. No se ha publicado una nueva compilación.
+
+- Integrada la web hasta `355b3d6`, más la corrección del entorno de pruebas `8144f27`: movimientos por mes, pagos de deuda con importe/fecha/categoría, todas las categorías, pendientes del mes desde un día antes y correcciones de barra inferior en iOS.
+- Android/iOS: versión 1.1, compilación 4.
+- `npm run mobile:sync`, las 157 pruebas Node y `npm run mobile:check` pasan. La web, con el contexto del escáner corregido, pasa sus 151 pruebas.
+- Los recursos compartidos se han copiado a ambos proyectos nativos. No se ha ejecutado una nueva compilación Gradle/Xcode ni emuladores: los workflows remotos necesitan la subida bloqueada.
+- Supabase aparece `ACTIVE_HEALTHY`. El endpoint público de disponibilidad de Checkout devuelve `billing_available: true`, `mode: live`, `prices_valid: true`. Esto no verifica un cobro ni el webhook de activación.
+- En los registros de las últimas 24 horas consultados, las peticiones de API y Edge Functions tienen estado 200 (67 y 8 entradas respectivamente). La ausencia de errores en esta muestra no acredita flujos sin tráfico.
+- Se comprobaron las políticas de propiedad de datos financieros y los buckets privados de recibos/avatares. Las políticas de prueba son restrictivas y se combinan con las de propietario. No se cambiaron permisos ni datos de producción.
+- Pendientes de verificación autenticada: inicio de sesión/callback nativo, sincronización entre dispositivos, copia/restauración y subida/lectura de recibos con cuenta de ensayo. No se dispone de una sesión autenticada de ensayo y no se ha accedido ni alterado el contenido financiero del titular.
+- Pendientes de publicación: cuentas de desarrollador, firma, identificadores definitivos, compras nativas, fichas/legales y pruebas en dispositivos físicos. No hay AAB/IPA de distribución ni nueva entrega TestFlight.
+
+---
+
 # Actualización móvil del 30 de octubre de 2026
 
 Estado: preparación de desarrollo; publicación pública bloqueada. El titular confirma que todavía no dispone de cuenta Google Play Console ni membresía Apple Developer activa.
